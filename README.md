@@ -1,2 +1,1 @@
-# groimp
-groimp 저장 경로
+# tomato저장 경로
