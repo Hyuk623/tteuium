@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 from tomato3d.calib.intrinsics import CalibrationError, calibrate_intrinsics
-from tomato3d.config import get_settings
+from tomato3d.config import ConfigError, get_settings
 from tomato3d.io.schemas import BoardSpec, SchemaError, dump_json_model, load_json_model
 from tomato3d.logging_setup import configure_logging
 
@@ -65,7 +65,11 @@ def collect_image_paths(images_dir: Path) -> list[Path]:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    settings = get_settings()
+    try:
+        settings = get_settings()
+    except ConfigError as exc:  # a bad TOMATO3D_* value is an input error (exit 2), not a crash
+        logger.error("configuration error: %s", exc)
+        return 2
     configure_logging(settings.log_level)
 
     camera_id = args.camera_id or settings.camera_id

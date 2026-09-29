@@ -158,7 +158,9 @@ class BoardSpec(_StrictModel):
     marker_ids: tuple[int, ...]
     expected_marker_count: int = Field(gt=0)
     expected_inner_corner_count: int = Field(gt=0)
-    origin_corner: Literal["top_left", "top_right", "bottom_left", "bottom_right"]
+    #: Only ``top_left`` is implemented (first_inner_corner_sheet_mm assumes it) and it is what the
+    #: printed board uses; other corners were accepted before but silently computed as top_left.
+    origin_corner: Literal["top_left"]
     position_frame: Literal["sheet"]
     mounted_on_turntable: bool
     surface_finish: str
@@ -440,13 +442,18 @@ class SessionManifest(_StrictModel):
                 f"operational_top_view {self.operational_top_view!r} is not a key of "
                 "top_view_positions_mm"
             )
+        # masks are named by image stem (io.manifest.mask_filename): two images with one stem,
+        # e.g. side/000.jpg and top/000.jpg, would silently overwrite each other's mask
+        stems: dict[str, str] = {}
+        for entry in self.images:
+            stem = Path(entry.file).stem
+            if stem in stems:
+                raise ValueError(
+                    f"images {stems[stem]!r} and {entry.file!r} share the stem {stem!r}; "
+                    "their masks would overwrite each other"
+                )
+            stems[stem] = entry.file
         return self
-
-    def side_images(self) -> list[ImageEntry]:
-        return [entry for entry in self.images if entry.view_type == "side"]
-
-    def top_images(self) -> list[ImageEntry]:
-        return [entry for entry in self.images if entry.view_type == "top"]
 
 
 class QualityRecord(BaseModel):

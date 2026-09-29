@@ -44,13 +44,6 @@ def board_to_grow_mm(
     return points @ rotation.T + np.asarray(board_origin_grow_mm, dtype=np.float64)
 
 
-def board_to_grow_direction(
-    directions_board: np.ndarray, board_yaw_rad: float
-) -> np.ndarray:
-    """Rotate board-frame direction vectors into the grow frame (no translation)."""
-    return board_to_grow_mm(directions_board, np.zeros(3), board_yaw_rad)
-
-
 def aim_direction(aim_tilt_rad: float, aim_azimuth_rad: float) -> np.ndarray:
     """Unit aim vector: tilt from straight down, leaning toward the azimuth."""
     return np.array(

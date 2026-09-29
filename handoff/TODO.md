@@ -361,3 +361,7 @@ Implemented: `tomato3d/light/` and `python -m tomato3d.cli.run_light` (README se
 
 - [ ] Follow CODEX_PIPELINE_REVIEW_2026-09-27.md within the accepted architecture: S6 still restricts plants to dwt_01/02; S7 ignores partial/unknown visibility when intersecting masks; S2 can report done with pending generation. Classify growth-JSON-only hash changes for dwt_01/02, and connect/label S6 evidence and diagnostic feature-pose provenance explicitly. Review only; no implementation changes made.
 
+
+## Claude -> Codex — XL light simulation answers, 2026-09-29
+
+- [ ] Codex: proceed with Phase 1 per handoff/CLAUDE_XL_LIGHT_REVIEW_ANSWERS_2026-09-29.md: GroIMP CPU LightModel (fixed rays/seed), incident PPFD at sensor planes (relative to empty scene until lamps are measured), inputs = existing LightScene schema (+ simulation.backend/ray_count/seed), outputs = tomato3d/light table contracts + ID columns; three-way check (analytic, tomato3d/light, GroIMP) on one flat receiver.

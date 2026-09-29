@@ -32,7 +32,7 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-from tomato3d.config import Settings, get_settings
+from tomato3d.config import ConfigError, Settings, get_settings
 from tomato3d.io.schemas import (
     AS_BUILT_SCENARIO_ID,
     GEOMETRY_VARIANT_COMPARISON_CSV_COLUMNS,
@@ -228,7 +228,11 @@ def run(args: argparse.Namespace, settings: Settings) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    settings = get_settings()
+    try:
+        settings = get_settings()
+    except ConfigError as exc:  # a bad TOMATO3D_* value is an input error (exit 2), not a crash
+        logger.error("configuration error: %s", exc)
+        return 2
     configure_logging(settings.log_level)
     try:
         return run(args, settings)

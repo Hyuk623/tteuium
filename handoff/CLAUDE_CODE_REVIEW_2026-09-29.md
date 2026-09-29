@@ -209,3 +209,22 @@ light_scene.json + leaf_surfaces/patches.csv (+ ppfd_readings.csv) ──> run_l
 3. B2 방향 결정 후 수정
 4. 4.1 삭제, 4.2 정리
 5. `.gitignore`에 `*.egg-info/` 추가
+
+---
+
+## 7. 반영 결과 (2026-09-29, Claude Code 로컬 세션)
+
+| 항목 | 조치 | 위치 |
+|---|---|---|
+| B1 | `read_table`·`read_table_columns`가 `EmptyDataError`·`ParserError`도 `SchemaError`로 변환 → CLI 종료 코드 2 | `tomato3d/io/tables.py` |
+| B2 | 결정: `origin_corner`를 `Literal["top_left"]`로 제한(실제 보드가 top_left이고 나머지 방향은 구현·검증 없음) | `tomato3d/io/schemas.py` |
+| B3 | manifest 검증에서 파일 stem 중복을 거부("share the stem") | `tomato3d/io/schemas.py` |
+| B4 | 세 CLI 모두 `get_settings()`를 `try` 안에서 호출, `ConfigError` → 종료 코드 2 | `tomato3d/cli/*.py` |
+| 4.1 | `sheet_xy_to_board_mm`, `board_to_grow_direction`, `SessionManifest.side_images/top_images` 삭제 | `calib/board.py`, `light/frames.py`, `io/schemas.py` |
+| 4.2 | `tables.py` docstring을 실제에 맞게 수정(호출부 통합은 보류) | `tomato3d/io/tables.py` |
+| 5 | `.gitignore`에 `*.egg-info/` 추가 | `.gitignore` |
+
+- 회귀 테스트: `tests/test_review_fixes_20260929.py` 8개. 전체 `pytest tests` **191 passed**.
+- 변이 확인: B1·B3·B4 수정을 하나씩 되돌리면 해당 테스트가 실패함(3/3).
+- 로컬 PC에 ruff가 없어 `ruff check`는 이 세션에서 다시 돌리지 않았음.
+- 남은 "확인 필요": top view 실루엣이 없어 `usable_for_training`이 항상 false인 문제는 코드 변경 없이 유지(촬영 규격 결정 필요).

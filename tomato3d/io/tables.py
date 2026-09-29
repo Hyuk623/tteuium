@@ -4,9 +4,10 @@ This is the only module in the project that imports ``pandas`` or ``csv``. Every
 tabular goes through here so that quoting, encoding, column order and the
 ``"unavailable"`` sentinel are handled in exactly one place.
 
-Cells are always read back as ``str``. Callers convert with
-:func:`tomato3d.io.schemas.parse_maybe_float`, which is what keeps ``"unavailable"``
-from silently becoming ``NaN`` and then ``0``.
+Cells are always read back as ``str``, so ``"unavailable"`` never silently becomes ``NaN``
+and then ``0``: each caller converts the cells it needs and treats the sentinel explicitly
+(e.g. ``tomato3d.light.validate``); :func:`tomato3d.io.schemas.parse_maybe_float` is the
+shared helper for that, but not every caller uses it yet.
 """
 
 from __future__ import annotations
@@ -68,7 +69,8 @@ def read_table(path: Path, columns: Sequence[str] | None = None) -> list[dict[st
             na_filter=False,
             encoding=_ENCODING,
         )
-    except OSError as exc:
+    except (OSError, pd.errors.EmptyDataError, pd.errors.ParserError) as exc:
+        # an empty or malformed CSV is an input error like a missing one (CLI exit 2), not a crash
         raise SchemaError(f"cannot read table {path}: {exc}") from exc
     if columns is not None and tuple(frame.columns) != tuple(columns):
         raise SchemaError(
@@ -86,7 +88,7 @@ def read_table_columns(path: Path) -> tuple[str, ...]:
     """
     try:
         frame = pd.read_csv(path, dtype=str, nrows=0, encoding=_ENCODING)
-    except (OSError, pd.errors.EmptyDataError) as exc:
+    except (OSError, pd.errors.EmptyDataError, pd.errors.ParserError) as exc:
         raise SchemaError(f"cannot read the header of {path}: {exc}") from exc
     return tuple(frame.columns)
 

@@ -155,19 +155,6 @@ def board_to_sheet_mm(points_board_mm: np.ndarray, spec: BoardSpec) -> np.ndarra
     return points @ SHEET_TO_BOARD_ROTATION.T + _sheet_origin_mm(spec)
 
 
-def sheet_xy_to_board_mm(
-    position_sheet_mm: tuple[float, float], spec: BoardSpec, height_mm: float = 0.0
-) -> np.ndarray:
-    """Lift a sheet-frame ``(x, y)`` from ``board_spec.json`` into a board-frame point.
-
-    ``height_mm`` is measured upward from the board surface, i.e. along board ``+Z``.
-    """
-    on_surface = sheet_to_board_mm(
-        np.array([[position_sheet_mm[0], position_sheet_mm[1], 0.0]]), spec
-    )[0]
-    return on_surface + np.array([0.0, 0.0, height_mm], dtype=np.float64)
-
-
 def sheet_pose_to_board_pose_with_origin(
     rvec_sheet_rad: np.ndarray,
     tvec_sheet_mm: np.ndarray,
