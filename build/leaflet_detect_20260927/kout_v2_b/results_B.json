@@ -1,0 +1,22 @@
+{
+ "lopo_dwt_01": {
+  "box_map50": 0.337,
+  "box_map50_95": 0.1121
+ },
+ "lopo_dwt_02": {
+  "box_map50": 0.4306,
+  "box_map50_95": 0.1667
+ },
+ "lopo_dwt_03": {
+  "box_map50": 0.3269,
+  "box_map50_95": 0.1081
+ },
+ "lopo_dwt_04": {
+  "box_map50": 0.3416,
+  "box_map50_95": 0.1279
+ },
+ "final_all": {
+  "box_map50": 0.5093,
+  "box_map50_95": 0.2188
+ }
+}

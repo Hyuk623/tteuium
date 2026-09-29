@@ -1,0 +1,421 @@
+{
+  "schema": "plant-structure-1",
+  "plant_id": "dwt_02",
+  "session_id": "dwt_02_20260920",
+  "inputs": {
+    "capture": "C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\build\\new_captures_20260920\\dwt_02\\edit_session\\capture.json",
+    "capture_sha256": "c4afae2fed74fbe3d1e6160e5953936f7b5b3fcf60280976367410dd9a147b45",
+    "backup": "C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\build\\dwt_01_02_3d_20260922\\dwt_02\\labels\\seed_with_imports.backup.json",
+    "backup_sha256": "28574c08ba522811539457a5c04e547c7a3bdd31764c07d7302fe294e99924a7",
+    "growth": "C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\tomato_photos_organized_\\260920\\dwt_02\\260920\\dwt_02_260920.json",
+    "name_decisions": "C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\build\\pipeline_20260929_015111\\dwt_02\\name_decisions.json"
+  },
+  "views_used": [
+    "dwt_02_20260920_21.png",
+    "dwt_02_20260920_24.png",
+    "dwt_02_20260920_25.png",
+    "dwt_02_20260920_26.png",
+    "dwt_02_20260920_27.png",
+    "dwt_02_20260920_28.png"
+  ],
+  "views_skipped": [
+    {
+      "photo": "dwt_02_20260920_01.png",
+      "reason": "posed but has no labels to bound the plant region"
+    },
+    {
+      "photo": "dwt_02_20260920_03.png",
+      "reason": "posed but has no labels to bound the plant region"
+    },
+    {
+      "photo": "dwt_02_20260920_11.png",
+      "reason": "no solved pose (too_few_corners)"
+    },
+    {
+      "photo": "dwt_02_20260920_12.png",
+      "reason": "no solved pose (too_few_corners)"
+    },
+    {
+      "photo": "dwt_02_20260920_13.png",
+      "reason": "no solved pose (too_few_corners)"
+    },
+    {
+      "photo": "dwt_02_20260920_14.png",
+      "reason": "no solved pose (too_few_corners)"
+    },
+    {
+      "photo": "dwt_02_20260920_15.png",
+      "reason": "no solved pose (too_few_corners)"
+    },
+    {
+      "photo": "dwt_02_20260920_16.png",
+      "reason": "no solved pose (too_few_corners)"
+    },
+    {
+      "photo": "dwt_02_20260920_17.png",
+      "reason": "no solved pose (too_few_corners)"
+    },
+    {
+      "photo": "dwt_02_20260920_18.png",
+      "reason": "no solved pose (too_few_corners)"
+    },
+    {
+      "photo": "dwt_02_20260920_22.png",
+      "reason": "no solved pose (too_few_corners)"
+    },
+    {
+      "photo": "dwt_02_20260920_23.png",
+      "reason": "no solved pose (too_few_corners)"
+    }
+  ],
+  "hull": {
+    "voxel_mm": 1.0,
+    "voxels": 69875,
+    "occupancy_cm3": 69.9,
+    "detached_voxels_removed": 891,
+    "extent_mm": {
+      "x": [
+        66.5,
+        127.5
+      ],
+      "y": [
+        -96.5,
+        -21.5
+      ],
+      "z": [
+        33.5,
+        106.5
+      ]
+    },
+    "silhouette_explained_pct": {
+      "dwt_02_20260920_21.png": 98.4,
+      "dwt_02_20260920_24.png": 99.5,
+      "dwt_02_20260920_25.png": 94.9,
+      "dwt_02_20260920_26.png": 97.1,
+      "dwt_02_20260920_27.png": 98.1,
+      "dwt_02_20260920_28.png": 100.0
+    },
+    "dilation_px": 30,
+    "note": "occupancy envelope for orientation/grouping; not a leaf surface, area or tissue volume"
+  },
+  "compound_regions": [
+    {
+      "region": 0,
+      "voxels": 9529,
+      "median_z_mm": 91.5,
+      "centroid_mm": [
+        86.9,
+        -42.4,
+        91.7
+      ],
+      "photos": 3,
+      "boxes": [
+        {
+          "view": "dwt_02_20260920_21.png",
+          "box_index": 0,
+          "iou_to_reference": null
+        },
+        {
+          "view": "dwt_02_20260920_24.png",
+          "box_index": 1,
+          "iou_to_reference": 0.575
+        },
+        {
+          "view": "dwt_02_20260920_25.png",
+          "box_index": 1,
+          "iou_to_reference": 0.286
+        }
+      ],
+      "fragment": false,
+      "proposed_name": "L03",
+      "name_source": "human"
+    },
+    {
+      "region": 1,
+      "voxels": 30421,
+      "median_z_mm": 83.5,
+      "centroid_mm": [
+        89.6,
+        -72.8,
+        82.7
+      ],
+      "photos": 5,
+      "boxes": [
+        {
+          "view": "dwt_02_20260920_21.png",
+          "box_index": 1,
+          "iou_to_reference": null
+        },
+        {
+          "view": "dwt_02_20260920_24.png",
+          "box_index": 0,
+          "iou_to_reference": 0.585
+        },
+        {
+          "view": "dwt_02_20260920_25.png",
+          "box_index": 0,
+          "iou_to_reference": 0.366
+        },
+        {
+          "view": "dwt_02_20260920_26.png",
+          "box_index": 0,
+          "iou_to_reference": 0.646
+        },
+        {
+          "view": "dwt_02_20260920_27.png",
+          "box_index": 2,
+          "iou_to_reference": 0.685
+        }
+      ],
+      "fragment": false,
+      "proposed_name": "L02",
+      "name_source": "human"
+    },
+    {
+      "region": 2,
+      "voxels": 25891,
+      "median_z_mm": 67.5,
+      "centroid_mm": [
+        108.3,
+        -41.7,
+        67.2
+      ],
+      "photos": 4,
+      "boxes": [
+        {
+          "view": "dwt_02_20260920_21.png",
+          "box_index": 2,
+          "iou_to_reference": null
+        },
+        {
+          "view": "dwt_02_20260920_24.png",
+          "box_index": 2,
+          "iou_to_reference": 0.588
+        },
+        {
+          "view": "dwt_02_20260920_25.png",
+          "box_index": 2,
+          "iou_to_reference": 0.531
+        },
+        {
+          "view": "dwt_02_20260920_27.png",
+          "box_index": 1,
+          "iou_to_reference": 0.374
+        }
+      ],
+      "fragment": false,
+      "proposed_name": "L01",
+      "name_source": "human"
+    },
+    {
+      "region": 4,
+      "voxels": 1,
+      "median_z_mm": 45.5,
+      "centroid_mm": [
+        121.5,
+        -40.5,
+        45.5
+      ],
+      "photos": 1,
+      "boxes": [
+        {
+          "view": "dwt_02_20260920_27.png",
+          "box_index": 0,
+          "iou_to_reference": null
+        }
+      ],
+      "fragment": true,
+      "proposed_name": null,
+      "name_source": "human"
+    }
+  ],
+  "compound_region_meta": {
+    "reference_view": "dwt_02_20260920_21.png",
+    "naming": "names are a height-order proposal (L01 = lowest, numbers rise upward); confirm against the photographs; unfolding L04 has no region of its own; 1 fragment region(s) under 698 voxels left unnamed; names confirmed by a person for regions [0, 1, 2, 4]",
+    "unassigned_voxels": 4033
+  },
+  "stem": {
+    "status": "fitted",
+    "method": "ray_fit",
+    "views": [
+      "dwt_02_20260920_21.png",
+      "dwt_02_20260920_24.png",
+      "dwt_02_20260920_25.png",
+      "dwt_02_20260920_26.png",
+      "dwt_02_20260920_27.png"
+    ],
+    "rays": 144,
+    "axis": [
+      [
+        93.37,
+        -53.89,
+        43.62
+      ],
+      [
+        92.76,
+        -53.33,
+        46.5
+      ],
+      [
+        92.15,
+        -52.78,
+        49.38
+      ],
+      [
+        91.53,
+        -52.22,
+        52.27
+      ],
+      [
+        90.92,
+        -51.67,
+        55.15
+      ],
+      [
+        90.31,
+        -51.11,
+        58.04
+      ],
+      [
+        89.7,
+        -50.56,
+        60.92
+      ],
+      [
+        89.09,
+        -50.0,
+        63.8
+      ],
+      [
+        88.48,
+        -49.45,
+        66.69
+      ],
+      [
+        87.86,
+        -48.89,
+        69.57
+      ],
+      [
+        87.25,
+        -48.34,
+        72.46
+      ],
+      [
+        86.64,
+        -47.78,
+        75.34
+      ]
+    ],
+    "z_mm": [
+      43.6,
+      75.3
+    ],
+    "tilt_deg": 16.0,
+    "diameter_mm": 4.8,
+    "ray_line_distance_mm": {
+      "median": 1.07,
+      "p90": 4.1
+    },
+    "residual_is_a_check": true,
+    "residual_note": null,
+    "intervals": {
+      "dwt_02_20260920_21.png": [
+        -42.9,
+        -38.2
+      ],
+      "dwt_02_20260920_24.png": [
+        -10.3,
+        0.8
+      ],
+      "dwt_02_20260920_25.png": [
+        -23.7,
+        4.0
+      ],
+      "dwt_02_20260920_26.png": [
+        -30.3,
+        -6.4
+      ],
+      "dwt_02_20260920_27.png": [
+        -32.4,
+        3.4
+      ]
+    }
+  },
+  "petioles": [
+    {
+      "region": 1,
+      "status": "fitted",
+      "views": [
+        "dwt_02_20260920_24.png",
+        "dwt_02_20260920_25.png",
+        "dwt_02_20260920_26.png"
+      ],
+      "polygons": 7,
+      "near_end": [
+        86.08,
+        -50.27,
+        76.11
+      ],
+      "far_end": [
+        88.05,
+        -84.14,
+        89.56
+      ],
+      "near_end_to_stem_mm": 0.7,
+      "length_two_view_mm": 20.0,
+      "extent_any_view_mm": 36.5,
+      "elevation_deg": 21.6,
+      "ray_line_distance_mm": {
+        "median": 0.64,
+        "p90": 2.04
+      }
+    },
+    {
+      "region": 2,
+      "status": "fitted",
+      "views": [
+        "dwt_02_20260920_25.png",
+        "dwt_02_20260920_27.png"
+      ],
+      "polygons": 4,
+      "near_end": [
+        91.6,
+        -46.72,
+        69.05
+      ],
+      "far_end": [
+        105.12,
+        -36.94,
+        84.87
+      ],
+      "near_end_to_stem_mm": 0.7,
+      "length_two_view_mm": 1.0,
+      "extent_any_view_mm": 23.0,
+      "elevation_deg": 43.5,
+      "ray_line_distance_mm": {
+        "median": 0.55,
+        "p90": 4.05
+      }
+    }
+  ],
+  "petiole_note": null,
+  "parameters": {
+    "exg_min": 0.06,
+    "green_min": 40,
+    "dilation_px": 30,
+    "label_margin": 0.05,
+    "coarse_mm": 4.0,
+    "fine_mm": 1.0,
+    "min_box_iou": 0.2,
+    "consensus_mm": 2.0,
+    "consensus_angle_deg": 30.0,
+    "petiole_min_share": 0.6,
+    "trunk_radius_mm": 12.0,
+    "trunk_slice_mm": 2.0,
+    "trunk_widen": 3.0
+  },
+  "validated_metric": false,
+  "suitable_for_ppfd": false,
+  "limits": "poses fail the 1 px gate; hull only from posed labelled photos; names are proposals"
+}

@@ -1,0 +1,91 @@
+{
+  "plant": "dwt_04",
+  "stages": {
+    "S0": {
+      "status": "done",
+      "summary": "사진 17장, 카메라 위치 계산 3장(25, 26, 28), 1 px 기준 통과 0장",
+      "solved_views": [
+        "25",
+        "26",
+        "28"
+      ],
+      "excluded": [
+        {
+          "view_code": "01",
+          "reason": "portrait 3024x4032 frame; square trial intrinsics cannot describe it (not cropped)"
+        }
+      ],
+      "seconds": 0.0
+    },
+    "S1": {
+      "status": "done",
+      "summary": "라벨 534/534개 원본 좌표로 변환, 사진 16장",
+      "label_source": "human",
+      "seconds": 0.0
+    },
+    "S2": {
+      "status": "done",
+      "summary": "마스크 408개: 수락 369(가려짐 5), 미검토 0, 수정 중 0, 거절 39(복수 박스 25, 잎 못 담음 12, 오탐 2), 미생성 0",
+      "counts": {
+        "accepted": 369,
+        "rejected": 39
+      },
+      "reject_reasons": {
+        "duplicate_box": 25,
+        "box_misses_leaf": 12,
+        "accepted_partial": 5,
+        "false_positive": 2
+      },
+      "auto_accepted": 0,
+      "seconds": 0.5
+    },
+    "S3": {
+      "status": "done",
+      "summary": "겉껍질 171.5 cm³ (사진 3장), 복엽 영역 5개(L05, L04, L03, L02, L01), 줄기 맞춤(아래 줄기, 외곽 추적), 잎자루 1개",
+      "views": [
+        "dwt_04_20260920_25.png",
+        "dwt_04_20260920_26.png",
+        "dwt_04_20260920_28.png"
+      ],
+      "stem": "fitted",
+      "seconds": 25.9
+    },
+    "S4": {
+      "status": "waiting_for_human",
+      "summary": "결정 파일 1개 → 확인된 소엽 11장, 보임 정도 반영 0건, 충돌 0건; 새 질문: 같은 소엽 후보 3개, 보임 정도 11개; 특징점 포즈 사진 4장 포함(진단용)",
+      "review_page": "C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\build\\pipeline_20260929_015111\\dwt_04\\candidates\\review.html",
+      "seconds": 20.6
+    },
+    "S5": {
+      "status": "waiting_for_human",
+      "summary": "모델 2(잎끝 방향) 라벨이 아직 없습니다.",
+      "seconds": 0.0
+    },
+    "S6": {
+      "status": "failed",
+      "summary": "RuntimeError: tools.leaf_light.common.StudyError: Research scope is dwt_01/dwt_02",
+      "trace": "Traceback (most recent call last):\n  File \"C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\tools\\plant_pipeline.py\", line 359, in run\n    getattr(self, key)()\n    ~~~~~~~~~~~~~~~~~~^^\n  File \"C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\tools\\plant_pipeline.py\", line 324, in s6\n    r = run_module(['tools.instance_workflow', '--operation', 'instance_fusion', '--session', str(self.session), '--backup', str(self.backup),\n                    '--context', str(self.session / 'annotations.source.json'), '--batch', str(self.batch), '--out', str(out),\n                    '--mode', 'diagnostic', '--scope', 'all'])\n  File \"C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\tools\\plant_pipeline.py\", line 144, in run_module\n    raise RuntimeError(r.stderr.strip().splitlines()[-1] if r.stderr.strip() else f'exit {r.returncode}')\nRuntimeError: tools.leaf_light.common.StudyError: Research scope is dwt_01/dwt_02\n",
+      "seconds": 2.5
+    },
+    "S7": {
+      "status": "done",
+      "summary": "확인된 소엽 11장 중 3D 영역 3장; 복엽별 L05 0/5, L04 0/7, L03 0/7, L02 2/7, L01 0/9",
+      "viewer": "C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\build\\pipeline_20260929_015111\\dwt_04\\hierarchy\\viewer.html",
+      "seconds": 6.0
+    }
+  },
+  "human_tasks": [
+    {
+      "priority": 2,
+      "text": "dwt_04 소엽 대응 검토 14개 (같은 소엽 후보 3, 보임 정도 11). 페이지를 열고 고른 뒤 '결정 파일 저장' → 다운로드 폴더에 그대로 두면 다음 실행이 읽습니다.",
+      "where": "C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\build\\pipeline_20260929_015111\\dwt_04\\candidates\\review.html"
+    },
+    {
+      "priority": 3,
+      "text": "dwt_04 모델 2 라벨: 모델 1 소엽 박스를 복사해 잎끝 방향 클래스(side_left/side_right/front/back)로 바꾼 export. 정면/후면 기준 한 줄을 먼저 정해 주세요.",
+      "where": null
+    }
+  ],
+  "validated_metric": false,
+  "suitable_for_ppfd": false
+}

@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>소엽 대응 검토</title>
+<style>
+:root{--ground:#f2f4f1;--panel:#fff;--ink:#1b2420;--muted:#65706a;--line:#d6ddd8;--leaf:#2f8f5b;
+  --ok:#1f6b42;--ok-bg:#e1f1e7;--no:#8a2c2c;--no-bg:#f9e4e4;--mid:#7a5410;--mid-bg:#fbf1dc;
+  --sans:system-ui,"Malgun Gothic",sans-serif;--mono:ui-monospace,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--ground:#0f1311;--panel:#171c19;--ink:#e3e9e5;--muted:#93a099;--line:#2b332f;--leaf:#5fcf8e;
+  --ok:#8fdcb0;--ok-bg:#16301f;--no:#f3aaaa;--no-bg:#3b1e1e;--mid:#f1cf8a;--mid-bg:#3a2f16}}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font:15px/1.55 var(--sans);margin:0;padding:20px 16px 90px}
+.wrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1{font-size:22px;margin:0}
+.lead{margin:0;color:var(--muted);max-width:78ch}
+.bar{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--ground);padding:8px 0;border-bottom:1px solid var(--line)}
+.chip{font-size:13px;padding:4px 10px;border-radius:999px;background:var(--panel);border:1px solid var(--line)}
+.save{font:600 14px var(--sans);padding:8px 16px;border-radius:8px;border:0;background:var(--leaf);color:#fff;cursor:pointer}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.head{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline}
+.kind{font:500 12px var(--mono);padding:2px 8px;border-radius:999px;background:var(--ground);border:1px solid var(--line)}
+.q{font-weight:500}
+.meta{font-size:12.5px;color:var(--muted)}
+.panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+figure{margin:0}
+figure img{width:100%;height:auto;display:block;border-radius:6px}
+figcaption{font:12px var(--mono);color:var(--muted);margin-top:4px}
+.choices{display:flex;flex-wrap:wrap;gap:6px}
+.choices button{font:13.5px var(--sans);color:var(--ink);background:var(--ground);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer}
+.choices button[aria-pressed="true"].yes{background:var(--ok-bg);color:var(--ok);border-color:transparent;font-weight:600}
+.choices button[aria-pressed="true"].no{background:var(--no-bg);color:var(--no);border-color:transparent;font-weight:600}
+.choices button[aria-pressed="true"].mid{background:var(--mid-bg);color:var(--mid);border-color:transparent;font-weight:600}
+.note{font-size:13px;padding:8px 12px;border-radius:8px;background:var(--mid-bg);color:var(--mid)}
+</style>
+<div class="wrap">
+  <h1 id="title">소엽 대응 검토</h1>
+  <p class="lead">같은 소엽 후보와, 이미 확인된 소엽의 보임 정도를 고릅니다. 색 윤곽은 수락한 마스크, 같은 색 사각형은 원래 소엽 박스입니다. 후보 점수는 3D 칸 공유 비율이며 확률이 아닙니다. 고른 내용은 이 브라우저에 임시 보관되고, <b>결정 파일 저장</b>을 눌러야 파일로 남습니다. 저장한 파일은 다운로드 폴더에 두면 다음 파이프라인 실행이 읽습니다.</p>
+  <div class="bar"><span class="chip" id="count"></span><button class="save" id="save" type="button">결정 파일 저장</button><span class="chip" id="saved"></span></div>
+  <div class="note" id="storeNote" hidden>이 브라우저는 임시 보관을 막고 있습니다. 끝내기 전에 결정 파일을 저장하세요.</div>
+  <div id="list" style="display:flex;flex-direction:column;gap:14px"></div>
+</div>
+<script>
+'use strict';
+const DATA = __DATA__;
+const KEY = 'crossViewReview:' + DATA.plant + ':' + DATA.session;
+const CHOICES = {
+  match: [['same','같은 소엽','yes'],['different','다른 소엽','no'],['unsure','모름','mid']],
+  merge: [['merged','여러 잎을 합침','no'],['single_leaf','한 잎 맞음','yes'],['unsure','모름','mid']],
+  dup: [['duplicate','왼쪽 마스크들이 같은 잎 한 장(중복)','no'],['target_merged','오른쪽 마스크가 잎 여러 장을 합침','no'],['fine','마스크는 모두 맞음 (가림으로 모여 보임)','yes'],['unsure','모름','mid']],
+  vis: [['full','전체 보임','yes'],['partial','일부 가려짐','mid'],['unknown','모름','no']]};
+const KIND = {match:'같은 소엽 후보', merge:'병합 의심', dup:'두 마스크 → 한 마스크', vis:'보임 정도'};
+const QUESTION = {
+  match: it => `사진 ${it.panels[0].view}의 분홍 마스크와 사진 ${it.panels[1].view}의 파랑 마스크가 같은 실제 소엽인가요?`,
+  merge: it => `사진 ${it.panels[0].view}의 분홍 마스크 하나가 사진 ${it.panels[1].view}의 두 마스크에 걸칩니다. 분홍 마스크가 잎 여러 장을 합쳤나요?`,
+  dup: it => `사진 ${it.panels[0].view}의 여러 마스크가 사진 ${it.panels[1].view}의 초록 마스크 하나로 모입니다. 각 마스크가 잎 한 장씩을 제대로 잡았나요?`,
+  vis: it => `확인된 소엽 ${it.leaf_key.split('|')[0]} · 사진마다 소엽 전체가 보이나요, 일부가 가려졌나요?`};
+let state = {};
+try { state = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (_) { document.getElementById('storeNote').hidden = false; }
+const keep = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (_) { document.getElementById('storeNote').hidden = false; } };
+document.getElementById('title').textContent = `소엽 대응 검토 · ${DATA.plant}`;
+function button(label, cls, pressed, onClick) {
+  const b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.className = cls;
+  b.setAttribute('aria-pressed', String(pressed)); b.addEventListener('click', onClick); return b;
+}
+function render() {
+  const list = document.getElementById('list'); list.replaceChildren();
+  DATA.items.forEach((it, n) => {
+    const card = document.createElement('div'); card.className = 'card';
+    const sc = it.kind === 'match' ? `공유 ${it.scores.share_ab} / ${it.scores.share_ba}` : it.kind === 'vis' ? '' : `공유 ${(it.scores.shares || []).join(' / ')}`;
+    card.innerHTML = `<div class="head"><span class="kind">${n + 1} · ${KIND[it.kind]}</span><span class="q"></span></div>` + (sc ? `<div class="meta">${sc}</div>` : '');
+    card.querySelector('.q').textContent = QUESTION[it.kind](it);
+    const panels = document.createElement('div'); panels.className = 'panels';
+    it.panels.forEach((p, i) => {
+      const fig = document.createElement('figure');
+      fig.innerHTML = `<img alt="사진 ${p.view} 마스크" src="${p.img}"><figcaption>사진 ${p.view} · 원본 라벨 ${p.sources.join(', ')}</figcaption>`;
+      if (it.kind === 'vis') {
+        const row = document.createElement('div'); row.className = 'choices';
+        const cur = state[it.id]?.visibility?.[p.ids[0]];
+        for (const [k, t, cls] of CHOICES.vis) row.appendChild(button(t, cls, cur === k, () => {
+          const s = state[it.id] || {visibility: {}}; s.visibility = {...s.visibility, [p.ids[0]]: k};
+          s.decision = Object.keys(s.visibility).length === it.panels.length ? 'visibility_set' : 'partial_answer';
+          s.decided_at = new Date().toISOString(); state[it.id] = s; keep(); render();
+        }));
+        fig.appendChild(row);
+      }
+      panels.appendChild(fig);
+    });
+    card.appendChild(panels);
+    if (it.kind !== 'vis') {
+      const row = document.createElement('div'); row.className = 'choices';
+      for (const [k, t, cls] of CHOICES[it.kind]) row.appendChild(button(t, cls, state[it.id]?.decision === k, () => {
+        const prev = state[it.id];
+        state[it.id] = {decision: k, decided_at: new Date().toISOString(),
+          history: [...(prev?.history || []), ...(prev ? [{decision: prev.decision, decided_at: prev.decided_at}] : [])].slice(-20)};
+        keep(); render();
+      }));
+      card.appendChild(row);
+    }
+    list.appendChild(card);
+  });
+  const done = DATA.items.filter(it => state[it.id] && state[it.id].decision !== 'partial_answer').length;
+  document.getElementById('count').textContent = `항목 ${DATA.items.length} · 결정 ${done}`;
+}
+document.getElementById('save').addEventListener('click', () => {
+  const decisions = DATA.items.filter(it => state[it.id]).map(it => ({
+    schema_version: 'threshold-decision-log-1', source: 'cross_view_review_file', rule_id: it.rule_id, rule_version: 1,
+    score_value: it.score, scores: it.scores, decision: state[it.id].decision,
+    decision_detail: {kind: it.kind, masks: it.panels.map(p => ({view: p.view, mask_ids: p.ids, source_annotation_ids: p.sources}))},
+    visibility: state[it.id].visibility || null, leaf_key: it.leaf_key || null,
+    plant_id: DATA.plant, session_id: DATA.session, object_id: it.id, decided_at: state[it.id].decided_at, history: state[it.id].history || []}));
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 13);
+  const blob = new Blob([JSON.stringify({schema: 'cross-view-decisions-file-1', plant: DATA.plant, session: DATA.session, saved_at: new Date().toISOString(), decisions}, null, 1)], {type: 'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `cross_view_decisions_${DATA.plant}_${stamp}.json`;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  document.getElementById('saved').textContent = `${decisions.length}건 저장 · ${a.download}`;
+});
+render();
+</script>
+</html>

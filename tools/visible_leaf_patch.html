@@ -1,0 +1,20 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>사진 영역으로 제한한 잎 부분 면</title>
+<style>body{max-width:1100px;margin:20px auto;padding:20px;font:16px/1.6 system-ui;background:#10231a;color:#e2efe8}canvas{width:100%;height:480px;background:#07160e;touch-action:none}a{color:#a2dbbb}button{font:inherit;padding:6px} .notice{background:#443c1c;padding:12px}.photos{display:flex;flex-wrap:wrap;gap:16px}figure{margin:0;flex:1 1 320px}img{width:100%;max-height:550px;object-fit:contain}</style>
+<h1>사진 영역으로 제한한 잎 부분 면</h1>
+<p class="notice">미검증 근사 모델입니다. 확인한 대응점 사이를 직선으로 연결한 뒤, 두 사진의 잎 영역을 벗어나는 면을 제외했습니다. 전체 잎 모양·실제 곡률·잎 면적을 측정한 결과가 아니며 PPFD 입력으로 검증되지 않았습니다.</p>
+<p id="summary"></p><button id="reset">시점 복원</button> <label><input id="wire" type="checkbox">삼각형 경계</label>
+<canvas id="scene" aria-label="관찰 영역 안에 남긴 잎의 부분 면"></canvas>
+<p>드래그: 회전 · 휠: 확대 · 노란 점: 원래 물리적 대응점 · 녹색: 보간한 부분 면. 보간한 꼭짓점은 새 관측점이 아닙니다.</p>
+<h2>사진에서 부분 면 확인</h2><p>녹색: 부분 면을 사진으로 재투영 · 분홍: 사진에서 표시한 잎 영역 · 노랑: 실제로 찍은 대응점. 투영된 면과 관찰점을 구분해 표시합니다.</p><div class="photos">__PHOTOS__</div>
+<p><a href="visible_patch_mm.ply">부분 면 PLY</a> · <a href="patch.json">가정·원본 해시·좌표 기록</a></p>
+<script type="application/json" id="data">__PATCH__</script><script>
+(()=>{'use strict';const d=JSON.parse(document.getElementById('data').textContent),c=document.getElementById('scene'),ctx=c.getContext('2d');let yaw=.7,pitch=.6,zoom=1,drag=null;
+document.getElementById('summary').textContent=d.leaflet_id+' · 물리적 대응점 '+d.physical_landmarks.length+'개 · 사진 '+d.source_images.join(', ')+' · 보간 삼각형 '+d.retained_faces+'/'+d.proposed_faces+'개 유지';
+const all=[...d.vertices_mm,...d.physical_landmarks.map(p=>p.xyz_mm)],center=[0,1,2].map(i=>all.reduce((s,p)=>s+p[i],0)/all.length),extent=Math.max(1,...all.map(p=>Math.hypot(...p.map((x,i)=>x-center[i]))));
+function draw(){const b=c.getBoundingClientRect(),r=window.devicePixelRatio||1;c.width=b.width*r;c.height=b.height*r;ctx.setTransform(r,0,0,r,0,0);ctx.clearRect(0,0,b.width,b.height);const scale=Math.min(b.width,b.height)*.4/extent*zoom;
+const map=p=>{const q=p.map((v,i)=>v-center[i]),x=q[0]*Math.cos(yaw)-q[1]*Math.sin(yaw),y=q[0]*Math.sin(yaw)+q[1]*Math.cos(yaw);return[b.width/2+x*scale,b.height/2-(y*Math.sin(pitch)+q[2]*Math.cos(pitch))*scale,y*Math.cos(pitch)-q[2]*Math.sin(pitch)];};
+const faces=d.faces.map(f=>f.map(i=>map(d.vertices_mm[i]))).sort((a,b)=>a.reduce((s,p)=>s+p[2],0)-b.reduce((s,p)=>s+p[2],0));ctx.fillStyle='#75bb83';for(const ps of faces){ctx.beginPath();ps.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fill();if(document.getElementById('wire').checked){ctx.strokeStyle='#254d35';ctx.lineWidth=.5;ctx.stroke();}}
+ctx.fillStyle='#ffe36b';ctx.font='15px system-ui';for(const p of d.physical_landmarks){const xy=map(p.xyz_mm);ctx.beginPath();ctx.arc(xy[0],xy[1],4,0,Math.PI*2);ctx.fill();ctx.fillText(p.point_id,xy[0]+6,xy[1]-6);}}
+c.onpointerdown=e=>{drag=[e.clientX,e.clientY];c.setPointerCapture(e.pointerId);};c.onpointermove=e=>{if(!drag)return;yaw+=(e.clientX-drag[0])*.008;pitch=Math.max(-1.5,Math.min(1.5,pitch+(e.clientY-drag[1])*.008));drag=[e.clientX,e.clientY];draw();};c.onpointerup=c.onpointercancel=()=>drag=null;c.onwheel=e=>{e.preventDefault();zoom=Math.max(.2,Math.min(5,zoom*Math.exp(-e.deltaY*.001)));draw();};document.getElementById('reset').onclick=()=>{yaw=.7;pitch=.6;zoom=1;draw();};document.getElementById('wire').onchange=draw;window.onresize=draw;draw();})();
+</script></html>

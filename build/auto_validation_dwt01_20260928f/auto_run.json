@@ -1,0 +1,159 @@
+{
+  "plant": "autodwt01",
+  "date": "2026-09-20",
+  "photos": "C:\\Users\\sho36\\AppData\\Local\\Temp\\claude\\C--Users-sho36-OneDrive-------\\d3343492-f58b-40d9-a8dc-3291f1c5719f\\scratchpad\\raw_dwt01",
+  "started": "2026-09-28T15:46:24",
+  "order": [
+    {
+      "view_code": "01",
+      "source": "IMG_2186_4.HEIC",
+      "exif_time": "2026:09:20 16:25:37"
+    },
+    {
+      "view_code": "03",
+      "source": "IMG_7468_2.HEIC",
+      "exif_time": "2026:09:20 16:25:53"
+    },
+    {
+      "view_code": "11",
+      "source": "IMG_1614_11.HEIC",
+      "exif_time": "2026:09:20 16:26:40"
+    },
+    {
+      "view_code": "12",
+      "source": "IMG_9779_5.HEIC",
+      "exif_time": "2026:09:20 16:26:53"
+    },
+    {
+      "view_code": "13",
+      "source": "IMG_6991_7.HEIC",
+      "exif_time": "2026:09:20 16:27:03"
+    },
+    {
+      "view_code": "14",
+      "source": "IMG_2408_12.HEIC",
+      "exif_time": "2026:09:20 16:27:11"
+    },
+    {
+      "view_code": "15",
+      "source": "IMG_1950_8.HEIC",
+      "exif_time": "2026:09:20 16:27:19"
+    },
+    {
+      "view_code": "16",
+      "source": "IMG_2542_6.HEIC",
+      "exif_time": "2026:09:20 16:27:30"
+    },
+    {
+      "view_code": "17",
+      "source": "IMG_6305_0.HEIC",
+      "exif_time": "2026:09:20 16:27:40"
+    },
+    {
+      "view_code": "18",
+      "source": "IMG_7851_14.HEIC",
+      "exif_time": "2026:09:20 16:27:48"
+    },
+    {
+      "view_code": "21",
+      "source": "IMG_4517_10.HEIC",
+      "exif_time": "2026:09:20 16:27:55"
+    },
+    {
+      "view_code": "22",
+      "source": "IMG_1791_3.HEIC",
+      "exif_time": "2026:09:20 16:28:02"
+    },
+    {
+      "view_code": "23",
+      "source": "IMG_2144_15.HEIC",
+      "exif_time": "2026:09:20 16:28:07"
+    },
+    {
+      "view_code": "24",
+      "source": "IMG_9313_9.HEIC",
+      "exif_time": "2026:09:20 16:28:13"
+    },
+    {
+      "view_code": "25",
+      "source": "IMG_4943_16.HEIC",
+      "exif_time": "2026:09:20 16:28:19"
+    },
+    {
+      "view_code": "26",
+      "source": "IMG_3471_1.HEIC",
+      "exif_time": "2026:09:20 16:28:26"
+    },
+    {
+      "view_code": "27",
+      "source": "IMG_8104_13.HEIC",
+      "exif_time": "2026:09:20 16:28:32"
+    },
+    {
+      "view_code": "28",
+      "source": "IMG_2486_17.HEIC",
+      "exif_time": "2026:09:20 16:28:40"
+    }
+  ],
+  "args": {
+    "plant": "autodwt01",
+    "date": "2026-09-20",
+    "both": true,
+    "xl": false,
+    "offload": "kaggle-gpu",
+    "growth": "build\\auto_validation_dwt01_20260928f\\growth_autodwt01.json",
+    "groimp_core": null,
+    "models": [
+      "build/organ_detector_20260925/kout_v3_lopo01/lopo_dwt_01_s0.pt",
+      "build/organ_detector_20260925/kout_v3_lopo01/lopo_dwt_01_s1.pt",
+      "build/organ_detector_20260925/kout_v3_lopo01/lopo_dwt_01_s2.pt"
+    ],
+    "sam_config": "build/leaflets4_20260927/sam2_config_tuned_heldout_dwt_01.json"
+  },
+  "args_note": "args filled in after the fact (the run started before plant_auto recorded them); values are the launch command; growth points to a copy with the alias plant_id",
+  "poses_solved": [
+    "01",
+    "03",
+    "24",
+    "25",
+    "26",
+    "28"
+  ],
+  "offload": "kaggle-gpu",
+  "masks": {
+    "offload_import": {
+      "job_id": "autodwt01-20260928154757",
+      "plant": "autodwt01",
+      "computed_on": {
+        "device": "cuda",
+        "python": "3.12.13",
+        "platform": "Linux-6.12.90+-x86_64-with-glibc2.35",
+        "gpu": "Tesla T4"
+      },
+      "cache_entries_copied": 259,
+      "remote_seconds": {
+        "drafts": 134.0,
+        "sam": 158.7
+      },
+      "auto_accept": {
+        "accepted": 259
+      },
+      "result_dir": "build\\auto_validation_dwt01_20260928f\\offload_job_result\\result",
+      "imported_at": "2026-09-29T01:24:18"
+    }
+  },
+  "prelabel": {
+    "out": "C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\build\\auto_validation_dwt01_20260928f\\offload_job_result\\result\\autodwt01\\prelabel",
+    "per_class": {
+      "leaflet": 259,
+      "sub_stem": 9,
+      "main_stem": 1,
+      "compound_leaf": 3
+    }
+  },
+  "runs": {
+    "no_growth": "C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\build\\auto_validation_dwt01_20260928f\\pipeline_no_growth",
+    "growth": "C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\build\\auto_validation_dwt01_20260928f\\pipeline_growth"
+  },
+  "finished": "2026-09-29T01:27:47"
+}

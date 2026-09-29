@@ -1,0 +1,133 @@
+<section aria-label="대응점과 소엽 가능 공간의 3D 위치">
+<h2>대응점·소엽 가능 공간의 3D 위치 · 미검증 시험값</h2>
+<p>면을 만들지 못한 잎도 계산된 점은 표시합니다. 점을 선택하면 해당 점이 표시된 사진으로 이동합니다. 소엽을 선택하면 그 소엽의 박스·점·사진을 모아 보여 줍니다.</p>
+<label>소엽 <select id="spatialLeaflet"><option value="">전체 소엽</option></select></label>
+<label>대응점 <select id="spatialPoint"><option value="">전체 점</option></select></label>
+<button id="spatialReset" type="button">3D 시점 복원</button>
+<div class="toggles"><b>표시:</b>
+<label><input type="checkbox" id="showPoints" checked> 복원된 점</label>
+<label><input type="checkbox" id="showSurfaces" checked> 보간 부분 면</label>
+<label><input type="checkbox" id="showFeasible" checked> 가능 공간</label>
+<label><input type="checkbox" id="showCuboid" checked> 직육면체</label>
+<label><input type="checkbox" id="showPointExtent" checked> 점 범위</label>
+<label><input type="checkbox" id="showHybrid"> 혼합 결과(추정 카메라 포함·진단용)</label></div>
+<canvas id="spatialCanvas" aria-label="보드 좌표계의 미검증 대응점과 소엽 가능 공간" style="display:block;width:100%;height:360px;background:#08110b;touch-action:none"></canvas>
+<p class="legend"><span style="color:#35e07a">▨ 관측 점 사이를 보간한 부분 면(측정된 곡률 아님)</span> · <span style="color:#4fd1ff">— 박스 시야가 겹치는 가능 공간(실제 교집합)</span> · <span style="color:#ffe066">- - 이를 감싸는 직육면체(불가능한 공간 포함)</span> · <span style="color:#ff69dc">- - 삼각측량 점들의 범위(희소 점, 잎 경계 아님)</span> · <span style="color:#ff5c5c">○ 가능 공간 밖의 점(보존)</span></p>
+<p id="spatialInfo" role="status"></p>
+<div id="spatialLeafInfo" role="region" aria-label="선택한 소엽 정보"></div>
+<p>드래그: 회전 · 휠: 확대 · 원점: 보드 기준(corner 0) · 좌표 단위: mm · 모두 미검증 시험 추정값이며 잎 표면·두께·그늘 계산에 쓰지 않습니다.</p>
+</section>
+<script id="spatialData" type="application/json">__POINT_DATA__</script>
+<script id="spatialLeaflets" type="application/json">__LEAFLET_DATA__</script>
+<script id="spatialSurfaces" type="application/json">__SURFACE_DATA__</script>
+<script id="spatialHybrid" type="application/json">__HYBRID_DATA__</script>
+<script>
+(() => {
+  'use strict';
+  const points=JSON.parse(document.getElementById('spatialData').textContent);
+  const leaflets=JSON.parse(document.getElementById('spatialLeaflets').textContent);
+  const surfaceData=JSON.parse(document.getElementById('spatialSurfaces').textContent);
+  const hybridData=JSON.parse((document.getElementById('spatialHybrid')||{textContent:'{}'}).textContent||'{}');
+  const hybridPoints=hybridData.points||[];
+  {const el=document.getElementById('showHybrid');const label=el&&el.parentElement;
+   if(label&&!hybridPoints.length){el.disabled=true;el.checked=false;label.title='첨부된 추정 측면 카메라가 없습니다';}}
+  const surfaces=(surfaceData.surfaces||[]).filter(s=>s.status==='current_for_this_point_snapshot');
+  const staleSurfaces=(surfaceData.surfaces||[]).length-surfaces.length;
+  const on=id=>{const el=document.getElementById(id);return !el||el.checked;};
+  const onHybrid=()=>{const el=document.getElementById('showHybrid');return !!(el&&el.checked&&hybridPoints.length);};
+  const canvas=document.getElementById('spatialCanvas'), ctx=canvas.getContext('2d');
+  const selector=document.getElementById('spatialPoint'), leafSelector=document.getElementById('spatialLeaflet');
+  const info=document.getElementById('spatialInfo'), leafInfo=document.getElementById('spatialLeafInfo');
+  const GEOMETRY={partial_surface_available:'부분 면 있음',point_depth_available:'점 깊이 있음',bbox_only:'박스만 있음',image_points_without_depth:'사진 점만 · 깊이 없음',no_saved_observation:'저장된 관찰 없음'};
+  const CUBOID={bounded_feasible_region:'직육면체 계산됨 · 미검증',insufficient_data_no_eligible_view:'직육면체 없음 · 사용 가능한 박스 없음',unbounded_single_view:'직육면체 없음 · 사진 1장은 깊이 범위를 정하지 못함',unbounded_extent:'직육면체 없음 · 범위가 닫히지 않음',incompatible_views_empty_intersection:'직육면체 없음 · 박스 시야가 서로 겹치지 않음',degenerate_zero_volume_intersection:'직육면체 없음 · 겹친 공간의 부피가 없음',numerical_failure:'직육면체 없음 · 계산 실패'};
+  const VIS={full:'전체 보임',partial:'일부 가려짐',unknown:'보임 정도 모름'}, REVIEW={confirmed:'연결 확인',unconfirmed:'연결 미확인'};
+  const EXCL={invalid_bbox_geometry:'박스 좌표 오류',bbox_image_size_differs_from_calibrated_original:'원본 해상도가 아닌 박스',camera_pose_unavailable:'촬영 위치 미산출',visibility_partial_not_a_full_silhouette:'일부 가려짐',visibility_unknown_not_a_full_silhouette:'보임 정도 모름',identity_link_unconfirmed:'연결 미확인'};
+  let yaw=.7, pitch=.6, zoom=1, drag=null, moved=false, hitPoints=[];
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  points.forEach((p,i)=>{const o=document.createElement('option');o.value=String(i);o.textContent=p.organ_id+' / '+p.leaflet_id+' / '+p.point_id+(p.point_semantic_name?' · '+p.point_semantic_name:'');selector.append(o);});
+  leaflets.forEach((l,i)=>{const o=document.createElement('option');o.value=String(i);o.textContent=l.organ_id+' / '+l.leaflet_id+' · '+(GEOMETRY[l.geometry_status]||l.geometry_status)+(l.cuboid_status==='bounded_feasible_region'?' · 직육면체':'');leafSelector.append(o);});
+  const boxCorners=(lo,hi)=>[0,1,2,3,4,5,6,7].map(k=>[k&1?hi[0]:lo[0],k&2?hi[1]:lo[1],k&4?hi[2]:lo[2]]);
+  const BOX_EDGES=[[0,1],[2,3],[4,5],[6,7],[0,2],[1,3],[4,6],[5,7],[0,4],[1,5],[2,6],[3,7]];
+  const extentPoints=[...points.map(p=>p.xyz_mm),...leaflets.flatMap(l=>l.cuboid_min_mm?boxCorners(l.cuboid_min_mm,l.cuboid_max_mm):[]),
+    ...surfaces.flatMap(s=>s.vertices_mm.filter((_,i)=>i%37===0))];
+  const center=[0,1,2].map(i=>extentPoints.length?extentPoints.reduce((s,p)=>s+p[i],0)/extentPoints.length:0);
+  const extent=Math.max(1,...extentPoints.map(p=>Math.hypot(...p.map((v,i)=>v-center[i]))));
+  function selected(){return selector.value===''?null:points[Number(selector.value)];}
+  function leaf(){return leafSelector.value===''?null:leaflets[Number(leafSelector.value)];}
+  function line(map,a,b,color,dash){const p=map(a),q=map(b);ctx.save();ctx.strokeStyle=color;ctx.lineWidth=1.6;ctx.setLineDash(dash||[]);ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1]);ctx.stroke();ctx.restore();}
+  function draw(){
+    const box=canvas.getBoundingClientRect(), ratio=window.devicePixelRatio||1;
+    canvas.width=box.width*ratio;canvas.height=box.height*ratio;ctx.setTransform(ratio,0,0,ratio,0,0);
+    ctx.clearRect(0,0,box.width,box.height);const scale=Math.min(box.width,box.height)*.35/extent*zoom;
+    const map=p=>{const q=p.map((v,i)=>v-center[i]),x=q[0]*Math.cos(yaw)-q[1]*Math.sin(yaw),y=q[0]*Math.sin(yaw)+q[1]*Math.cos(yaw);return [box.width/2+x*scale,box.height/2-(y*Math.sin(pitch)+q[2]*Math.cos(pitch))*scale];};
+    const L=leaf();
+    if(on('showSurfaces')) for(const surface of surfaces){
+      const mine=!L||surface.viewer_leaflet_id===L.viewer_leaflet_id;
+      ctx.globalAlpha=mine?0.5:0.12;ctx.fillStyle='#35e07a';ctx.strokeStyle='rgba(20,60,40,0.55)';ctx.lineWidth=0.5;
+      const uv=surface.vertices_mm.map(map);
+      for(const f of surface.faces){
+        ctx.beginPath();ctx.moveTo(uv[f[0]][0],uv[f[0]][1]);ctx.lineTo(uv[f[1]][0],uv[f[1]][1]);ctx.lineTo(uv[f[2]][0],uv[f[2]][1]);ctx.closePath();ctx.fill();
+      }
+      ctx.globalAlpha=1;
+    }
+    if(L){
+      if(on('showFeasible')&&L.feasible_vertices_mm&&L.feasible_edges)for(const [a,b] of L.feasible_edges)line(map,L.feasible_vertices_mm[a],L.feasible_vertices_mm[b],'#4fd1ff');
+      if(on('showCuboid')&&L.cuboid_min_mm){const c=boxCorners(L.cuboid_min_mm,L.cuboid_max_mm);for(const [a,b] of BOX_EDGES)line(map,c[a],c[b],'#ffe066',[6,5]);}
+      if(on('showPointExtent')&&L.point_extent_min_mm){const c=boxCorners(L.point_extent_min_mm,L.point_extent_max_mm);for(const [a,b] of BOX_EDGES)line(map,c[a],c[b],'#ff69dc',[2,4]);}
+    }
+    hitPoints=[];
+    for(const [i,p] of (on('showPoints')?points.entries():[])){
+      const xy=map(p.xyz_mm),active=selector.value===String(i),mine=L&&p.viewer_leaflet_id===L.viewer_leaflet_id;
+      ctx.globalAlpha=((selected()&&!active)||(L&&!mine))?0.3:1;ctx.beginPath();ctx.arc(xy[0],xy[1],active?7:4,0,Math.PI*2);
+      ctx.fillStyle=active?'#fff66e':'#ffb347';ctx.fill();
+      if(p.inside_feasible_region===false||p.inside_feasible_region==='False'){ctx.strokeStyle='#ff5c5c';ctx.lineWidth=2;ctx.beginPath();ctx.arc(xy[0],xy[1],9,0,Math.PI*2);ctx.stroke();}
+      ctx.font='12px system-ui';ctx.fillText(p.leaflet_id+'/'+p.point_id,xy[0]+8,xy[1]-6);hitPoints.push({i,xy});
+    }
+    if(onHybrid()){
+      for(const h of hybridPoints){
+        const xy=map(h.xyz_mm), mine=!L||h.viewer_leaflet_id===L.viewer_leaflet_id;
+        ctx.globalAlpha=mine?1:0.3;
+        if(h.baseline_xyz_mm){const b=map(h.baseline_xyz_mm);ctx.save();ctx.strokeStyle='#4fd1ff';ctx.setLineDash([3,3]);ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(b[0],b[1]);ctx.lineTo(xy[0],xy[1]);ctx.stroke();ctx.restore();}
+        ctx.beginPath();ctx.moveTo(xy[0],xy[1]-6);ctx.lineTo(xy[0]+6,xy[1]);ctx.lineTo(xy[0],xy[1]+6);ctx.lineTo(xy[0]-6,xy[1]);ctx.closePath();
+        ctx.fillStyle=h.baseline_xyz_mm?'#4fd1ff':'#9b7dff';ctx.fill();
+      }
+      ctx.globalAlpha=1;
+    }
+    ctx.globalAlpha=1;ctx.fillStyle='#dcebdd';ctx.font='13px system-ui';
+    if(onHybrid())ctx.fillText('혼합 결과 '+hybridPoints.length+'개(◆ 추정 카메라 포함, 보라 = 기준선에 없던 점) · 진단용·미검증',12,40);
+    ctx.fillText(points.length+'개 대응점 · 보간 부분 면 '+surfaces.length+'개 · 모두 미검증'+(staleSurfaces?' · 오래된 면 '+staleSurfaces+'개는 표시하지 않음':''),12,22);
+    const p=selected();info.textContent=p?p.leaflet_id+'/'+p.point_id+(p.point_semantic_name?' ('+p.point_semantic_name+')':'')+' · 삼각측량 추정값 · 보드 X '+p.xyz_mm[0].toFixed(1)+' / Y '+p.xyz_mm[1].toFixed(1)+' / 높이 Z '+p.xyz_mm[2].toFixed(1)+' mm · 대응 사진 '+p.photo_indices.length+'장 · 미검증':points.length?'계산된 대응점만 표시합니다. 깊이가 없는 라벨은 아래 사진에서 확인합니다.':'계산된 3D 점이 없습니다. 아래 사진 라벨은 유지됩니다.';
+  }
+  function showPhoto(index){const photos=document.getElementById('photoSelect');if(photos&&index!=null){photos.value=String(index);photos.dispatchEvent(new Event('change'));}}
+  function renderLeaf(){
+    const L=leaf();if(!L){leafInfo.innerHTML='';return;}
+    const fmt=v=>v.map(x=>x.toFixed(1)).join(', ');
+    const cuboid=L.cuboid_min_mm?`<br>감싸는 직육면체(보드 좌표 mm): 최소 (${fmt(L.cuboid_min_mm)}) · 최대 (${fmt(L.cuboid_max_mm)}) · 실제 가능 공간은 직육면체 부피의 ${(100*L.feasible_fraction_of_cuboid).toFixed(0)}%`:'';
+    const pointExtent=L.point_extent_min_mm?`<br>삼각측량 점 범위(희소 점, 잎 경계 아님): (${fmt(L.point_extent_min_mm)}) ~ (${fmt(L.point_extent_max_mm)})`:'<br>삼각측량 점 범위: '+(L.point_extent_status==='single_point_no_extent'?'점 1개 · 범위 없음':'없음');
+    const attached=L.attached_surface;
+    const surfaceLine=attached?`<br>보간 부분 면: 삼각형 ${attached.retained_faces}개 · 사용 사진 ${esc((attached.source_images||[]).join(', '))} · 기준 점 ${esc((attached.landmark_point_ids||[]).join(', '))} · ${attached.status==='current_for_this_point_snapshot'?'현재 대응점 기준':'<b style="color:#ff9c96">오래된 대응점에서 만든 면 · 다시 계산 필요</b>'} · 측정된 곡률 아님`:'<br>보간 부분 면: 없음';
+    const outside=L.points_outside_feasible_region.length?`<br><b style="color:#ff5c5c">가능 공간 밖의 점(삭제·이동하지 않음): ${esc(L.points_outside_feasible_region.join(', '))}</b>`:'';
+    const boxes=L.boxes.map(b=>`<li>${esc(b.image_file)} · ${VIS[b.visibility]||esc(b.visibility)} · ${REVIEW[b.identity_review]||esc(b.identity_review)} · ${b.used_for_extent?'가능 공간 계산에 사용':'계산 제외: '+esc(String(b.exclusion_reason).split(';').map(r=>EXCL[r]||r).join(' / '))} · 원본 픽셀 ${b.rect_px.map(v=>Number(v).toFixed(1)).join(', ')}</li>`).join('')||'<li>저장된 소엽 박스 없음</li>';
+    const photos=L.photos.map(ph=>`<button type="button" data-photo="${ph.index}">${esc(ph.image_file)}</button> <span class="small">포즈 ${ph.pose_status==='solved'?'시험값':'없음'} · 기준 ${ph.passes_pose_gate?'통과':'미통과'} · 실제 검출 marker IDs: ${esc(ph.detected_marker_ids)}</span>`).join('<br>')||'연결된 사진 없음';
+    leafInfo.innerHTML=`<div class="notice"><b>${esc(L.organ_id)} / ${esc(L.leaflet_id)}</b> · ${GEOMETRY[L.geometry_status]||esc(L.geometry_status)} · ${CUBOID[L.cuboid_status]||esc(L.cuboid_status)}${L.cuboid_detail?' ('+esc(L.cuboid_detail)+')':''}${cuboid}${pointExtent}${surfaceLine}${outside}
+      <br>삼각측량된 점 ID: ${esc(L.triangulated_point_ids.join(', ')||'없음')} · 사진에 표시된 점 ID: ${esc(L.image_point_ids.join(', ')||'없음')}
+      <br>품질: 기준 통과 포즈 ${L.any_accepted_pose?'있음':'0장'} · 검증된 길이/깊이 아님 · PPFD 입력 아님</div>
+      <p>이 소엽의 박스</p><ul>${boxes}</ul><p>연결된 사진 (누르면 아래에 표시)</p><p>${photos}</p>`;
+    leafInfo.querySelectorAll('[data-photo]').forEach(b=>b.addEventListener('click',()=>showPhoto(Number(b.dataset.photo))));
+  }
+  function selectPoint(index){selector.value=String(index);const p=selected();if(p)showPhoto(p.photo_indices[0]);draw();}
+  selector.onchange=()=>{if(selector.value==='')draw();else selectPoint(Number(selector.value));};
+  leafSelector.onchange=()=>{selector.value='';const L=leaf();if(L&&L.photo_indices.length)showPhoto(L.photo_indices[0]);renderLeaf();draw();};
+  canvas.onpointerdown=e=>{drag=[e.clientX,e.clientY];moved=false;canvas.setPointerCapture(e.pointerId);};
+  canvas.onpointermove=e=>{if(!drag)return;const dx=e.clientX-drag[0],dy=e.clientY-drag[1];if(Math.abs(dx)+Math.abs(dy)>2)moved=true;yaw+=dx*.008;pitch=Math.max(-1.5,Math.min(1.5,pitch+dy*.008));drag=[e.clientX,e.clientY];draw();};
+  canvas.onpointerup=e=>{if(!moved){const box=canvas.getBoundingClientRect(),x=e.clientX-box.left,y=e.clientY-box.top;const hit=hitPoints.map(p=>({...p,d:Math.hypot(p.xy[0]-x,p.xy[1]-y)})).sort((a,b)=>a.d-b.d)[0];if(hit&&hit.d<14){const p=points[hit.i],li=leaflets.findIndex(l=>l.viewer_leaflet_id===p.viewer_leaflet_id);if(li>=0&&leafSelector.value!==String(li)){leafSelector.value=String(li);renderLeaf();}selectPoint(hit.i);}}drag=null;};
+  canvas.onpointercancel=()=>drag=null;
+  canvas.onwheel=e=>{e.preventDefault();zoom=Math.max(.2,Math.min(5,zoom*Math.exp(-e.deltaY*.001)));draw();};
+  document.getElementById('spatialReset').onclick=()=>{yaw=.7;pitch=.6;zoom=1;draw();};
+  for(const id of ['showPoints','showSurfaces','showFeasible','showCuboid','showPointExtent','showHybrid']){
+    const el=document.getElementById(id); if(el) el.addEventListener('change',draw);
+  }
+  window.__pointScene={points,leaflets,surfaces,surfaceData,hybridPoints,hybridData,selectLeaflet:i=>{leafSelector.value=String(i);leafSelector.onchange();},selectPoint};
+  window.addEventListener('resize',draw);draw();
+})();
+</script>

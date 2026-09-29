@@ -1,0 +1,58 @@
+{
+ "sam_dwt_01_to_dwt_02": {
+  "train": "dwt_01",
+  "held": "dwt_02",
+  "n_train": 268,
+  "base": {
+   "n": 246,
+   "median": 0.8853,
+   "ge50": 0.9106,
+   "ge75": 0.7073,
+   "ge90": 0.4431
+  },
+  "tuned": {
+   "n": 246,
+   "median": 0.9102,
+   "ge50": 0.9512,
+   "ge75": 0.7642,
+   "ge90": 0.5447
+  }
+ },
+ "sam_dwt_02_to_dwt_01": {
+  "train": "dwt_02",
+  "held": "dwt_01",
+  "n_train": 246,
+  "base": {
+   "n": 268,
+   "median": 0.881,
+   "ge50": 0.9067,
+   "ge75": 0.694,
+   "ge90": 0.4664
+  },
+  "tuned": {
+   "n": 268,
+   "median": 0.8986,
+   "ge50": 0.9254,
+   "ge75": 0.7649,
+   "ge90": 0.4963
+  }
+ },
+ "obb_dwt_01_to_dwt_02": {
+  "train": "dwt_01",
+  "held": "dwt_02",
+  "obb_map50": 0.7763,
+  "obb_map50_95": 0.4459,
+  "matched": "177/246",
+  "median_axis_error_deg": 16.11,
+  "within_30deg": 0.7571
+ },
+ "obb_dwt_02_to_dwt_01": {
+  "train": "dwt_02",
+  "held": "dwt_01",
+  "obb_map50": 0.7916,
+  "obb_map50_95": 0.4102,
+  "matched": "230/268",
+  "median_axis_error_deg": 14.85,
+  "within_30deg": 0.7826
+ }
+}

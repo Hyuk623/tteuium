@@ -1,0 +1,13 @@
+{
+  "backend": "sam2",
+  "model_name": "SAM 2.1 hiera tiny, leaflet-tuned on dwt_02/03/04 only (dwt_01 held out; Kaggle dolgfish/tomato-sam-heldout-dwt01) - for dwt_01 validation",
+  "repository": "C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\build\\sam_trial_20260919\\vendor\\sam2",
+  "runtime": "C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\build\\sam_trial_20260919\\runtime",
+  "checkpoint": "C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\build\\leaflets4_20260927\\sam2.1_hiera_tiny_leaflet_tuned_heldout_dwt_01.pt",
+  "checkpoint_sha256": "1731364e20cf9c9233d2f889ae9f27682d3a23ef4c607ae2a12700755864c197",
+  "model_config": "configs/sam2.1/sam2.1_hiera_t.yaml",
+  "device": "cpu",
+  "threads": 4,
+  "base_checkpoint_sha256": "7402e0d864fa82708a20fbd15bc84245c2f26dff0eb43a4b5b93452deb34be69",
+  "tuned_from": "build/leaflets4_20260927/kout_sam_heldout01/sam2_tiny_decoder_tuned_heldout_dwt_01.pt"
+}

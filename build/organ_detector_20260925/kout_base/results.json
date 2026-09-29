@@ -1,0 +1,195 @@
+{
+ "lopo_dwt_01": {
+  "train": [
+   "dwt_02",
+   "dwt_03",
+   "dwt_04"
+  ],
+  "val": [
+   "dwt_01"
+  ],
+  "box_map50": 0.3869,
+  "mask_map50": 0.2509,
+  "box_map": 0.1566,
+  "mask_map": 0.0748,
+  "per_class": {
+   "compound_leaf": {
+    "box_map50": 0.6174,
+    "mask_map50": 0.0
+   },
+   "leaflet": {
+    "box_map50": 0.6549,
+    "mask_map50": 0.3777
+   },
+   "sub_stem": {
+    "box_map50": 0.1774,
+    "mask_map50": 0.2075
+   },
+   "main_stem": {
+    "box_map50": 0.4132,
+    "mask_map50": 0.6083
+   },
+   "growth_shoot": {
+    "box_map50": 0.0717,
+    "mask_map50": 0.0612
+   }
+  },
+  "note": "held-out plant"
+ },
+ "lopo_dwt_02": {
+  "train": [
+   "dwt_01",
+   "dwt_03",
+   "dwt_04"
+  ],
+  "val": [
+   "dwt_02"
+  ],
+  "box_map50": 0.3783,
+  "mask_map50": 0.239,
+  "box_map": 0.1715,
+  "mask_map": 0.0781,
+  "per_class": {
+   "compound_leaf": {
+    "box_map50": 0.7411,
+    "mask_map50": 0.001
+   },
+   "leaflet": {
+    "box_map50": 0.6443,
+    "mask_map50": 0.4921
+   },
+   "sub_stem": {
+    "box_map50": 0.2503,
+    "mask_map50": 0.2614
+   },
+   "main_stem": {
+    "box_map50": 0.2178,
+    "mask_map50": 0.4086
+   },
+   "growth_shoot": {
+    "box_map50": 0.0379,
+    "mask_map50": 0.0319
+   }
+  },
+  "note": "held-out plant"
+ },
+ "lopo_dwt_03": {
+  "train": [
+   "dwt_01",
+   "dwt_02",
+   "dwt_04"
+  ],
+  "val": [
+   "dwt_03"
+  ],
+  "box_map50": 0.439,
+  "mask_map50": 0.2041,
+  "box_map": 0.2033,
+  "mask_map": 0.0679,
+  "per_class": {
+   "compound_leaf": {
+    "box_map50": 0.8865,
+    "mask_map50": 0.0
+   },
+   "leaflet": {
+    "box_map50": 0.6831,
+    "mask_map50": 0.1847
+   },
+   "sub_stem": {
+    "box_map50": 0.3629,
+    "mask_map50": 0.4651
+   },
+   "main_stem": {
+    "box_map50": 0.1898,
+    "mask_map50": 0.3512
+   },
+   "growth_shoot": {
+    "box_map50": 0.0726,
+    "mask_map50": 0.0193
+   }
+  },
+  "note": "held-out plant"
+ },
+ "lopo_dwt_04": {
+  "train": [
+   "dwt_01",
+   "dwt_02",
+   "dwt_03"
+  ],
+  "val": [
+   "dwt_04"
+  ],
+  "box_map50": 0.4742,
+  "mask_map50": 0.1792,
+  "box_map": 0.2202,
+  "mask_map": 0.0643,
+  "per_class": {
+   "compound_leaf": {
+    "box_map50": 0.8827,
+    "mask_map50": 0.004
+   },
+   "leaflet": {
+    "box_map50": 0.6624,
+    "mask_map50": 0.1692
+   },
+   "sub_stem": {
+    "box_map50": 0.4617,
+    "mask_map50": 0.4415
+   },
+   "main_stem": {
+    "box_map50": 0.2922,
+    "mask_map50": 0.2319
+   },
+   "growth_shoot": {
+    "box_map50": 0.0718,
+    "mask_map50": 0.0492
+   }
+  },
+  "note": "held-out plant"
+ },
+ "final_all": {
+  "train": [
+   "dwt_01",
+   "dwt_02",
+   "dwt_03",
+   "dwt_04"
+  ],
+  "val": [
+   "dwt_01",
+   "dwt_02",
+   "dwt_03",
+   "dwt_04"
+  ],
+  "box_map50": 0.6296,
+  "mask_map50": 0.4086,
+  "box_map": 0.3496,
+  "mask_map": 0.1895,
+  "per_class": {
+   "compound_leaf": {
+    "box_map50": 0.9305,
+    "mask_map50": 0.0577
+   },
+   "leaflet": {
+    "box_map50": 0.8347,
+    "mask_map50": 0.6618
+   },
+   "sub_stem": {
+    "box_map50": 0.5743,
+    "mask_map50": 0.6159
+   },
+   "main_stem": {
+    "box_map50": 0.627,
+    "mask_map50": 0.6056
+   },
+   "growth_shoot": {
+    "box_map50": 0.1815,
+    "mask_map50": 0.102
+   }
+  },
+  "note": "final_all validates on its own training plants (sanity only)"
+ },
+ "lopo_mean": {
+  "box_map50": 0.4196,
+  "mask_map50": 0.2183
+ }
+}

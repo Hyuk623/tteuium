@@ -1,0 +1,68 @@
+{
+ "obb_heldout_dwt_01": {
+  "train": [
+   "dwt_02",
+   "dwt_03",
+   "dwt_04"
+  ],
+  "held": "dwt_01",
+  "obb_map50": 0.8602,
+  "obb_map50_95": 0.5503,
+  "matched": "236/268",
+  "median_axis_error_deg": 9.1,
+  "within_30deg": 0.8517
+ },
+ "obb_heldout_dwt_02": {
+  "train": [
+   "dwt_01",
+   "dwt_03",
+   "dwt_04"
+  ],
+  "held": "dwt_02",
+  "obb_map50": 0.8134,
+  "obb_map50_95": 0.5038,
+  "matched": "191/246",
+  "median_axis_error_deg": 12.64,
+  "within_30deg": 0.8063
+ },
+ "obb_heldout_dwt_03": {
+  "train": [
+   "dwt_01",
+   "dwt_02",
+   "dwt_04"
+  ],
+  "held": "dwt_03",
+  "obb_map50": 0.8292,
+  "obb_map50_95": 0.5007,
+  "matched": "217/278",
+  "median_axis_error_deg": 9.65,
+  "within_30deg": 0.8571
+ },
+ "obb_heldout_dwt_04": {
+  "train": [
+   "dwt_01",
+   "dwt_02",
+   "dwt_03"
+  ],
+  "held": "dwt_04",
+  "obb_map50": 0.8354,
+  "obb_map50_95": 0.5022,
+  "matched": "282/364",
+  "median_axis_error_deg": 10.49,
+  "within_30deg": 0.8759
+ },
+ "obb_final_all": {
+  "train": [
+   "dwt_01",
+   "dwt_02",
+   "dwt_03",
+   "dwt_04"
+  ],
+  "held": null,
+  "obb_map50": 0.913,
+  "obb_map50_95": 0.6513,
+  "matched": "0/0",
+  "median_axis_error_deg": null,
+  "within_30deg": null
+ }
+}

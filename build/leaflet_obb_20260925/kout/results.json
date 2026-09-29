@@ -1,0 +1,12 @@
+{
+ "obb_map50": 0.7871,
+ "obb_map50_95": 0.4801,
+ "axis": {
+  "gt_leaflets": 117,
+  "matched_by_centre": 92,
+  "median_axis_error_deg": 14.97,
+  "within_15deg": 0.5,
+  "within_30deg": 0.8261,
+  "note": "axis is undirected (0-180): tip vs base still needs the petiole side"
+ }
+}

@@ -1,0 +1,47 @@
+<!doctype html><html lang=ko><meta charset=utf-8><title>복엽 이름 확인</title>
+<style>:root{--bg:#fff;--ink:#1d1d1f;--mut:#6b6b70;--line:#e3e3e6;--acc:#2f6a2a}
+@media (prefers-color-scheme:dark){:root{--bg:#161618;--ink:#ececef;--mut:#9a9aa1;--line:#2c2c30;--acc:#8fce86}}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,'Malgun Gothic',sans-serif;margin:24px auto;max-width:1200px;padding:0 16px}
+h1{font-size:20px;margin:0}h2{font-size:17px;margin:28px 0 6px}p{color:var(--mut);margin:4px 0 12px}
+.imgs{display:flex;gap:8px;overflow-x:auto}.imgs img{height:340px;border:1px solid var(--line);border-radius:6px}
+table{border-collapse:collapse;margin-top:8px}td,th{border-bottom:1px solid var(--line);padding:6px 10px;text-align:left}
+th{color:var(--mut);font-weight:600}.sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:middle}
+select{font:inherit;padding:2px 4px}button{font:inherit;padding:8px 16px;border-radius:8px;border:1px solid var(--acc);background:var(--acc);color:var(--bg);cursor:pointer}
+.bar{position:sticky;top:0;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center}
+.small{font-size:12px;color:var(--mut)}</style>
+<div class=bar><h1>복엽 이름 확인</h1><button id=save>결정 파일 저장</button><span id=msg class=small></span></div>
+<p>규칙: 아래에서 위로 L01, L02 …, 전개 중인 잎이 맨 위(마지막 번호). 사진 위 이름과 색을 보고, 맞으면 "제안 유지", 틀리면 올바른 이름을 고르세요.
+고르지 않은 영역은 결정 없음으로 남습니다. 저장 파일은 다운로드 폴더에 두면 감시기가 파이프라인을 다시 돌립니다.</p>
+<div id=root></div>
+<script>
+const DATA = {"run": "pipeline_20260929_015111", "previous": {"schema": "human-checks-1", "run": "pipeline_20260929_013123", "saved_at": "2026-09-28T16:41:41.576Z", "names": {"dwt_01": {"0": {"name": "confirm", "median_z_mm": 91.5}, "1": {"name": "confirm", "median_z_mm": 122.5}, "2": {"name": "confirm", "median_z_mm": 96.5}, "3": {"name": "growing_leaf", "median_z_mm": 123.5}}, "dwt_02": {"0": {"name": "confirm", "median_z_mm": 91.5}, "1": {"name": "confirm", "median_z_mm": 83.5}, "2": {"name": "confirm", "median_z_mm": 67.5}, "4": {"name": "", "median_z_mm": 45.5}}, "dwt_03": {"0": {"name": "confirm", "median_z_mm": 80.5}, "1": {"name": "confirm", "median_z_mm": 111.5}, "2": {"name": "growing_leaf", "median_z_mm": 112.5}, "3": {"name": "confirm", "median_z_mm": 94.5}}, "dwt_04": {"0": {"name": "confirm", "median_z_mm": 96.5}, "1": {"name": "confirm", "median_z_mm": 116.5}, "2": {"name": "L05", "median_z_mm": 137.5}, "3": {"name": "confirm", "median_z_mm": 115.5}, "4": {"name": "confirm", "median_z_mm": 101.5}}}, "decisions": {"masks_done": [], "pose_candidates": "use_as_diagnostic", "s6_guard": "wait_for_codex", "direction_rule": "잎끝이 카메라면 front, 뒤면 back"}, "checked": {"masks": true, "xview": true, "names": true, "dir": false, "pose": false, "guard": false}}, "plants": [{"plant": "dwt_01", "naming": "names are a height-order proposal (L01 = lowest, numbers rise upward); confirm against the photographs; names confirmed by a person for regions [0, 1, 2, 3]", "growth": "L01(8), L02(9), L03(9), L04(5, 전개 중)", "images": ["dwt_01/structure/overlays/dwt_01_20260920_24.jpg", "dwt_01/structure/overlays/dwt_01_20260920_25.jpg", "dwt_01/structure/overlays/dwt_01_20260920_28.jpg"], "names": ["L01", "L02", "L03", "L04", "L05", "growing_leaf"], "regions": [{"region": 0, "proposed": "L01", "z": 91.5, "voxels": 37723, "photos": 3, "fragment": false, "human": true, "rgb": "224,122,95"}, {"region": 2, "proposed": "L02", "z": 96.5, "voxels": 36037, "photos": 3, "fragment": false, "human": true, "rgb": "156,110,214"}, {"region": 1, "proposed": "L03", "z": 122.5, "voxels": 43474, "photos": 3, "fragment": false, "human": true, "rgb": "61,145,220"}, {"region": 3, "proposed": "growing_leaf", "z": 123.5, "voxels": 9358, "photos": 2, "fragment": false, "human": true, "rgb": "70,170,120"}]}, {"plant": "dwt_02", "naming": "names are a height-order proposal (L01 = lowest, numbers rise upward); confirm against the photographs; unfolding L04 has no region of its own; 1 fragment region(s) under 698 voxels left unnamed; names confirmed by a person for regions [0, 1, 2, 4]", "growth": "L01(7), L02(7), L03(5), L04(5, 전개 중)", "images": ["dwt_02/structure/overlays/dwt_02_20260920_21.jpg", "dwt_02/structure/overlays/dwt_02_20260920_24.jpg", "dwt_02/structure/overlays/dwt_02_20260920_25.jpg", "dwt_02/structure/overlays/dwt_02_20260920_26.jpg", "dwt_02/structure/overlays/dwt_02_20260920_27.jpg", "dwt_02/structure/overlays/dwt_02_20260920_28.jpg"], "names": ["L01", "L02", "L03", "L04", "L05", "growing_leaf"], "regions": [{"region": 4, "proposed": null, "z": 45.5, "voxels": 1, "photos": 1, "fragment": true, "human": true, "rgb": "230,190,60"}, {"region": 2, "proposed": "L01", "z": 67.5, "voxels": 25891, "photos": 4, "fragment": false, "human": true, "rgb": "156,110,214"}, {"region": 1, "proposed": "L02", "z": 83.5, "voxels": 30421, "photos": 5, "fragment": false, "human": true, "rgb": "61,145,220"}, {"region": 0, "proposed": "L03", "z": 91.5, "voxels": 9529, "photos": 3, "fragment": false, "human": true, "rgb": "224,122,95"}]}, {"plant": "dwt_03", "naming": "names are a height-order proposal (L01 = lowest, numbers rise upward); confirm against the photographs; names confirmed by a person for regions [0, 1, 2, 3]", "growth": "L01(7), L02(7), L03(6), L04(5, 전개 중)", "images": ["dwt_03/structure/overlays/dwt_03_20260921_21.jpg", "dwt_03/structure/overlays/dwt_03_20260921_24.jpg", "dwt_03/structure/overlays/dwt_03_20260921_25.jpg"], "names": ["L01", "L02", "L03", "L04", "L05", "growing_leaf"], "regions": [{"region": 0, "proposed": "L01", "z": 80.5, "voxels": 22899, "photos": 3, "fragment": false, "human": true, "rgb": "224,122,95"}, {"region": 3, "proposed": "L02", "z": 94.5, "voxels": 27020, "photos": 3, "fragment": false, "human": true, "rgb": "70,170,120"}, {"region": 1, "proposed": "L03", "z": 111.5, "voxels": 30247, "photos": 3, "fragment": false, "human": true, "rgb": "61,145,220"}, {"region": 2, "proposed": "growing_leaf", "z": 112.5, "voxels": 15103, "photos": 2, "fragment": false, "human": true, "rgb": "156,110,214"}]}, {"plant": "dwt_04", "naming": "names are a height-order proposal (L01 = lowest, numbers rise upward); confirm against the photographs; unfolding L05 has no region of its own; 1 fragment region(s) under 1714 voxels left unnamed; names confirmed by a person for regions [0, 1, 2, 3, 4]", "growth": "L01(9), L02(7), L03(7), L04(7), L05(5, 전개 중)", "images": ["dwt_04/structure/overlays/dwt_04_20260920_25.jpg", "dwt_04/structure/overlays/dwt_04_20260920_26.jpg", "dwt_04/structure/overlays/dwt_04_20260920_28.jpg"], "names": ["L01", "L02", "L03", "L04", "L05", "L06", "growing_leaf"], "regions": [{"region": 0, "proposed": "L01", "z": 96.5, "voxels": 38059, "photos": 2, "fragment": false, "human": true, "rgb": "224,122,95"}, {"region": 4, "proposed": "L02", "z": 101.5, "voxels": 34592, "photos": 3, "fragment": false, "human": true, "rgb": "230,190,60"}, {"region": 3, "proposed": "L03", "z": 115.5, "voxels": 13320, "photos": 2, "fragment": false, "human": true, "rgb": "70,170,120"}, {"region": 1, "proposed": "L04", "z": 116.5, "voxels": 48843, "photos": 3, "fragment": false, "human": true, "rgb": "61,145,220"}, {"region": 2, "proposed": "L05", "z": 137.5, "voxels": 5, "photos": 1, "fragment": true, "human": true, "rgb": "156,110,214"}]}]};
+const root = document.getElementById('root');
+for (const p of DATA.plants) {
+  const sec = document.createElement('section');
+  sec.innerHTML = `<h2>${p.plant}</h2><p>생육 기록: ${p.growth || '없음'} · ${p.naming}</p><div class=imgs>${p.images.map(i => `<a href="${i}" target=_blank><img src="${i}"></a>`).join('')}</div>`;
+  const t = document.createElement('table');
+  t.innerHTML = '<tr><th>색</th><th>영역</th><th>제안</th><th>중앙 높이 (mm)</th><th>복셀</th><th>사진</th><th>결정</th></tr>';
+  for (const r of p.regions) {
+    const opts = ['', 'confirm', ...p.names, 'none'].map(v => `<option value="${v}">${v === '' ? '(결정 없음)' : v === 'confirm' ? '제안 유지' : v === 'none' ? '이름 없음(잎 아님·조각)' : v}</option>`).join('');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><span class=sw style="background:rgb(${r.rgb})"></span></td><td>${r.region}${r.fragment ? ' (조각)' : ''}</td><td><b>${r.proposed || '—'}</b>${r.human ? ' <span class=small>(사람 확인됨)</span>' : ''}</td><td>${r.z}</td><td>${r.voxels}</td><td>${r.photos}</td><td><select data-plant="${p.plant}" data-region="${r.region}" data-z="${r.z}">${opts}</select></td>`;
+    t.appendChild(tr);
+  }
+  sec.appendChild(t); root.appendChild(sec);
+}
+document.getElementById('save').onclick = () => {
+  const names = JSON.parse(JSON.stringify(DATA.previous.names || {}));
+  let n = 0;
+  for (const s of document.querySelectorAll('select')) {
+    if (!s.value) continue;
+    (names[s.dataset.plant] ||= {})[s.dataset.region] = {name: s.value === 'none' ? '' : s.value, median_z_mm: +s.dataset.z};
+    n++;
+  }
+  const out = {...DATA.previous, schema: 'human-checks-1', run: DATA.run, saved_at: new Date().toISOString(), names};
+  const ts = new Date().toISOString().replace(/[-:]/g, '').replace('T', '_').slice(0, 15);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 1)], {type: 'application/json'}));
+  a.download = `human_checks_${ts}.json`; a.click();
+  document.getElementById('msg').textContent = `${n}개 영역 결정을 저장했습니다 (이전 결정 유지).`;
+};
+</script>

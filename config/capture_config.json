@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "side_camera_radius_mm": 550.0,
+  "side_camera_height_mm": 300.0,
+  "side_camera_elevation_deg": 28.6,
+  "side_aim_point_mm": [0.0, 0.0, 110.0],
+  "side_view_count_pilot": 36,
+  "side_view_step_deg": 10.0,
+  "top_camera_height_mm": 550.0,
+  "top_view_positions_mm": {
+    "T0": [0.0, 0.0, 550.0],
+    "T1": [135.0, 135.0, 550.0],
+    "T2": [-135.0, 135.0, 550.0],
+    "T3": [-135.0, -135.0, 550.0],
+    "T4": [135.0, -135.0, 550.0]
+  },
+  "operational_top_view": "T0",
+  "settle_seconds_after_rotation": 5.0
+}

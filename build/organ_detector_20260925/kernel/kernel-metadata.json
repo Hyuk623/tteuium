@@ -1,0 +1,16 @@
+{
+  "id": "dolgfish/tomato-organ-detector-train",
+  "title": "tomato organ detector train",
+  "code_file": "train.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": ["dolgfish/tomato-organ-seg-lopo"],
+  "kernel_sources": [],
+  "competition_sources": [],
+  "model_sources": [],
+  "machine_shape": "NvidiaTeslaT4"
+}

@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tomato3d"
+version = "0.1.0"
+description = "Dwarf cherry tomato 3D phenotyping pipeline - Stage 1 (capture + calibration)"
+requires-python = ">=3.11"
+dependencies = [
+    "opencv-contrib-python>=4.8",
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "python-dotenv>=1.0",
+    "pydantic>=2.0",
+]
+
+# NOTE: no structure-from-motion dependency is listed here and none may be added.
+# Camera pose comes from ChArUco PnP solved independently per frame (see README section
+# "Why there is no SfM").
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4"]
+
+[tool.setuptools.packages.find]
+include = ["tomato3d*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["error::DeprecationWarning:tomato3d.*"]

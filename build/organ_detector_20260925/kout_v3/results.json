@@ -1,0 +1,559 @@
+{
+ "lopo_dwt_01": {
+  "ultralytics_val": {
+   "s0": {
+    "box_map50": 0.3869,
+    "leaflet_box_ap50": 0.6549
+   },
+   "s1": {
+    "box_map50": 0.3686,
+    "leaflet_box_ap50": 0.6289
+   },
+   "s2": {
+    "box_map50": 0.4389,
+    "leaflet_box_ap50": 0.6817
+   }
+  },
+  "single_s0": {
+   "compound_leaf": {
+    "ap50": 0.649,
+    "recall_max": 0.9796,
+    "gt": 49
+   },
+   "leaflet": {
+    "ap50": 0.6842,
+    "recall_max": 0.9658,
+    "gt": 292
+   },
+   "sub_stem": {
+    "ap50": 0.1979,
+    "recall_max": 0.7037,
+    "gt": 27
+   },
+   "main_stem": {
+    "ap50": 0.4448,
+    "recall_max": 1.0,
+    "gt": 12
+   },
+   "growth_shoot": {
+    "ap50": 0.1287,
+    "recall_max": 0.25,
+    "gt": 8
+   },
+   "mean_ap50": 0.4209
+  },
+  "tta_s0": {
+   "compound_leaf": {
+    "ap50": 0.6294,
+    "recall_max": 0.9796,
+    "gt": 49
+   },
+   "leaflet": {
+    "ap50": 0.6054,
+    "recall_max": 0.9623,
+    "gt": 292
+   },
+   "sub_stem": {
+    "ap50": 0.1242,
+    "recall_max": 0.5926,
+    "gt": 27
+   },
+   "main_stem": {
+    "ap50": 0.5236,
+    "recall_max": 0.75,
+    "gt": 12
+   },
+   "growth_shoot": {
+    "ap50": 0.07,
+    "recall_max": 0.375,
+    "gt": 8
+   },
+   "mean_ap50": 0.3905
+  },
+  "seeds3": {
+   "compound_leaf": {
+    "ap50": 0.6899,
+    "recall_max": 0.9592,
+    "gt": 49
+   },
+   "leaflet": {
+    "ap50": 0.6756,
+    "recall_max": 0.9692,
+    "gt": 292
+   },
+   "sub_stem": {
+    "ap50": 0.1637,
+    "recall_max": 0.7037,
+    "gt": 27
+   },
+   "main_stem": {
+    "ap50": 0.4075,
+    "recall_max": 0.9167,
+    "gt": 12
+   },
+   "growth_shoot": {
+    "ap50": 0.1129,
+    "recall_max": 0.375,
+    "gt": 8
+   },
+   "mean_ap50": 0.4099
+  },
+  "seeds3_tta": {
+   "compound_leaf": {
+    "ap50": 0.7583,
+    "recall_max": 0.9796,
+    "gt": 49
+   },
+   "leaflet": {
+    "ap50": 0.6824,
+    "recall_max": 0.9829,
+    "gt": 292
+   },
+   "sub_stem": {
+    "ap50": 0.2247,
+    "recall_max": 0.6667,
+    "gt": 27
+   },
+   "main_stem": {
+    "ap50": 0.5312,
+    "recall_max": 1.0,
+    "gt": 12
+   },
+   "growth_shoot": {
+    "ap50": 0.0892,
+    "recall_max": 0.5,
+    "gt": 8
+   },
+   "mean_ap50": 0.4572
+  },
+  "gt_counts": {
+   "compound_leaf": 49,
+   "leaflet": 292,
+   "sub_stem": 27,
+   "main_stem": 12,
+   "growth_shoot": 8
+  }
+ },
+ "lopo_dwt_02": {
+  "ultralytics_val": {
+   "s0": {
+    "box_map50": 0.3783,
+    "leaflet_box_ap50": 0.6443
+   },
+   "s1": {
+    "box_map50": 0.4207,
+    "leaflet_box_ap50": 0.6855
+   },
+   "s2": {
+    "box_map50": 0.3973,
+    "leaflet_box_ap50": 0.6812
+   }
+  },
+  "single_s0": {
+   "compound_leaf": {
+    "ap50": 0.714,
+    "recall_max": 0.9512,
+    "gt": 41
+   },
+   "leaflet": {
+    "ap50": 0.6658,
+    "recall_max": 0.9474,
+    "gt": 285
+   },
+   "sub_stem": {
+    "ap50": 0.2736,
+    "recall_max": 0.6875,
+    "gt": 32
+   },
+   "main_stem": {
+    "ap50": 0.275,
+    "recall_max": 0.8667,
+    "gt": 15
+   },
+   "growth_shoot": {
+    "ap50": 0.0393,
+    "recall_max": 0.4,
+    "gt": 15
+   },
+   "mean_ap50": 0.3935
+  },
+  "tta_s0": {
+   "compound_leaf": {
+    "ap50": 0.7235,
+    "recall_max": 0.9512,
+    "gt": 41
+   },
+   "leaflet": {
+    "ap50": 0.6079,
+    "recall_max": 0.9404,
+    "gt": 285
+   },
+   "sub_stem": {
+    "ap50": 0.1956,
+    "recall_max": 0.6875,
+    "gt": 32
+   },
+   "main_stem": {
+    "ap50": 0.3389,
+    "recall_max": 0.9333,
+    "gt": 15
+   },
+   "growth_shoot": {
+    "ap50": 0.0456,
+    "recall_max": 0.4667,
+    "gt": 15
+   },
+   "mean_ap50": 0.3823
+  },
+  "seeds3": {
+   "compound_leaf": {
+    "ap50": 0.7951,
+    "recall_max": 0.9756,
+    "gt": 41
+   },
+   "leaflet": {
+    "ap50": 0.6792,
+    "recall_max": 0.9439,
+    "gt": 285
+   },
+   "sub_stem": {
+    "ap50": 0.2886,
+    "recall_max": 0.7188,
+    "gt": 32
+   },
+   "main_stem": {
+    "ap50": 0.3528,
+    "recall_max": 0.8667,
+    "gt": 15
+   },
+   "growth_shoot": {
+    "ap50": 0.0985,
+    "recall_max": 0.5333,
+    "gt": 15
+   },
+   "mean_ap50": 0.4428
+  },
+  "seeds3_tta": {
+   "compound_leaf": {
+    "ap50": 0.7862,
+    "recall_max": 0.9756,
+    "gt": 41
+   },
+   "leaflet": {
+    "ap50": 0.6937,
+    "recall_max": 0.9474,
+    "gt": 285
+   },
+   "sub_stem": {
+    "ap50": 0.2804,
+    "recall_max": 0.75,
+    "gt": 32
+   },
+   "main_stem": {
+    "ap50": 0.3621,
+    "recall_max": 0.9333,
+    "gt": 15
+   },
+   "growth_shoot": {
+    "ap50": 0.105,
+    "recall_max": 0.8,
+    "gt": 15
+   },
+   "mean_ap50": 0.4455
+  },
+  "gt_counts": {
+   "compound_leaf": 41,
+   "leaflet": 285,
+   "sub_stem": 32,
+   "main_stem": 15,
+   "growth_shoot": 15
+  }
+ },
+ "lopo_dwt_03": {
+  "ultralytics_val": {
+   "s0": {
+    "box_map50": 0.439,
+    "leaflet_box_ap50": 0.6831
+   },
+   "s1": {
+    "box_map50": 0.4349,
+    "leaflet_box_ap50": 0.6323
+   },
+   "s2": {
+    "box_map50": 0.4296,
+    "leaflet_box_ap50": 0.6453
+   }
+  },
+  "single_s0": {
+   "compound_leaf": {
+    "ap50": 0.8753,
+    "recall_max": 0.9808,
+    "gt": 52
+   },
+   "leaflet": {
+    "ap50": 0.6905,
+    "recall_max": 0.9155,
+    "gt": 296
+   },
+   "sub_stem": {
+    "ap50": 0.3902,
+    "recall_max": 0.7333,
+    "gt": 45
+   },
+   "main_stem": {
+    "ap50": 0.1964,
+    "recall_max": 0.7647,
+    "gt": 17
+   },
+   "growth_shoot": {
+    "ap50": 0.0737,
+    "recall_max": 0.5455,
+    "gt": 22
+   },
+   "mean_ap50": 0.4452
+  },
+  "tta_s0": {
+   "compound_leaf": {
+    "ap50": 0.8857,
+    "recall_max": 0.9808,
+    "gt": 52
+   },
+   "leaflet": {
+    "ap50": 0.6452,
+    "recall_max": 0.9426,
+    "gt": 296
+   },
+   "sub_stem": {
+    "ap50": 0.3924,
+    "recall_max": 0.7333,
+    "gt": 45
+   },
+   "main_stem": {
+    "ap50": 0.2238,
+    "recall_max": 0.8235,
+    "gt": 17
+   },
+   "growth_shoot": {
+    "ap50": 0.085,
+    "recall_max": 0.5909,
+    "gt": 22
+   },
+   "mean_ap50": 0.4464
+  },
+  "seeds3": {
+   "compound_leaf": {
+    "ap50": 0.937,
+    "recall_max": 1.0,
+    "gt": 52
+   },
+   "leaflet": {
+    "ap50": 0.6778,
+    "recall_max": 0.9459,
+    "gt": 296
+   },
+   "sub_stem": {
+    "ap50": 0.3988,
+    "recall_max": 0.7111,
+    "gt": 45
+   },
+   "main_stem": {
+    "ap50": 0.2922,
+    "recall_max": 1.0,
+    "gt": 17
+   },
+   "growth_shoot": {
+    "ap50": 0.0545,
+    "recall_max": 0.5,
+    "gt": 22
+   },
+   "mean_ap50": 0.4721
+  },
+  "seeds3_tta": {
+   "compound_leaf": {
+    "ap50": 0.9182,
+    "recall_max": 0.9808,
+    "gt": 52
+   },
+   "leaflet": {
+    "ap50": 0.6885,
+    "recall_max": 0.9764,
+    "gt": 296
+   },
+   "sub_stem": {
+    "ap50": 0.3881,
+    "recall_max": 0.8,
+    "gt": 45
+   },
+   "main_stem": {
+    "ap50": 0.3218,
+    "recall_max": 1.0,
+    "gt": 17
+   },
+   "growth_shoot": {
+    "ap50": 0.0831,
+    "recall_max": 0.5909,
+    "gt": 22
+   },
+   "mean_ap50": 0.4799
+  },
+  "gt_counts": {
+   "compound_leaf": 52,
+   "leaflet": 296,
+   "sub_stem": 45,
+   "main_stem": 17,
+   "growth_shoot": 22
+  }
+ },
+ "lopo_dwt_04": {
+  "ultralytics_val": {
+   "s0": {
+    "box_map50": 0.4742,
+    "leaflet_box_ap50": 0.6624
+   },
+   "s1": {
+    "box_map50": 0.4814,
+    "leaflet_box_ap50": 0.6956
+   },
+   "s2": {
+    "box_map50": 0.3922,
+    "leaflet_box_ap50": 0.6354
+   }
+  },
+  "single_s0": {
+   "compound_leaf": {
+    "ap50": 0.8917,
+    "recall_max": 0.9706,
+    "gt": 68
+   },
+   "leaflet": {
+    "ap50": 0.6772,
+    "recall_max": 0.9044,
+    "gt": 408
+   },
+   "sub_stem": {
+    "ap50": 0.4736,
+    "recall_max": 0.7419,
+    "gt": 31
+   },
+   "main_stem": {
+    "ap50": 0.3099,
+    "recall_max": 0.6364,
+    "gt": 11
+   },
+   "growth_shoot": {
+    "ap50": 0.066,
+    "recall_max": 0.5,
+    "gt": 16
+   },
+   "mean_ap50": 0.4837
+  },
+  "tta_s0": {
+   "compound_leaf": {
+    "ap50": 0.7916,
+    "recall_max": 0.9412,
+    "gt": 68
+   },
+   "leaflet": {
+    "ap50": 0.6503,
+    "recall_max": 0.9363,
+    "gt": 408
+   },
+   "sub_stem": {
+    "ap50": 0.5521,
+    "recall_max": 0.871,
+    "gt": 31
+   },
+   "main_stem": {
+    "ap50": 0.2718,
+    "recall_max": 0.6364,
+    "gt": 11
+   },
+   "growth_shoot": {
+    "ap50": 0.0923,
+    "recall_max": 0.5,
+    "gt": 16
+   },
+   "mean_ap50": 0.4716
+  },
+  "seeds3": {
+   "compound_leaf": {
+    "ap50": 0.9281,
+    "recall_max": 0.9853,
+    "gt": 68
+   },
+   "leaflet": {
+    "ap50": 0.6918,
+    "recall_max": 0.9485,
+    "gt": 408
+   },
+   "sub_stem": {
+    "ap50": 0.5548,
+    "recall_max": 0.8065,
+    "gt": 31
+   },
+   "main_stem": {
+    "ap50": 0.2344,
+    "recall_max": 0.8182,
+    "gt": 11
+   },
+   "growth_shoot": {
+    "ap50": 0.0328,
+    "recall_max": 0.375,
+    "gt": 16
+   },
+   "mean_ap50": 0.4884
+  },
+  "seeds3_tta": {
+   "compound_leaf": {
+    "ap50": 0.9181,
+    "recall_max": 0.9706,
+    "gt": 68
+   },
+   "leaflet": {
+    "ap50": 0.7006,
+    "recall_max": 0.9681,
+    "gt": 408
+   },
+   "sub_stem": {
+    "ap50": 0.5373,
+    "recall_max": 0.9032,
+    "gt": 31
+   },
+   "main_stem": {
+    "ap50": 0.2773,
+    "recall_max": 0.8182,
+    "gt": 11
+   },
+   "growth_shoot": {
+    "ap50": 0.0356,
+    "recall_max": 0.4375,
+    "gt": 16
+   },
+   "mean_ap50": 0.4938
+  },
+  "gt_counts": {
+   "compound_leaf": 68,
+   "leaflet": 408,
+   "sub_stem": 31,
+   "main_stem": 11,
+   "growth_shoot": 16
+  }
+ },
+ "lopo_mean": {
+  "single_s0": 0.4358,
+  "tta_s0": 0.4227,
+  "seeds3": 0.4533,
+  "seeds3_tta": 0.4691
+ },
+ "lopo_mean_leaflet": {
+  "single_s0": 0.6794,
+  "tta_s0": 0.6272,
+  "seeds3": 0.6811,
+  "seeds3_tta": 0.6913
+ },
+ "final_models": [
+  "final_all_s0.pt",
+  "final_all_s1.pt",
+  "final_all_s2.pt"
+ ]
+}

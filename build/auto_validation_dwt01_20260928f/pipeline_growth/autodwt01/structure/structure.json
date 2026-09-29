@@ -1,0 +1,174 @@
+{
+  "schema": "plant-structure-1",
+  "plant_id": "autodwt01",
+  "session_id": "autodwt01_20260920",
+  "inputs": {
+    "capture": "C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\build\\auto_validation_dwt01_20260928f\\capture\\edit_session\\capture.json",
+    "capture_sha256": "36bd43899d9786ddf4610c41c6c641ed8624d60dd88ad2193a6f8aaec7d06282",
+    "backup": "C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\build\\auto_validation_dwt01_20260928f\\labels_growth\\seed_with_imports.backup.json",
+    "backup_sha256": "063e54087e71520caab5f81ec7ff7d1e432ed74b745cdf2293994e9d6fbb6132",
+    "growth": "C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\build\\auto_validation_dwt01_20260928f\\growth_autodwt01.json",
+    "name_decisions": null
+  },
+  "views_used": [
+    "autodwt01_20260920_01.png",
+    "autodwt01_20260920_03.png",
+    "autodwt01_20260920_24.png",
+    "autodwt01_20260920_25.png",
+    "autodwt01_20260920_26.png",
+    "autodwt01_20260920_28.png"
+  ],
+  "views_skipped": [
+    {
+      "photo": "autodwt01_20260920_11.png",
+      "reason": "no solved pose (too_few_corners)"
+    },
+    {
+      "photo": "autodwt01_20260920_12.png",
+      "reason": "no solved pose (too_few_corners)"
+    },
+    {
+      "photo": "autodwt01_20260920_13.png",
+      "reason": "no solved pose (too_few_corners)"
+    },
+    {
+      "photo": "autodwt01_20260920_14.png",
+      "reason": "no solved pose (too_few_corners)"
+    },
+    {
+      "photo": "autodwt01_20260920_15.png",
+      "reason": "no solved pose (too_few_corners)"
+    },
+    {
+      "photo": "autodwt01_20260920_16.png",
+      "reason": "no solved pose (too_few_corners)"
+    },
+    {
+      "photo": "autodwt01_20260920_17.png",
+      "reason": "no solved pose (too_few_corners)"
+    },
+    {
+      "photo": "autodwt01_20260920_18.png",
+      "reason": "no solved pose (too_few_corners)"
+    },
+    {
+      "photo": "autodwt01_20260920_21.png",
+      "reason": "no solved pose (too_few_corners)"
+    },
+    {
+      "photo": "autodwt01_20260920_22.png",
+      "reason": "no solved pose (too_few_corners)"
+    },
+    {
+      "photo": "autodwt01_20260920_23.png",
+      "reason": "no solved pose (too_few_corners)"
+    },
+    {
+      "photo": "autodwt01_20260920_27.png",
+      "reason": "no solved pose (too_few_corners)"
+    }
+  ],
+  "hull": {
+    "voxel_mm": 1.0,
+    "voxels": 17347,
+    "occupancy_cm3": 17.3,
+    "detached_voxels_removed": 19133,
+    "extent_mm": {
+      "x": [
+        95.5,
+        136.5
+      ],
+      "y": [
+        -105.5,
+        -73.5
+      ],
+      "z": [
+        68.5,
+        139.5
+      ]
+    },
+    "silhouette_explained_pct": {
+      "autodwt01_20260920_01.png": 28.6,
+      "autodwt01_20260920_03.png": 28.0,
+      "autodwt01_20260920_24.png": 53.8,
+      "autodwt01_20260920_25.png": 46.3,
+      "autodwt01_20260920_26.png": 45.5,
+      "autodwt01_20260920_28.png": 26.3
+    },
+    "dilation_px": 30,
+    "note": "occupancy envelope for orientation/grouping; not a leaf surface, area or tissue volume"
+  },
+  "compound_regions": [
+    {
+      "region": 0,
+      "voxels": 463,
+      "median_z_mm": 110.5,
+      "centroid_mm": [
+        99.1,
+        -90.3,
+        110.9
+      ],
+      "photos": 1,
+      "boxes": [
+        {
+          "view": "autodwt01_20260920_25.png",
+          "box_index": 0,
+          "iou_to_reference": null
+        }
+      ],
+      "fragment": false,
+      "proposed_name": null
+    },
+    {
+      "region": 1,
+      "voxels": 11887,
+      "median_z_mm": 86.5,
+      "centroid_mm": [
+        118.4,
+        -89.7,
+        87.1
+      ],
+      "photos": 1,
+      "boxes": [
+        {
+          "view": "autodwt01_20260920_25.png",
+          "box_index": 1,
+          "iou_to_reference": null
+        }
+      ],
+      "fragment": false,
+      "proposed_name": null
+    }
+  ],
+  "compound_region_meta": {
+    "reference_view": "autodwt01_20260920_25.png",
+    "naming": "2 regions for 4 recorded compound leaves: not named",
+    "unassigned_voxels": 4997
+  },
+  "stem": {
+    "status": "unavailable",
+    "reason": "no hull voxel lies under a main-stem polygon",
+    "views": [],
+    "ray_fit_unavailable": "main-stem polygons in fewer than two posed photos"
+  },
+  "petioles": [],
+  "petiole_note": "stem axis unavailable",
+  "parameters": {
+    "exg_min": 0.06,
+    "green_min": 40,
+    "dilation_px": 30,
+    "label_margin": 0.05,
+    "coarse_mm": 4.0,
+    "fine_mm": 1.0,
+    "min_box_iou": 0.2,
+    "consensus_mm": 2.0,
+    "consensus_angle_deg": 30.0,
+    "petiole_min_share": 0.6,
+    "trunk_radius_mm": 12.0,
+    "trunk_slice_mm": 2.0,
+    "trunk_widen": 3.0
+  },
+  "validated_metric": false,
+  "suitable_for_ppfd": false,
+  "limits": "poses fail the 1 px gate; hull only from posed labelled photos; names are proposals"
+}

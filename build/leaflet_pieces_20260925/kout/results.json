@@ -1,0 +1,85 @@
+{
+ "pieces": {
+  "per_leaflet_iou": {
+   "n": 117,
+   "median": 0.6195,
+   "mean": 0.5971,
+   "ge50": 0.6496,
+   "ge75": 0.3932,
+   "ge90": 0.0855
+  },
+  "instances_merging_two_leaflets": 10,
+  "pixels": [
+   {
+    "photo": "dwt_02_20260920_12",
+    "acc_known": 0.9943651127612263,
+    "boundary_recall": 0.8576968508324233,
+    "interior_recall": 0.9134471306094076
+   },
+   {
+    "photo": "dwt_02_20260920_14",
+    "acc_known": 0.9934627936951429,
+    "boundary_recall": 0.8182236751231641,
+    "interior_recall": 0.8943119401334464
+   },
+   {
+    "photo": "dwt_02_20260920_16",
+    "acc_known": 0.9925816969673402,
+    "boundary_recall": 0.851602241330338,
+    "interior_recall": 0.8548554043033687
+   },
+   {
+    "photo": "dwt_02_20260920_18",
+    "acc_known": 0.9946755060285278,
+    "boundary_recall": 0.88375,
+    "interior_recall": 0.9154720146408418
+   },
+   {
+    "photo": "dwt_02_20260920_22",
+    "acc_known": 0.9954195301381438,
+    "boundary_recall": 0.8484866363797274,
+    "interior_recall": 0.9143416331412417
+   },
+   {
+    "photo": "dwt_02_20260920_24",
+    "acc_known": 0.9969462719736516,
+    "boundary_recall": 0.8839464563924836,
+    "interior_recall": 0.9293663615149883
+   },
+   {
+    "photo": "dwt_02_20260920_26",
+    "acc_known": 0.9969346429141517,
+    "boundary_recall": 0.8606259420161362,
+    "interior_recall": 0.8859649122807017
+   },
+   {
+    "photo": "dwt_02_20260920_28",
+    "acc_known": 0.9961041734869279,
+    "boundary_recall": 0.8006693572201988,
+    "interior_recall": 0.8983134920634921
+   }
+  ],
+  "epochs": 60,
+  "note": "per GT leaflet: best IoU of any predicted instance (seeds = interior components, grown by watershed over boundary prob)"
+ },
+ "sam_base": {
+  "per_leaflet_iou": {
+   "n": 117,
+   "median": 0.8912,
+   "mean": 0.813,
+   "ge50": 0.9231,
+   "ge75": 0.7094,
+   "ge90": 0.4701
+  }
+ },
+ "sam_tuned": {
+  "per_leaflet_iou": {
+   "n": 117,
+   "median": 0.9054,
+   "mean": 0.8487,
+   "ge50": 0.9658,
+   "ge75": 0.7607,
+   "ge90": 0.5299
+  }
+ }
+}

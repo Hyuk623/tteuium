@@ -1,0 +1,13 @@
+{
+  "backend": "sam2",
+  "model_name": "SAM 2.1 hiera tiny, leaflet-tuned on all four plants (1,156 accepted masks; Kaggle dolgfish/tomato-leaflets4-sam final_all)",
+  "repository": "C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\build\\sam_trial_20260919\\vendor\\sam2",
+  "runtime": "C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\build\\sam_trial_20260919\\runtime",
+  "checkpoint": "C:\\Users\\sho36\\OneDrive\\작업물저장소\\홈팜\\Tomato 3D phenotyping analysis\\build\\leaflets4_20260927\\sam2.1_hiera_tiny_leaflet_tuned_4plants.pt",
+  "checkpoint_sha256": "d3808db754ce5d2647cc614bb6d1ccfca73f02b2e2ce93b95778cfcae054a5e0",
+  "model_config": "configs/sam2.1/sam2.1_hiera_t.yaml",
+  "device": "cpu",
+  "threads": 4,
+  "base_checkpoint_sha256": "7402e0d864fa82708a20fbd15bc84245c2f26dff0eb43a4b5b93452deb34be69",
+  "tuned_from": "build/leaflets4_20260927/kout_sam/sam2_tiny_decoder_tuned_4plants.pt (Kaggle dolgfish/tomato-leaflets4-sam v1)"
+}
