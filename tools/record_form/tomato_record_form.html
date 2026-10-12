@@ -1,0 +1,758 @@
+<title>토마토 일일 기록</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one-column phone form, sticky status bar on top, thumb-reach tab bar on the bottom, save line floating above it. */
+:root{
+  --bg:#f2f5f1; --surface:#ffffff; --sunk:#e7ece6; --fg:#1b231e; --muted:#59665e; --line:#cfd8d0;
+  --accent:#c2412a; --accent-fg:#ffffff; --leaf:#2d6a44; --leaf-bg:#e2f0e6;
+  --warn:#8a5a00; --warn-bg:#fff2d6; --err:#b42318; --err-bg:#fde7e4; --unmeas:#94741c;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --r:10px; --tap:48px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111613; --surface:#1a211c; --sunk:#141a16; --fg:#e4ebe5; --muted:#9aa89f; --line:#2e3a32;
+  --accent:#ee6a4e; --accent-fg:#1b0d09; --leaf:#80c79a; --leaf-bg:#1d3326;
+  --warn:#f1bd55; --warn-bg:#2d2410; --err:#ff8f80; --err-bg:#3a1713; --unmeas:#d9b75a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111613; --surface:#1a211c; --sunk:#141a16; --fg:#e4ebe5; --muted:#9aa89f; --line:#2e3a32;
+  --accent:#ee6a4e; --accent-fg:#1b0d09; --leaf:#80c79a; --leaf-bg:#1d3326;
+  --warn:#f1bd55; --warn-bg:#2d2410; --err:#ff8f80; --err-bg:#3a1713; --unmeas:#d9b75a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px}
+.top h1{font-size:17px;font-weight:600;margin:0;letter-spacing:-.01em}
+.top h1 small{font-weight:400;color:var(--muted);font-size:12px;margin-left:6px;font-family:var(--f-num)}
+.pill{min-height:36px;border-radius:18px;border:1px solid var(--line);background:var(--surface);color:var(--fg);
+  font:inherit;font-size:13px;padding:4px 12px;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
+.pill.ok i{background:var(--leaf)} .pill.wait i{background:var(--warn)} .pill.off i{background:var(--err)}
+main{padding-inline:16px;padding-block:12px 180px;max-width:640px;margin:0 auto}
+.panel{display:flex;flex-direction:column;gap:14px}
+h2{font-size:20px;font-weight:600;margin:4px 0 0;text-wrap:balance}
+.lede{color:var(--muted);font-size:14px;margin:-6px 0 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.label{font-size:13px;font-weight:600;color:var(--muted);letter-spacing:.02em}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:var(--tap);min-width:var(--tap);padding:6px 14px;border-radius:24px;border:1px solid var(--line);
+  background:var(--surface);color:var(--fg);font:inherit;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chip .tag{font-size:11px;padding:1px 6px;border-radius:8px;background:var(--leaf-bg);color:var(--leaf);font-weight:600}
+.chip[aria-pressed="true"] .tag{background:var(--bg);color:var(--fg)}
+.chip.ghost{border-style:dashed;color:var(--muted)}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field>label{display:flex;justify-content:space-between;gap:8px;font-size:15px;align-items:baseline}
+.last{font-family:var(--f-num);font-size:12px;color:var(--muted);white-space:nowrap}
+.last.un{color:var(--unmeas)}
+.unitbox{position:relative}
+input[type=text],input[type=datetime-local],textarea{width:100%;min-height:var(--tap);border:1px solid var(--line);border-radius:8px;
+  background:var(--surface);color:var(--fg);font:inherit;font-size:17px;padding:10px 12px}
+textarea{min-height:72px;font-size:15px;resize:vertical}
+.unitbox input{padding-right:84px;font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.unitbox input:placeholder-shown{border-style:dashed;border-color:var(--unmeas);background:var(--sunk)}
+.unitbox input::placeholder{color:var(--unmeas);font-family:var(--f-body);font-size:15px}
+.unit{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;font-family:var(--f-num);pointer-events:none}
+input:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.timebox{display:flex;gap:8px}.timebox input{flex:1;min-width:0;font-family:var(--f-num);font-size:16px}
+.btn{min-height:var(--tap);border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:inherit;font-size:15px;padding:8px 14px;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-weight:600;font-size:17px;width:100%;min-height:54px}
+.btn.small{min-height:44px;font-size:14px;padding:6px 12px}
+.btn.danger{color:var(--err)}
+.big{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.big .btn{min-height:84px;font-size:19px;font-weight:600}
+.big .on{background:var(--warn-bg);border-color:var(--warn);color:var(--fg)}
+.big .off{background:var(--sunk);color:var(--fg)}
+.msgs{display:flex;flex-direction:column;gap:6px}
+.msg{border-radius:8px;padding:8px 12px;font-size:14px}
+.msg.warn{background:var(--warn-bg);color:var(--fg);border-left:3px solid var(--warn)}
+.msg.err{background:var(--err-bg);color:var(--fg);border-left:3px solid var(--err)}
+.msg.info{background:var(--leaf-bg);color:var(--fg);border-left:3px solid var(--leaf)}
+.hint{font-size:13px;color:var(--muted)}
+.hint code,.mono{font-family:var(--f-num);font-size:12.5px}
+details>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:15px;color:var(--muted)}
+.list{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.li{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px;min-width:0}
+.li .t{min-width:0;overflow-wrap:anywhere}
+.li .when{font-family:var(--f-num);font-size:12px;color:var(--muted);display:block}
+.li .acts{display:flex;gap:6px;flex-shrink:0}
+.badge{font-size:11px;border-radius:6px;padding:1px 6px;background:var(--sunk);color:var(--muted);margin-left:4px}
+.badge.pend{background:var(--warn-bg);color:var(--warn)}
+.banner{background:var(--warn-bg);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.pairs{font-family:var(--f-num);font-variant-numeric:tabular-nums;font-size:15px}
+.tbl{overflow-x:auto}
+.tbl table{border-collapse:collapse;font-size:13px;width:100%}
+.tbl th,.tbl td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td.n{font-family:var(--f-num)}
+.tray-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center}
+.check{display:inline-flex;align-items:center;gap:6px;min-height:44px;font-size:14px}
+.check input{width:22px;height:22px}
+.saved{position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:6;padding:0 12px}
+.saved .in{max-width:616px;margin:0 auto;background:var(--fg);color:var(--bg);border-radius:10px;padding:8px 8px 8px 14px;display:flex;gap:8px;align-items:center;font-size:14px}
+.saved .in span{flex:1;min-width:0;overflow-wrap:anywhere}
+.saved .in .btn{background:transparent;color:var(--bg);border-color:var(--muted);min-height:44px}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:7;background:var(--surface);border-top:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(5,1fr);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.tabs button{min-height:64px;border:0;background:transparent;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+nav.tabs button b{font-family:var(--f-num);font-size:11px;font-weight:500}
+nav.tabs button[aria-selected="true"]{color:var(--accent);font-weight:600;box-shadow:inset 0 3px 0 var(--accent)}
+.empty{border:1px dashed var(--line);border-radius:var(--r);padding:14px;color:var(--muted);font-size:14px}
+@media (prefers-reduced-motion:no-preference){.chip,.btn{transition:background-color .12s,border-color .12s}}
+</style>
+
+<header class="top">
+  <h1>토마토 일일 기록<small id="ver"></small></h1>
+  <button class="pill" id="syncPill" type="button" aria-live="polite"><i></i><span>연결 중…</span></button>
+</header>
+
+<main>
+<!-- ① 촬영 -->
+<section class="panel" id="tab-capture" hidden>
+  <h2>① 촬영</h2>
+  <p class="lede">사진은 폰·PC에 그대로 둡니다. 여기서는 촬영 세션과 찍은 개체만 남깁니다.</p>
+  <div class="msgs" id="capPrev"></div>
+  <div class="card">
+    <div id="capCorr"></div>
+    <div class="label">세션</div>
+    <div class="chips" id="capSession"></div>
+    <div class="field"><label for="capTime">시각</label><div class="timebox"><input type="datetime-local" id="capTime"><button class="btn small" type="button" data-now="capTime">지금</button></div></div>
+    <div class="row" style="justify-content:space-between"><div class="label">개체 <span id="capCount" class="mono"></span></div><button class="btn small" type="button" id="capAll">전체 선택</button></div>
+    <div class="chips" id="capPlants"></div>
+    <div class="field"><label for="capNote">비고</label><textarea id="capNote" rows="2"></textarea></div>
+    <div class="field"><label for="capObs">기록자</label><input type="text" id="capObs" autocomplete="off"></div>
+    <div class="msgs" id="capMsgs"></div>
+    <button class="btn primary" type="button" id="capSave">촬영 세션 저장</button>
+  </div>
+  <div class="card"><div class="label">최근 촬영</div><div class="list" id="capList"></div></div>
+</section>
+
+<!-- ② 양분 -->
+<section class="panel" id="tab-nutrient" hidden>
+  <h2>② 양분 <span class="hint">트레이별 1건</span></h2>
+  <div class="msg info">대조(빈) 트레이도 매번 기록하세요. 대조를 건너뛰면 그날 흡수량 계산이 멈춥니다.</div>
+  <div class="msgs" id="nutDay"></div>
+  <div class="card">
+    <div id="nutCorr"></div>
+    <div class="label">트레이</div>
+    <div class="chips" id="nutTray"></div>
+    <div class="label">작업</div>
+    <div class="chips" id="nutKind"></div>
+    <div class="hint" id="nutLastHead"></div>
+    <div id="nutFields" style="display:flex;flex-direction:column;gap:12px"></div>
+    <details id="nutOpt"><summary>선택 항목 — 질산 시험지 · 수온 · 덜어낸 양</summary><div id="nutOptFields" style="display:flex;flex-direction:column;gap:12px;padding-top:8px"></div></details>
+    <div class="field"><label for="nutNote">비고</label><textarea id="nutNote" rows="2"></textarea></div>
+    <div class="field"><label for="nutTime">측정 시각</label><div class="timebox"><input type="datetime-local" id="nutTime"><button class="btn small" type="button" data-now="nutTime">지금</button></div></div>
+    <div class="field"><label for="nutObs">기록자</label><input type="text" id="nutObs" autocomplete="off"></div>
+    <div class="msgs" id="nutMsgs"></div>
+    <button class="btn primary" type="button" id="nutSave">양분 기록 저장</button>
+  </div>
+  <div class="card"><div class="label">최근 양분 기록</div><div class="list" id="nutList"></div></div>
+</section>
+
+<!-- ③ 점등·소등 -->
+<section class="panel" id="tab-light" hidden>
+  <h2>③ 점등·소등</h2>
+  <div class="big"><button class="btn on" type="button" id="lightOnNow">점등 지금</button><button class="btn off" type="button" id="lightOffNow">소등 지금</button></div>
+  <div class="card">
+    <div class="label">오늘</div>
+    <div class="pairs" id="lightToday"></div>
+    <div class="msgs" id="lightWarn"></div>
+  </div>
+  <details class="card"><summary>아까 켰음·껐음 — 시각 직접 입력</summary>
+    <div class="field"><label for="lightTime">시각</label><input type="datetime-local" id="lightTime"></div>
+    <div class="field"><label for="lightObs">기록자</label><input type="text" id="lightObs" autocomplete="off"></div>
+    <div class="msgs" id="lightMsgs"></div>
+    <div class="big"><button class="btn on" type="button" id="lightOnAt">점등으로 기록</button><button class="btn off" type="button" id="lightOffAt">소등으로 기록</button></div>
+  </details>
+  <div class="card"><div class="label">최근 점등·소등</div><div class="list" id="lightList"></div></div>
+</section>
+
+<!-- ④ 새로 생긴 것 -->
+<section class="panel" id="tab-new" hidden>
+  <h2>④ 새로 생긴 것</h2>
+  <div class="card">
+    <div class="label">개체</div>
+    <div class="chips" id="newPlant"></div>
+    <div class="label">이미 등록된 것</div>
+    <div id="newReg"></div>
+  </div>
+  <div class="card">
+    <div id="ssCorr"></div>
+    <div class="label">곁순</div>
+    <div class="hint">잎 2장이 함께 보이면 <code>axis_shoot</code>, 그 두 잎이 완전히 펴지면 <code>substem</code>으로 한 줄 더.</div>
+    <div class="label">축</div><div class="chips" id="ssAxis"></div>
+    <div class="field"><label for="ssRank">parent_rank <span class="hint">본줄기 겨드랑이 몇 번째 잎</span></label><div class="unitbox"><input type="text" id="ssRank" inputmode="numeric" placeholder="정수" autocomplete="off"><span class="unit">번째</span></div></div>
+    <div class="label">상태</div><div class="chips" id="ssState"></div>
+    <div class="field"><label for="ssTime">first_observed</label><div class="timebox"><input type="datetime-local" id="ssTime"><button class="btn small" type="button" data-now="ssTime">지금</button></div></div>
+    <div class="field"><label for="ssNote">비고</label><textarea id="ssNote" rows="2"></textarea></div>
+    <div class="field"><label for="ssObs">기록자</label><input type="text" id="ssObs" autocomplete="off"></div>
+    <div class="msgs" id="ssMsgs"></div>
+    <button class="btn primary" type="button" id="ssSave">곁순 저장</button>
+  </div>
+  <div class="card">
+    <div id="trCorr"></div>
+    <div class="label">화방</div>
+    <div class="label">축</div><div class="chips" id="trAxis"></div>
+    <div class="field"><label for="trRank">above_rank <span class="hint">그 축에서 몇 번째 잎 위</span></label><div class="unitbox"><input type="text" id="trRank" inputmode="numeric" placeholder="정수" autocomplete="off"><span class="unit">번째</span></div></div>
+    <div class="field"><label for="trTime">first_observed</label><div class="timebox"><input type="datetime-local" id="trTime"><button class="btn small" type="button" data-now="trTime">지금</button></div></div>
+    <div class="field"><label for="trNote">비고</label><textarea id="trNote" rows="2"></textarea></div>
+    <div class="field"><label for="trObs">기록자</label><input type="text" id="trObs" autocomplete="off"></div>
+    <div class="msgs" id="trMsgs"></div>
+    <button class="btn primary" type="button" id="trSave">화방 저장</button>
+  </div>
+</section>
+
+<!-- 설정 -->
+<section class="panel" id="tab-settings" hidden>
+  <h2>설정</h2>
+  <p class="lede">설정은 공유 DB에 저장되어 새 폰에서도 그대로 이어집니다.</p>
+  <div class="card">
+    <div class="label">트레이</div>
+    <div id="setTrays" style="display:flex;flex-direction:column;gap:8px"></div>
+    <button class="btn small" type="button" id="setAddTray">트레이 추가</button>
+  </div>
+  <div class="card">
+    <div class="field"><label for="setPlants">개체 목록 <span class="hint">한 줄에 하나</span></label><textarea id="setPlants" rows="5" class="mono"></textarea></div>
+    <div class="field"><label for="setObs">기본 기록자</label><input type="text" id="setObs" autocomplete="off"></div>
+    <div class="field"><label for="setCal">EC 측정기 교정 메모</label><textarea id="setCal" rows="2" placeholder="예: 2026-10-10 1.413 mS/cm 표준액 교정"></textarea></div>
+  </div>
+  <details class="card"><summary>내보내기 열 순서 — 저장소 템플릿 헤더</summary>
+    <div class="hint">저장소 템플릿 CSV의 첫 줄(헤더)을 그대로 붙여넣으면 내보내기가 그 열 순서를 따릅니다. 비워 두면 기본 열 순서를 씁니다.</div>
+    <div id="setHeaders" style="display:flex;flex-direction:column;gap:10px"></div>
+  </details>
+  <div class="msgs" id="setMsgs"></div>
+  <button class="btn primary" type="button" id="setSave">설정 저장</button>
+  <div class="card">
+    <div class="label">CSV 내보내기</div>
+    <div class="hint">정정·되돌리기 행도 모두 포함됩니다(<code>row_action</code>, <code>supersedes</code> 열). 받은 파일을 사람이 <code>data/records/</code>에 복사합니다.</div>
+    <div id="expList" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div id="expOut"></div>
+  </div>
+</section>
+</main>
+
+<div class="saved" id="saved" hidden><div class="in"><span id="savedText"></span><button class="btn small" type="button" id="savedUndo">되돌리기</button><button class="btn small" type="button" id="savedClose" aria-label="닫기">✕</button></div></div>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-tab="capture" type="button"><b>①</b>촬영</button>
+  <button role="tab" data-tab="nutrient" type="button"><b>②</b>양분</button>
+  <button role="tab" data-tab="light" type="button"><b>③</b>점등</button>
+  <button role="tab" data-tab="new" type="button"><b>④</b>신규</button>
+  <button role="tab" data-tab="settings" type="button"><b>⚙</b>설정</button>
+</nav>
+
+<script>
+(function(){
+"use strict";
+const APP_VERSION="record-form-2026.10.12";
+const KST=9*3600e3, H48=48*3600e3, SKEW=2*60e3;
+const COLS=["capture_sessions","nutrient_log","light_events","side_shoots","trusses"];
+const TIME_KEY={capture_sessions:"measured_at",nutrient_log:"measured_at",light_events:"measured_at",side_shoots:"first_observed",trusses:"first_observed"};
+const AXES=["M","S1","S2","S3","S4"];
+const NUT=[
+  {k:"pre_depth_mm",label:"급액 전 고인 깊이",unit:"mm",m:"ruler"},
+  {k:"pre_pool_ec_mS_cm",label:"급액 전 고인 EC",unit:"mS/cm",m:"EC_meter"},
+  {k:"supply_ml",label:"급액량",unit:"ml",m:"jug",supply:1},
+  {k:"supply_ec_mS_cm",label:"급액 EC",unit:"mS/cm",m:"EC_meter",supply:1},
+  {k:"post_depth_mm",label:"급액 후 고인 깊이",unit:"mm",m:"ruler",supply:1},
+  {k:"nitrate_mg_L",label:"질산 시험지",unit:"mg/L",m:"nitrate_strip",opt:1},
+  {k:"water_temp_c",label:"수온",unit:"℃",m:"thermometer",opt:1},
+  {k:"removed_ml",label:"덜어낸 양",unit:"ml",m:"jug",opt:1}
+];
+const TAIL=["note","observer","source_kind","method","app_version","row_action","supersedes","supersede_reason","entered_at"];
+const DEFAULT_COLS={
+  capture_sessions:["row_id","measured_at","session_label","plant_ids"].concat(TAIL),
+  nutrient_log:["row_id","measured_at","tray_id","event_kind"].concat(...NUT.map(f=>[f.k,f.k+"__status"]),TAIL),
+  light_events:["row_id","measured_at","event"].concat(TAIL),
+  side_shoots:["row_id","plant_id","axis","parent_rank","axis_state","first_observed"].concat(TAIL),
+  trusses:["row_id","plant_id","axis","above_rank","first_observed"].concat(TAIL),
+  tray_spec:["tray_id","is_blank","note"]
+};
+const COL_KO={capture_sessions:"촬영",nutrient_log:"양분",light_events:"점등·소등",side_shoots:"곁순",trusses:"화방",tray_spec:"트레이 사양"};
+const KIND_KO={supply:"급액",measure_only:"측정만",remove:"덜어냄"};
+const SESS_KO={"1100":"11:00","0000":"00:00",other:"기타"};
+const $=id=>document.getElementById(id);
+document.getElementById("ver").textContent="v"+APP_VERSION.slice(-10);
+
+/* ---------- storage (always try/catch) ---------- */
+const LS={get(k,d){try{const v=localStorage.getItem("trf."+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+          set(k,v){try{localStorage.setItem("trf."+k,JSON.stringify(v))}catch(e){}}};
+
+/* ---------- time: always +09:00 ---------- */
+const toIso=ms=>new Date(ms+KST).toISOString().slice(0,19)+"+09:00";
+const toInput=ms=>new Date(ms+KST).toISOString().slice(0,16);
+const fromInput=v=>v?Date.parse(v+":00+09:00"):NaN;
+const dayOf=iso=>String(iso||"").slice(0,10);
+const hm=iso=>String(iso||"").slice(11,16);
+const mdhm=iso=>{const s=String(iso||"");return s.slice(5,10).replace("-","/")+" "+s.slice(11,16)};
+const today=()=>dayOf(toIso(Date.now()));
+function rid(){const a=new Uint8Array(6);try{crypto.getRandomValues(a)}catch(e){for(let i=0;i<6;i++)a[i]=Math.random()*256|0}return Array.from(a,b=>(b%36).toString(36)).join("")+Date.now().toString(36).slice(-3)}
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---------- state ---------- */
+const DEFAULT_SETTINGS={trays:[],plants:[],observer:"",ec_calibration:"",export_headers:{}};
+const S={
+  settings:Object.assign({},DEFAULT_SETTINGS,LS.get("settings",{})),
+  dbRows:Object.fromEntries(COLS.map(c=>[c,LS.get("cache."+c,[])])),
+  queue:LS.get("queue",[]),
+  db:null, dbState:"connecting", lastErr:"", flushing:false
+};
+function saveQueue(){LS.set("queue",S.queue)}
+
+function rowsOf(col){
+  const m=new Map();
+  for(const r of S.dbRows[col]||[])m.set(r._id,r);
+  for(const q of S.queue)if(q.col===col)m.set(q.id,Object.assign({},q.data,{_id:q.id,_pending:true}));
+  return Array.from(m.values()).sort((a,b)=>a._id<b._id?-1:a._id>b._id?1:0);
+}
+function effective(col){
+  const rows=rowsOf(col);const sup=new Set(rows.filter(r=>r.supersedes).map(r=>r.supersedes));
+  return rows.filter(r=>r.row_action!=="void"&&!sup.has(r.row_id));
+}
+const blankTrays=()=>S.settings.trays.filter(t=>t.blank).map(t=>t.id);
+
+/* ---------- db + offline queue ---------- */
+function enqueue(col,data){
+  const id=data[TIME_KEY[col]]+"_"+data.row_id;
+  S.queue.push({col,id,path:col+"/"+id,data});saveQueue();refresh();flush();return id;
+}
+function enqueueSettings(data){
+  S.queue=S.queue.filter(q=>q.col!=="settings");
+  S.queue.push({col:"settings",id:"main",path:"settings/main",data});saveQueue();flush();
+}
+let retryT=null;
+async function flush(){
+  if(!S.db||S.flushing)return;
+  S.flushing=true;
+  try{
+    while(S.queue.length){
+      const it=S.queue[0];
+      try{await S.db.doc(it.path).set(it.data)}
+      catch(e){
+        const c=e&&e.code;
+        if(c==="unavailable"){await new Promise(r=>setTimeout(r,600+Math.random()*900));try{await S.db.doc(it.path).set(it.data)}catch(e2){S.lastErr=(e2&&e2.code)||"unavailable";break}}
+        else{S.lastErr=c||"unavailable";break}
+      }
+      S.queue.shift();saveQueue();S.lastErr="";
+    }
+  }finally{S.flushing=false}
+  if(S.queue.length&&!retryT)retryT=setTimeout(()=>{retryT=null;flush()},45000);
+  refresh();
+}
+function pill(){
+  const p=$("syncPill"),n=S.queue.length;let cls="",txt="";
+  if(S.dbState==="connecting"){cls="wait";txt=n?"연결 중 · 대기 "+n+"건":"연결 중…"}
+  else if(S.dbState==="off"){cls="off";txt="오프라인 · 대기 "+n+"건"}
+  else if(n){cls="wait";txt=S.lastErr==="invalid_argument"?"쓰기 권한 없음 · 대기 "+n+"건":"대기 "+n+"건 · 눌러서 전송"}
+  else{cls="ok";txt="동기화됨"}
+  p.className="pill "+cls;p.querySelector("span").textContent=txt;
+}
+$("syncPill").addEventListener("click",()=>flush());
+window.addEventListener("online",()=>flush());
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){flush();tickTimes()}});
+
+async function connect(){
+  let db=null;
+  try{if(window.claude&&window.claude.use)db=await window.claude.use("db")}catch(e){db=null}
+  if(!db){S.dbState="off";refresh();return}
+  S.db=db;S.dbState="on";
+  for(const col of COLS){
+    db.collection(col).onSnapshot(snap=>{
+      S.dbRows[col]=snap.docs.map(d=>Object.assign({},d.data(),{_id:d.id}));
+      LS.set("cache."+col,S.dbRows[col].slice(-500));refresh();
+    },e=>{S.lastErr=(e&&e.code)||"";refresh()});
+  }
+  db.doc("settings/main").onSnapshot(d=>{
+    if(d.exists&&!S.queue.some(q=>q.col==="settings")){
+      S.settings=Object.assign({},DEFAULT_SETTINGS,d.data());LS.set("settings",S.settings);settingsChanged();
+    }
+  },()=>{});
+  flush();
+}
+
+/* ---------- chips ---------- */
+function Chips(el,multi,onChange){
+  const sel=new Set();let opts=[];
+  el.addEventListener("click",e=>{const b=e.target.closest("button[data-v]");if(!b)return;const v=b.dataset.v;
+    if(multi){sel.has(v)?sel.delete(v):sel.add(v)}else{sel.clear();sel.add(v)}paint();onChange&&onChange()});
+  function paint(){el.querySelectorAll("button[data-v]").forEach(b=>b.setAttribute("aria-pressed",sel.has(b.dataset.v)?"true":"false"))}
+  return{
+    setOptions(o,emptyHtml){opts=o;for(const v of Array.from(sel))if(!o.some(x=>x.v===v))sel.delete(v);
+      el.innerHTML=o.length?o.map(x=>`<button type="button" class="chip" data-v="${esc(x.v)}">${esc(x.label)}${x.tag?` <span class="tag">${esc(x.tag)}</span>`:""}</button>`).join(""):(emptyHtml||"");paint()},
+    value(){return multi?opts.map(x=>x.v).filter(v=>sel.has(v)):(Array.from(sel)[0]||"")},
+    set(v){sel.clear();(Array.isArray(v)?v:[v]).forEach(x=>x&&sel.add(x));paint()},
+    all(){return opts.length&&opts.every(x=>sel.has(x.v))}
+  };
+}
+const noPlants='<div class="empty">개체 목록이 비어 있습니다. <b>설정</b>에서 개체를 추가하세요.</div>';
+const noTrays='<div class="empty">트레이가 없습니다. <b>설정</b>에서 트레이(대조 포함)를 추가하세요.</div>';
+
+/* ---------- time fields ---------- */
+const timeTouched={};
+const TIME_INPUTS=["capTime","nutTime","ssTime","trTime","lightTime"];
+function tickTimes(){const v=toInput(Date.now());TIME_INPUTS.forEach(id=>{if(!timeTouched[id])$(id).value=v})}
+TIME_INPUTS.forEach(id=>$(id).addEventListener("input",()=>{timeTouched[id]=true}));
+document.querySelectorAll("[data-now]").forEach(b=>b.addEventListener("click",()=>{timeTouched[b.dataset.now]=false;tickTimes()}));
+setInterval(tickTimes,20000);
+function readTime(id){return timeTouched[id]?fromInput($(id).value):Date.now()}
+function timeChecks(ms,errs,warns){
+  if(!isFinite(ms)){errs.push("시각을 입력하세요.");return}
+  if(ms>Date.now()+SKEW)errs.push("미래 시각은 저장할 수 없습니다.");
+  else if(ms<Date.now()-H48)warns.push("48시간보다 오래된 시각입니다 ("+mdhm(toIso(ms))+"). 맞으면 한 번 더 저장하세요.");
+}
+
+/* ---------- numbers ---------- */
+function parseNum(s,label,errs){
+  s=String(s||"").trim().replace(",",".");
+  if(s==="")return{v:null,st:"unavailable"};
+  if(!/^-?\d+(\.\d+)?$/.test(s)){errs.push(label+": 숫자가 아닙니다 ("+s+").");return{v:null,st:"unavailable"}}
+  const v=Number(s);if(v<0)errs.push(label+": 음수는 저장할 수 없습니다.");
+  return{v,st:"measured"};
+}
+function posInt(s){s=String(s||"").trim();return/^[1-9]\d*$/.test(s)?Number(s):null}
+
+/* ---------- messages / warn-then-confirm ---------- */
+function showMsgs(el,errs,warns,extra){
+  el.innerHTML=errs.map(m=>`<div class="msg err">${esc(m)}</div>`).join("")+warns.map(m=>`<div class="msg warn">${esc(m)}</div>`).join("")+(extra||"");
+}
+const ack={};
+function gate(key,msgEl,btn,errs,warns,label){
+  if(errs.length){showMsgs(msgEl,errs,warns);ack[key]="";return false}
+  const sig=warns.join("|");
+  if(warns.length&&ack[key]!==sig){ack[key]=sig;showMsgs(msgEl,[],warns,'<div class="hint">값을 확인했으면 아래 버튼을 한 번 더 누르세요.</div>');btn.textContent="경고 확인 — 그래도 저장";return false}
+  ack[key]="";msgEl.innerHTML="";btn.textContent=label;return true;
+}
+function resetGate(key,msgEl,btn,label){if(ack[key]){ack[key]="";msgEl.innerHTML="";btn.textContent=label}}
+
+/* ---------- common row fields ---------- */
+function common(obsId,corr){
+  return{row_id:rid(),observer:($(obsId).value||"").trim()||S.settings.observer||"",source_kind:"measured",app_version:APP_VERSION,
+    row_action:corr?"correction":"record",supersedes:corr?corr.row.row_id:"",supersede_reason:corr?corr.reason():"",entered_at:toIso(Date.now())};
+}
+function fillObs(){["capObs","nutObs","ssObs","trObs","lightObs"].forEach(id=>{const el=$(id);if(!el.dataset.touched)el.value=S.settings.observer||""})}
+["capObs","nutObs","ssObs","trObs","lightObs"].forEach(id=>$(id).addEventListener("input",()=>{$(id).dataset.touched="1"}));
+
+/* ---------- saved line + undo ---------- */
+let lastSaved=null,savedT=null;
+function showSaved(col,data,text){
+  lastSaved={col,data};$("savedText").textContent=text;$("saved").hidden=false;$("savedUndo").hidden=false;
+  clearTimeout(savedT);savedT=setTimeout(()=>{$("saved").hidden=true},20000);
+}
+function voidRow(col,row,reason){
+  const keep=["tray_id","event_kind","session_label","event","plant_id","axis","axis_state"];
+  const d={};DEFAULT_COLS[col].forEach(k=>d[k]="");
+  keep.forEach(k=>{if(row[k]!=null)d[k]=row[k]});
+  if(col==="nutrient_log")NUT.forEach(f=>{d[f.k]=null;d[f.k+"__status"]=""});
+  if(col==="capture_sessions")d.plant_ids=[];
+  Object.assign(d,{row_id:rid(),observer:S.settings.observer||"",source_kind:"measured",method:"",app_version:APP_VERSION,
+    row_action:"void",supersedes:row.row_id,supersede_reason:reason,entered_at:toIso(Date.now())});
+  d[TIME_KEY[col]]=row[TIME_KEY[col]];
+  enqueue(col,d);
+}
+$("savedUndo").addEventListener("click",()=>{if(!lastSaved)return;voidRow(lastSaved.col,lastSaved.data,"되돌리기");
+  $("savedText").textContent="되돌림 행을 저장했습니다 ("+COL_KO[lastSaved.col]+").";$("savedUndo").hidden=true;lastSaved=null});
+$("savedClose").addEventListener("click",()=>{$("saved").hidden=true});
+
+/* ---------- correction banners ---------- */
+function Corr(elId,col,onCancel){
+  const el=$(elId);let row=null;
+  return{
+    start(r){row=r;el.innerHTML=`<div class="banner"><div>정정 중 — 원래 행 <span class="mono">${esc(r.row_id)}</span> (${esc(mdhm(r[TIME_KEY[col]]))}). 새 행이 이 행을 대체합니다.</div><input type="text" id="${elId}R" placeholder="정정 사유 (필수)" autocomplete="off"><button class="btn small" type="button" id="${elId}X">정정 취소</button></div>`;
+      $(elId+"X").addEventListener("click",()=>{this.stop();onCancel&&onCancel()});el.scrollIntoView({block:"start",behavior:"smooth"})},
+    stop(){row=null;el.innerHTML=""},
+    get row(){return row},
+    reason(){const i=$(elId+"R");return i?i.value.trim():""},
+    active(){return row?this:null}
+  };
+}
+
+/* ---------- recent lists ---------- */
+function recentList(el,col,rows,describe,onFix){
+  const all=rowsOf(col),sup=new Set(all.filter(r=>r.supersedes).map(r=>r.supersedes));
+  const recent=all.slice(-8).reverse();
+  if(!recent.length){el.innerHTML='<div class="hint" style="padding-top:8px">아직 기록이 없습니다.</div>';return}
+  el.innerHTML=recent.map(r=>{
+    const dead=r.row_action==="void"||sup.has(r.row_id);
+    const tag=r.row_action==="void"?'<span class="badge">되돌림</span>':r.row_action==="correction"?'<span class="badge">정정</span>':sup.has(r.row_id)?'<span class="badge">대체됨</span>':"";
+    return `<div class="li"><div class="t"${dead?' style="opacity:.6"':""}><span class="when">${esc(mdhm(r[TIME_KEY[col]]))} · ${esc(r.observer||"")}</span>${esc(describe(r))}${tag}${r._pending?'<span class="badge pend">대기</span>':""}</div>${dead?"":`<div class="acts">${onFix?`<button class="btn small" type="button" data-fix="${esc(r._id)}">정정</button>`:""}<button class="btn small danger" type="button" data-void="${esc(r._id)}">취소</button></div>`}</div>`;
+  }).join("");
+  el.onclick=e=>{
+    const f=e.target.closest("[data-fix]"),v=e.target.closest("[data-void]");
+    if(f){const r=all.find(x=>x._id===f.dataset.fix);if(r)onFix(r)}
+    if(v){if(v.dataset.arm!=="1"){v.dataset.arm="1";v.textContent="취소 확인";setTimeout(()=>{v.dataset.arm="";v.textContent="취소"},4000);return}
+      const r=all.find(x=>x._id===v.dataset.void);if(r){voidRow(col,r,"취소");showSaved(col,r,"취소 행을 저장했습니다 ("+COL_KO[col]+").");$("savedUndo").hidden=true}}
+  };
+}
+
+/* ================= ① 촬영 ================= */
+const capSess=Chips($("capSession"),false,()=>resetGate("cap",$("capMsgs"),$("capSave"),"촬영 세션 저장"));
+capSess.setOptions([{v:"1100",label:"11:00"},{v:"0000",label:"00:00"},{v:"other",label:"기타"}]);
+const capPlants=Chips($("capPlants"),true,()=>updateCapture());
+const capCorr=Corr("capCorr","capture_sessions");
+$("capAll").addEventListener("click",()=>{capPlants.set(capPlants.all()?[]:S.settings.plants);updateCapture()});
+function updateCapture(){
+  const n=capPlants.value().length,t=S.settings.plants.length;
+  $("capCount").textContent=n+" / "+t;$("capAll").textContent=capPlants.all()?"전체 해제":"전체 선택";
+  const rows=effective("capture_sessions"),last=rows[rows.length-1];
+  if(last){
+    const ids=last.plant_ids||[],miss=S.settings.plants.filter(p=>!ids.includes(p));
+    $("capPrev").innerHTML=`<div class="msg info">지난 세션: <span class="mono">${esc(mdhm(last.measured_at))}</span> · ${esc(SESS_KO[last.session_label]||last.session_label)} · ${ids.length}개체${miss.length?` — 빠진 개체: <span class="mono">${esc(miss.join(", "))}</span>`:""}</div>`;
+  }else $("capPrev").innerHTML="";
+  recentList($("capList"),"capture_sessions",rows,r=>(SESS_KO[r.session_label]||r.session_label||"")+" · "+((r.plant_ids||[]).length)+"개체",r=>{
+    capCorr.start(r);capSess.set(r.session_label);capPlants.set(r.plant_ids||[]);$("capNote").value=r.note||"";
+    timeTouched.capTime=true;$("capTime").value=r.measured_at.slice(0,16);updateCapture();
+  });
+}
+$("capSave").addEventListener("click",()=>{
+  const errs=[],warns=[],corr=capCorr.active();
+  const label=capSess.value();if(!label)errs.push("세션(11:00 / 00:00 / 기타)을 고르세요.");
+  const ms=readTime("capTime");timeChecks(ms,errs,warns);
+  const plants=capPlants.value();
+  if(!plants.length)warns.push("선택한 개체가 없습니다.");
+  if(corr&&!corr.reason())errs.push("정정 사유를 적으세요.");
+  if(isFinite(ms)&&label){const d=dayOf(toIso(ms));
+    if(effective("capture_sessions").some(r=>r.session_label===label&&dayOf(r.measured_at)===d&&(!corr||r.row_id!==corr.row.row_id)))warns.push("같은 날 같은 세션이 이미 있습니다.")}
+  if(!gate("cap",$("capMsgs"),$("capSave"),errs,warns,"촬영 세션 저장"))return;
+  const data=Object.assign({measured_at:toIso(ms),session_label:label,plant_ids:plants,note:$("capNote").value.trim(),method:"camera"},common("capObs",corr));
+  enqueue("capture_sessions",data);
+  showSaved("capture_sessions",data,"촬영 저장: "+(SESS_KO[label])+" · "+plants.length+"개체 · "+hm(data.measured_at));
+  capCorr.stop();capPlants.set([]);$("capNote").value="";timeTouched.capTime=false;tickTimes();updateCapture();
+});
+
+/* ================= ② 양분 ================= */
+const nutTray=Chips($("nutTray"),false,()=>{resetGate("nut",$("nutMsgs"),$("nutSave"),"양분 기록 저장");updateNutrient()});
+const nutKind=Chips($("nutKind"),false,()=>{resetGate("nut",$("nutMsgs"),$("nutSave"),"양분 기록 저장");applyKind()});
+nutKind.setOptions(Object.keys(KIND_KO).map(k=>({v:k,label:KIND_KO[k]})));nutKind.set("supply");
+const nutCorr=Corr("nutCorr","nutrient_log");
+function fieldHtml(f){return `<div class="field" data-k="${f.k}"><label for="n_${f.k}"><span>${esc(f.label)}</span><span class="last" id="l_${f.k}"></span></label><div class="unitbox"><input type="text" id="n_${f.k}" inputmode="decimal" placeholder="미측정" autocomplete="off" enterkeyhint="next"><span class="unit">${esc(f.unit)}</span></div></div>`}
+$("nutFields").innerHTML=NUT.filter(f=>!f.opt).map(fieldHtml).join("");
+$("nutOptFields").innerHTML=NUT.filter(f=>f.opt).map(fieldHtml).join("");
+NUT.forEach(f=>$("n_"+f.k).addEventListener("input",()=>resetGate("nut",$("nutMsgs"),$("nutSave"),"양분 기록 저장")));
+function applyKind(){const mo=nutKind.value()==="measure_only";NUT.forEach(f=>{if(f.supply)document.querySelector(`#tab-nutrient .field[data-k="${f.k}"]`).hidden=mo})}
+function lastTrayRow(tray,exceptId){const r=effective("nutrient_log").filter(x=>x.tray_id===tray&&x.row_id!==exceptId);return r[r.length-1]}
+function lastMeasured(tray,k,exceptId){const r=effective("nutrient_log").filter(x=>x.tray_id===tray&&x.row_id!==exceptId&&x[k+"__status"]==="measured");return r[r.length-1]}
+function updateNutrient(){
+  const tray=nutTray.value(),corr=nutCorr.active(),ex=corr?corr.row.row_id:"";
+  const last=tray?lastTrayRow(tray,ex):null;
+  $("nutLastHead").innerHTML=!tray?"트레이를 고르면 지난 값이 각 칸 옆에 표시됩니다.":last?`${esc(tray)} 지난 기록: <span class="mono">${esc(mdhm(last.measured_at))}</span> · ${esc(KIND_KO[last.event_kind]||last.event_kind)}`:`${esc(tray)}: 이전 기록 없음`;
+  NUT.forEach(f=>{const el=$("l_"+f.k);
+    if(!last){el.textContent="";el.className="last";return}
+    const un=last[f.k+"__status"]!=="measured";el.className="last"+(un?" un":"");el.textContent="지난 "+(un?"미측정":last[f.k]+" "+f.unit)});
+  // day summary: blank-tray rule
+  const d=today(),rows=effective("nutrient_log").filter(r=>dayOf(r.measured_at)===d);
+  const done=new Set(rows.map(r=>r.tray_id)),blanks=blankTrays(),planted=S.settings.trays.filter(t=>!t.blank).map(t=>t.id);
+  const msgs=[];
+  if(S.settings.trays.length&&!blanks.length)msgs.push(`<div class="msg warn">설정에 대조 트레이가 없습니다.</div>`);
+  if(rows.some(r=>!blanks.includes(r.tray_id))&&blanks.some(b=>!done.has(b)))msgs.push(`<div class="msg warn">오늘 심은 트레이는 기록했는데 대조 트레이(${esc(blanks.filter(b=>!done.has(b)).join(", "))})가 없습니다.</div>`);
+  if(S.settings.trays.length)msgs.push(`<div class="hint">오늘 기록: ${S.settings.trays.map(t=>`<span class="mono">${esc(t.id)}</span> ${done.has(t.id)?"✓":"—"}`).join(" · ")}</div>`);
+  $("nutDay").innerHTML=msgs.join("");
+  recentList($("nutList"),"nutrient_log",null,r=>r.tray_id+" · "+(KIND_KO[r.event_kind]||r.event_kind)+" · 측정 "+NUT.filter(f=>r[f.k+"__status"]==="measured").length+"항목",r=>{
+    nutCorr.start(r);nutTray.set(r.tray_id);nutKind.set(r.event_kind);applyKind();
+    NUT.forEach(f=>{$("n_"+f.k).value=r[f.k+"__status"]==="measured"?r[f.k]:""});$("nutNote").value=r.note||"";
+    timeTouched.nutTime=true;$("nutTime").value=r.measured_at.slice(0,16);updateNutrient();
+  });
+}
+$("nutSave").addEventListener("click",()=>{
+  const errs=[],warns=[],corr=nutCorr.active(),ex=corr?corr.row.row_id:"";
+  const tray=nutTray.value(),kind=nutKind.value();
+  if(!tray)errs.push("트레이를 고르세요.");if(!kind)errs.push("작업 종류를 고르세요.");
+  const ms=readTime("nutTime");timeChecks(ms,errs,warns);
+  if(corr&&!corr.reason())errs.push("정정 사유를 적으세요.");
+  const vals={},methods=[];
+  NUT.forEach(f=>{
+    if(kind==="measure_only"&&f.supply){vals[f.k]=null;vals[f.k+"__status"]="unavailable";return}
+    const p=parseNum($("n_"+f.k).value,f.label,errs);vals[f.k]=p.v;vals[f.k+"__status"]=p.st;
+    if(p.st==="measured"&&!methods.includes(f.m))methods.push(f.m);
+  });
+  if(!errs.length&&tray){
+    const d=dayOf(toIso(ms));
+    if(effective("nutrient_log").some(r=>r.tray_id===tray&&r.event_kind===kind&&dayOf(r.measured_at)===d&&r.row_id!==ex))warns.push(`${tray}에 오늘 '${KIND_KO[kind]}' 기록이 이미 있습니다. 두 번째 급액이면 그대로 저장하세요.`);
+    if(vals.pre_depth_mm!=null&&vals.post_depth_mm!=null&&vals.post_depth_mm<vals.pre_depth_mm)warns.push("급액했는데 깊이가 줄었습니다 — 값 확인 ("+vals.pre_depth_mm+" → "+vals.post_depth_mm+" mm).");
+    const lm=lastMeasured(tray,"pre_pool_ec_mS_cm",ex);
+    if(lm&&vals.pre_pool_ec_mS_cm!=null&&lm.pre_pool_ec_mS_cm>0&&Math.abs(vals.pre_pool_ec_mS_cm-lm.pre_pool_ec_mS_cm)/lm.pre_pool_ec_mS_cm>0.5)
+      warns.push(`고인 EC가 지난 값(${lm.pre_pool_ec_mS_cm})에서 50% 넘게 바뀌었습니다 → ${vals.pre_pool_ec_mS_cm} mS/cm. 값 확인.`);
+    if(NUT.every(f=>vals[f.k+"__status"]!=="measured"))warns.push("모든 값이 비어 있습니다. 전부 '미측정'으로 저장됩니다.");
+  }
+  if(!gate("nut",$("nutMsgs"),$("nutSave"),errs,warns,"양분 기록 저장"))return;
+  const data=Object.assign({measured_at:toIso(ms),tray_id:tray,event_kind:kind},vals,{note:$("nutNote").value.trim()},common("nutObs",corr),{method:methods.join("+")});
+  enqueue("nutrient_log",data);
+  const nm=NUT.filter(f=>vals[f.k+"__status"]==="measured").length;
+  showSaved("nutrient_log",data,`양분 저장: ${tray} · ${KIND_KO[kind]} · 측정 ${nm} · 미측정 ${NUT.length-nm} · ${hm(data.measured_at)}`);
+  nutCorr.stop();NUT.forEach(f=>$("n_"+f.k).value="");$("nutNote").value="";timeTouched.nutTime=false;tickTimes();updateNutrient();
+});
+
+/* ================= ③ 점등·소등 ================= */
+function lightSave(ev,now){
+  const errs=[],warns=[];const ms=now?Date.now():readTime("lightTime");timeChecks(ms,errs,warns);
+  if(!now&&!gate("light",$("lightMsgs"),$(ev==="on"?"lightOnAt":"lightOffAt"),errs,warns,ev==="on"?"점등으로 기록":"소등으로 기록"))return;
+  const data=Object.assign({measured_at:toIso(ms),event:ev,note:""},common("lightObs",null),{method:"manual_switch"});
+  enqueue("light_events",data);
+  showSaved("light_events",data,(ev==="on"?"점등":"소등")+" 저장: "+hm(data.measured_at));
+  if(!now){timeTouched.lightTime=false;tickTimes()}
+}
+$("lightOnNow").addEventListener("click",()=>lightSave("on",true));
+$("lightOffNow").addEventListener("click",()=>lightSave("off",true));
+$("lightOnAt").addEventListener("click",()=>lightSave("on",false));
+$("lightOffAt").addEventListener("click",()=>lightSave("off",false));
+function updateLight(){
+  const ev=effective("light_events");
+  // pair sequentially so a photoperiod that crosses midnight still pairs
+  const pairs=[],orphanDays=new Set();let open=null;
+  ev.forEach(r=>{if(r.event==="on"){if(open)orphanDays.add(dayOf(open.measured_at));open=r}
+    else if(r.event==="off"){if(open){pairs.push([open,r]);open=null}}});
+  const d=today(),out=[];
+  pairs.filter(p=>dayOf(p[0].measured_at)===d||dayOf(p[1].measured_at)===d).forEach(p=>{
+    const h=(Date.parse(p[1].measured_at)-Date.parse(p[0].measured_at))/3600e3;
+    out.push(`<div>${hm(p[0].measured_at)} 점등 → ${hm(p[1].measured_at)} 소등 · ${h.toFixed(1)} h</div>`)});
+  if(open)out.push(`<div>${esc(mdhm(open.measured_at))} 점등 → <b>켜져 있음</b> (${((Date.now()-Date.parse(open.measured_at))/3600e3).toFixed(1)} h 경과)</div>`);
+  $("lightToday").innerHTML=out.join("")||'<span class="hint">오늘 기록이 없습니다.</span>';
+  const ws=Array.from(orphanDays).sort().slice(-7).map(x=>`<div class="msg warn">${esc(x)}: 점등 뒤 소등 기록 없이 다시 점등했습니다. 빠진 소등을 '시각 직접 입력'으로 추가하세요.</div>`);
+  if(open&&Date.now()-Date.parse(open.measured_at)>20*3600e3)ws.push(`<div class="msg warn">점등 후 20시간이 넘었습니다. 소등 기록이 빠졌는지 확인하세요.</div>`);
+  $("lightWarn").innerHTML=ws.join("");
+  recentList($("lightList"),"light_events",null,r=>r.event==="on"?"점등":"소등",null);
+}
+
+/* ================= ④ 새로 생긴 것 ================= */
+const newPlant=Chips($("newPlant"),false,()=>{updateNew();resetGate("ss",$("ssMsgs"),$("ssSave"),"곁순 저장");resetGate("tr",$("trMsgs"),$("trSave"),"화방 저장")});
+const ssAxis=Chips($("ssAxis"),false,()=>resetGate("ss",$("ssMsgs"),$("ssSave"),"곁순 저장"));
+const ssState=Chips($("ssState"),false,()=>resetGate("ss",$("ssMsgs"),$("ssSave"),"곁순 저장"));
+const trAxis=Chips($("trAxis"),false,()=>resetGate("tr",$("trMsgs"),$("trSave"),"화방 저장"));
+ssAxis.setOptions(AXES.map(a=>({v:a,label:a})));trAxis.setOptions(AXES.map(a=>({v:a,label:a})));
+ssState.setOptions([{v:"axis_shoot",label:"axis_shoot"},{v:"substem",label:"substem"}]);
+const ssCorr=Corr("ssCorr","side_shoots"),trCorr=Corr("trCorr","trusses");
+["ssRank","ssNote"].forEach(id=>$(id).addEventListener("input",()=>resetGate("ss",$("ssMsgs"),$("ssSave"),"곁순 저장")));
+["trRank","trNote"].forEach(id=>$(id).addEventListener("input",()=>resetGate("tr",$("trMsgs"),$("trSave"),"화방 저장")));
+function updateNew(){
+  const p=newPlant.value();
+  if(!p){$("newReg").innerHTML='<div class="hint">개체를 고르면 그 개체에 등록된 곁순·화방이 보입니다.</div>';return}
+  const ss=effective("side_shoots").filter(r=>r.plant_id===p),tr=effective("trusses").filter(r=>r.plant_id===p);
+  const btn=(c,r)=>`<button class="btn small" type="button" data-fix-${c}="${esc(r._id)}">정정</button> <button class="btn small danger" type="button" data-void-${c}="${esc(r._id)}">취소</button>`;
+  $("newReg").innerHTML=(ss.length||tr.length)?`<div class="tbl"><table><thead><tr><th>종류</th><th>축</th><th>위치</th><th>상태</th><th>first_observed</th><th></th></tr></thead><tbody>${
+    ss.map(r=>`<tr><td>곁순${r._pending?' <span class="badge pend">대기</span>':""}</td><td class="n">${esc(r.axis)}</td><td class="n">parent ${esc(r.parent_rank)}</td><td>${esc(r.axis_state)}</td><td class="n">${esc(mdhm(r.first_observed))}</td><td>${btn("ss",r)}</td></tr>`).join("")+
+    tr.map(r=>`<tr><td>화방${r._pending?' <span class="badge pend">대기</span>':""}</td><td class="n">${esc(r.axis)}</td><td class="n">above ${esc(r.above_rank)}</td><td>—</td><td class="n">${esc(mdhm(r.first_observed))}</td><td>${btn("tr",r)}</td></tr>`).join("")
+  }</tbody></table></div>`:'<div class="hint">아직 등록된 곁순·화방이 없습니다.</div>';
+}
+$("newReg").addEventListener("click",e=>{
+  const t=e.target;if(!(t instanceof HTMLElement))return;
+  for(const [c,col] of [["ss","side_shoots"],["tr","trusses"]]){
+    const fx=t.getAttribute("data-fix-"+c),vd=t.getAttribute("data-void-"+c);
+    if(fx){const r=rowsOf(col).find(x=>x._id===fx);if(!r)return;
+      if(c==="ss"){ssCorr.start(r);ssAxis.set(r.axis);ssState.set(r.axis_state);$("ssRank").value=r.parent_rank;$("ssNote").value=r.note||"";timeTouched.ssTime=true;$("ssTime").value=r.first_observed.slice(0,16)}
+      else{trCorr.start(r);trAxis.set(r.axis);$("trRank").value=r.above_rank;$("trNote").value=r.note||"";timeTouched.trTime=true;$("trTime").value=r.first_observed.slice(0,16)}}
+    if(vd){if(t.dataset.arm!=="1"){t.dataset.arm="1";t.textContent="취소 확인";setTimeout(()=>{t.dataset.arm="";t.textContent="취소"},4000);return}
+      const r=rowsOf(col).find(x=>x._id===vd);if(r){voidRow(col,r,"취소");showSaved(col,r,"취소 행을 저장했습니다 ("+COL_KO[col]+").");$("savedUndo").hidden=true}}
+  }
+});
+$("ssSave").addEventListener("click",()=>{
+  const errs=[],warns=[],corr=ssCorr.active(),ex=corr?corr.row.row_id:"";
+  const p=newPlant.value(),ax=ssAxis.value(),st=ssState.value(),rank=posInt($("ssRank").value);
+  if(!p)errs.push("개체를 고르세요.");if(!ax)errs.push("축을 고르세요.");if(!st)errs.push("상태(axis_shoot / substem)를 고르세요.");
+  if(rank==null)errs.push("parent_rank는 1 이상의 정수여야 합니다.");
+  const ms=readTime("ssTime");timeChecks(ms,errs,warns);
+  if(corr&&!corr.reason())errs.push("정정 사유를 적으세요.");
+  if(!errs.length){
+    const rows=effective("side_shoots").filter(r=>r.plant_id===p&&r.axis===ax&&r.row_id!==ex);
+    if(rows.some(r=>r.axis_state===st))warns.push(`${p} ${ax}에 ${st} 행이 이미 있습니다. 중복 등록인지 확인하세요.`);
+    if(st==="substem"&&!rows.some(r=>r.axis_state==="axis_shoot"&&Date.parse(r.first_observed)<=ms))warns.push(`${p} ${ax}에 먼저 등록된 axis_shoot 행이 없습니다. 두 잎 규칙은 axis_shoot 행을 먼저 기대합니다.`);
+    if(ax==="M")warns.push("축 M(본줄기)을 곁순으로 등록하려 합니다. 맞는지 확인하세요.");
+  }
+  if(!gate("ss",$("ssMsgs"),$("ssSave"),errs,warns,"곁순 저장"))return;
+  const data=Object.assign({plant_id:p,axis:ax,parent_rank:rank,axis_state:st,first_observed:toIso(ms),note:$("ssNote").value.trim()},common("ssObs",corr),{method:"visual"});
+  enqueue("side_shoots",data);showSaved("side_shoots",data,`곁순 저장: ${p} ${ax} · parent ${rank} · ${st}`);
+  ssCorr.stop();$("ssRank").value="";$("ssNote").value="";ssState.set([]);timeTouched.ssTime=false;tickTimes();updateNew();
+});
+$("trSave").addEventListener("click",()=>{
+  const errs=[],warns=[],corr=trCorr.active(),ex=corr?corr.row.row_id:"";
+  const p=newPlant.value(),ax=trAxis.value(),rank=posInt($("trRank").value);
+  if(!p)errs.push("개체를 고르세요.");if(!ax)errs.push("축을 고르세요.");
+  if(rank==null)errs.push("above_rank는 1 이상의 정수여야 합니다.");
+  const ms=readTime("trTime");timeChecks(ms,errs,warns);
+  if(corr&&!corr.reason())errs.push("정정 사유를 적으세요.");
+  if(!errs.length&&effective("trusses").some(r=>r.plant_id===p&&r.axis===ax&&r.above_rank===rank&&r.row_id!==ex))warns.push(`${p} ${ax} above ${rank} 화방이 이미 있습니다. 중복 등록인지 확인하세요.`);
+  if(!gate("tr",$("trMsgs"),$("trSave"),errs,warns,"화방 저장"))return;
+  const data=Object.assign({plant_id:p,axis:ax,above_rank:rank,first_observed:toIso(ms),note:$("trNote").value.trim()},common("trObs",corr),{method:"visual"});
+  enqueue("trusses",data);showSaved("trusses",data,`화방 저장: ${p} ${ax} · above ${rank}`);
+  trCorr.stop();$("trRank").value="";$("trNote").value="";timeTouched.trTime=false;tickTimes();updateNew();
+});
+
+/* ================= 설정 ================= */
+let setDirty=false,draftTrays=[];
+const HEADER_KEYS=["nutrient_log","tray_spec","side_shoots","trusses","capture_sessions","light_events"];
+function markDirty(){setDirty=true}
+function renderSettings(force){
+  if(setDirty&&!force)return;
+  draftTrays=S.settings.trays.map(t=>Object.assign({},t));drawTrays();
+  $("setPlants").value=S.settings.plants.join("\n");$("setObs").value=S.settings.observer||"";$("setCal").value=S.settings.ec_calibration||"";
+  $("setHeaders").innerHTML=HEADER_KEYS.map(k=>`<div class="field"><label for="hdr_${k}">${esc(COL_KO[k])} <span class="mono hint">${k}.csv</span></label><textarea id="hdr_${k}" rows="2" class="mono" placeholder="${esc(DEFAULT_COLS[k].join(","))}">${esc((S.settings.export_headers||{})[k]||"")}</textarea></div>`).join("");
+  $("setHeaders").querySelectorAll("textarea").forEach(t=>t.addEventListener("input",markDirty));
+}
+function drawTrays(){
+  $("setTrays").innerHTML=draftTrays.length?draftTrays.map((t,i)=>`<div class="tray-row"><input type="text" id="tray_${i}" value="${esc(t.id)}" placeholder="tray_id" autocomplete="off" class="mono"><label class="check"><input type="checkbox" id="trayb_${i}" ${t.blank?"checked":""}>대조</label><button class="btn small danger" type="button" data-del="${i}" aria-label="삭제">✕</button></div>`).join(""):'<div class="hint">트레이가 없습니다.</div>';
+}
+$("setTrays").addEventListener("input",e=>{const m=e.target.id.match(/^tray(b?)_(\d+)$/);if(!m)return;markDirty();const t=draftTrays[+m[2]];if(m[1])t.blank=e.target.checked;else t.id=e.target.value.trim()});
+$("setTrays").addEventListener("click",e=>{const b=e.target.closest("[data-del]");if(!b)return;draftTrays.splice(+b.dataset.del,1);markDirty();drawTrays()});
+$("setAddTray").addEventListener("click",()=>{draftTrays.push({id:"",blank:false});markDirty();drawTrays();const i=$("tray_"+(draftTrays.length-1));i&&i.focus()});
+["setPlants","setObs","setCal"].forEach(id=>$(id).addEventListener("input",markDirty));
+$("setSave").addEventListener("click",()=>{
+  const errs=[];const trays=draftTrays.filter(t=>t.id);const ids=trays.map(t=>t.id);
+  if(new Set(ids).size!==ids.length)errs.push("트레이 id가 중복됩니다.");
+  const plants=Array.from(new Set($("setPlants").value.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean)));
+  if(errs.length){showMsgs($("setMsgs"),errs,[]);return}
+  const hdr={};HEADER_KEYS.forEach(k=>{const v=$("hdr_"+k).value.trim();if(v)hdr[k]=v.split(/\r?\n/)[0]});
+  S.settings={trays:trays.map(t=>({id:t.id,blank:!!t.blank})),plants,observer:$("setObs").value.trim(),ec_calibration:$("setCal").value.trim(),export_headers:hdr,updated_at:toIso(Date.now())};
+  LS.set("settings",S.settings);enqueueSettings(S.settings);setDirty=false;
+  showMsgs($("setMsgs"),[],[],'<div class="msg info">설정을 저장했습니다.</div>');settingsChanged();
+});
+
+/* ---------- export ---------- */
+function exportCols(key){const h=(S.settings.export_headers||{})[key];return h?h.split(",").map(s=>s.trim().replace(/^"|"$/g,"")).filter(Boolean):DEFAULT_COLS[key]}
+function cell(v){if(v==null)return"";if(Array.isArray(v))v=v.join(";");if(typeof v==="boolean")v=v?"1":"0";v=String(v);return/[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function buildCsv(key){
+  const cols=exportCols(key);
+  const rows=key==="tray_spec"?S.settings.trays.map(t=>({tray_id:t.id,is_blank:t.blank?1:0,note:""})):rowsOf(key);
+  return{cols,n:rows.length,csv:[cols.join(",")].concat(rows.map(r=>cols.map(c=>cell(r[c])).join(","))).join("\n")+"\n",
+    dropped:DEFAULT_COLS[key].filter(c=>!cols.includes(c))};
+}
+function renderExport(){
+  $("expList").innerHTML=["nutrient_log","tray_spec","side_shoots","trusses","capture_sessions","light_events"].map(k=>{
+    const custom=!!(S.settings.export_headers||{})[k];const n=k==="tray_spec"?S.settings.trays.length:rowsOf(k).length;
+    return `<div class="li"><div class="t">${esc(COL_KO[k])} <span class="mono hint">${k}.csv · ${n}행</span><span class="when">${custom?"템플릿 헤더 사용":"기본 열 순서"}</span></div><div class="acts"><button class="btn small" type="button" data-exp="${k}">CSV 받기</button></div></div>`}).join("");
+}
+$("expList").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-exp]");if(!b)return;const k=b.dataset.exp;const r=buildCsv(k);
+  const fn=k+"_"+today().replace(/-/g,"")+".csv";
+  let note=r.dropped.length?`<div class="msg warn">템플릿 헤더에 없는 열은 빠집니다: <span class="mono">${esc(r.dropped.join(", "))}</span></div>`:"";
+  let dl=null;try{dl=window.claude&&window.claude.use?await window.claude.use("downloads"):null}catch(x){dl=null}
+  if(dl){try{await dl.save({filename:fn,data:r.csv});$("expOut").innerHTML=note+`<div class="msg info">${esc(fn)} (${r.n}행) 저장.</div>`;return}
+    catch(x){if(x&&x.code==="declined"){$("expOut").innerHTML=note+'<div class="hint">저장을 취소했습니다.</div>';return}}}
+  $("expOut").innerHTML=note+`<div class="field"><label for="expText">${esc(fn)} — 파일 저장을 쓸 수 없어 내용을 표시합니다</label><textarea id="expText" rows="8" class="mono" readonly>${esc(r.csv)}</textarea><button class="btn small" type="button" id="expCopy">복사</button></div>`;
+  $("expCopy").addEventListener("click",()=>{const t=$("expText");navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(t.value).catch(()=>{t.select()}):t.select()});
+});
+
+/* ---------- settings → chips ---------- */
+function settingsChanged(){
+  const trays=S.settings.trays.map(t=>({v:t.id,label:t.id,tag:t.blank?"대조":""}));
+  nutTray.setOptions(trays,noTrays);
+  const pl=S.settings.plants.map(p=>({v:p,label:p}));
+  capPlants.setOptions(pl,noPlants);newPlant.setOptions(pl,noPlants);
+  $("capAll").hidden=!pl.length;
+  fillObs();renderSettings();refresh();
+}
+
+/* ---------- refresh ---------- */
+let rq=false;
+function refresh(){if(rq)return;rq=true;requestAnimationFrame(()=>{rq=false;pill();updateCapture();updateNutrient();updateLight();updateNew();renderExport()})}
+
+/* ---------- tabs ---------- */
+function showTab(t){
+  document.querySelectorAll("main>section").forEach(s=>s.hidden=s.id!=="tab-"+t);
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===t?"true":"false"));
+  LS.set("tab",t);window.scrollTo(0,0);
+}
+document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
+const startTab=LS.get("tab","capture");showTab(["capture","nutrient","light","new","settings"].includes(startTab)?startTab:"capture");
+
+tickTimes();applyKind();settingsChanged();connect();
+})();
+</script>
