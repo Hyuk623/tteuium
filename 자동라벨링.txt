@@ -1,0 +1,69 @@
+Implement an AI-assisted annotation workflow in the existing tomato leaflet editor: automatically propose annotations, then let the user correct and accept them.
+
+First inspect:
+- handoff/CLAUDE_CODE_LEAFLET_BBOX_XYZ_HANDOFF_2026-09-19.md
+- handoff/LEAFLET_BBOX_XYZ_IMPLEMENTATION_2026-09-19.md
+- The current editor, backup format, reconstruction adapter and tests.
+
+Reuse the existing application. Preserve all photographs, labels, physical point IDs, calibration files and historical results.
+
+1. Start with interactive assistance
+Use a pretrained segmentation model such as SAM to propose a leaflet mask from the user's bbox or positive/negative clicks.
+SAM is a prompted segmentation tool; do not describe it as a trained tomato organ detector.
+Derive an editable bbox and contour from the proposed mask.
+Keep neighboring and overlapping leaflets separate.
+Allow additional clicks, manual contour correction, rejection and acceptance.
+
+2. Separate drafts from accepted annotations
+Store AI proposals separately from accepted labels.
+Show clear states: proposed, edited, accepted and rejected.
+Never overwrite existing annotations automatically.
+Provide undo and preserve provenance: model/version, prompts, source photo, original-pixel coordinates and user corrections.
+Accepting a segmentation must not automatically confirm cross-view identity or full visibility.
+
+3. Assist cross-view identity
+Given a selected leaflet, suggest matching candidates in another view using available appearance and measured camera geometry.
+Show candidates side by side for human confirmation.
+Allow “different leaflet” and “uncertain.”
+Do not automatically merge IDs or invent annotations for hidden leaflets.
+If no reliable matching method is implemented yet, retain manual linking and explicitly report this limitation.
+
+4. Preserve physical correspondence rules
+Masks and contours are not physical point correspondences.
+Never use independently generated contour indices, bbox corners or mask centres as matching physical points for triangulation.
+Keep existing point_id and semantic meanings.
+Any suggested corresponding points require explicit review; invisible points remain unobserved.
+
+5. Connect accepted edits to the existing pipeline
+Accepted bbox/contour edits should use the existing leaflet data model.
+Keep visibility and identity review as separate fields.
+Use confirmed physical correspondences and existing measured camera poses for XYZ calculation.
+Keep bbox-derived cuboids exploratory and separate from leaf surfaces.
+Preserve unvalidated calibration flags; do not claim PPFD readiness.
+
+6. Prepare future learning
+Export original images, accepted masks/bboxes, leaflet identities and annotation provenance for future Kaggle training.
+Keep rejected/unreviewed drafts out of ground-truth exports.
+Split future training/evaluation by plant, not randomly by photograph of the same plant.
+The current 18 photographs represent one plant; additional plants are planned but not yet available.
+Do not claim that one labeled plant establishes generalization.
+
+7. Execution boundary
+Implement the integration, configurable model interface and tests.
+Do not download model weights, run deep-learning inference, train models or upload photographs in this task.
+Provide explicit commands and required dependencies for a later authorized trial.
+Use mocked model outputs to test the complete proposal → correction → acceptance workflow.
+If model assets are absent, show a clear unavailable state and keep manual labeling usable.
+
+8. Validation and delivery
+Verify:
+- Original-pixel coordinates survive zoom/crop and save/restore.
+- Proposals cannot overwrite accepted labels.
+- Accept/reject/edit/undo behave correctly.
+- Existing leaf, flower, bud and truss annotations remain intact.
+- Cross-view identity requires separate confirmation.
+- AI contour vertices never enter triangulation as physical correspondences.
+- Saved accepted changes work with the existing rebuild flow.
+
+Deliver the modified existing application, tests, a concise Korean usage guide and an English handoff entry.
+Clearly distinguish implemented functionality, mocked tests and real-model behavior that has not yet been tested.

@@ -1,0 +1,23 @@
+# 줄바꿈: 저장소 안에서는 LF로 통일. Windows 체크아웃은 git이 알아서 처리.
+* text=auto eol=lf
+
+*.py    text eol=lf
+*.md    text eol=lf
+*.csv   text eol=lf
+*.json  text eol=lf
+*.txt   text eol=lf
+*.rgg   text eol=lf
+*.lpy   text eol=lf
+*.js    text eol=lf
+*.cjs   text eol=lf
+*.html  text eol=lf
+*.toml  text eol=lf
+
+# 바이너리: 줄바꿈 변환 금지, diff 생략
+*.png   binary
+*.pdf   binary
+*.xlsx  binary
+*.HEIC  binary
+*.heic  binary
+*.npy   binary
+*.npz   binary

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0",
+  "min_pose_solved_ratio": 0.95,
+  "max_mean_reprojection_error_px": 1.0,
+  "max_silhouette_area_cv": 0.15,
+  "max_scale_block_height_error_mm": null,
+  "min_charuco_corners_for_pose": 6
+}

@@ -1,0 +1,16 @@
+{
+ "schema": "p1-tracking-config-1",
+ "_note": "Implements phynotype2 spec section 9 inside tomato3d/track (phynotype2/ is absent at its recorded path). Every entry: value (null = inactive), unit, source_kind (user_stated|fitted|unset|fixture_declared), source_ref. A null weight or threshold is loaded but inactive: the solver still ranks proposals, every link stays proposed, and an observation whose fate depends on a null threshold is written ambiguous for human review. MTG 8.5 is open, so there is no azimuth prior key.",
+ "pot_rim_inner_diameter_mm": {"value": null, "unit": "mm", "source_kind": "unset", "source_ref": "never measured (Stage-2 spec section 12 item 1)"},
+ "association": {
+  "weights": {"value": null, "unit": "per cue", "source_kind": "unset", "source_ref": "phynotype2 5.2: no combined weight fixed"},
+  "no_match_cost": {"value": null, "unit": "cost", "source_kind": "unset", "source_ref": "phynotype2 5.3"},
+  "ambiguity_margin": {"value": null, "unit": "cost", "source_kind": "unset", "source_ref": "phynotype2 5.3"},
+  "split_merge_containment_min": {"value": null, "unit": "fraction", "source_kind": "unset", "source_ref": "phynotype2 5.5: split/merge suspicion; null = only the cost rule flags suspects - fraction of one plant-aligned mask lying inside the other"},
+  "max_gap_captures": {"value": null, "unit": "captures", "source_kind": "unset", "source_ref": "null = never drop a live track"},
+  "min_decisions_per_class_for_auto_confirm": {"value": null, "unit": "count", "source_kind": "unset", "source_ref": "tools.threshold_decisions MIN_DECISIONS_PER_CLASS; no fitted rule exists"}
+ },
+ "attribution": {
+  "neighbor_rule": {"value": null, "unit": "rule", "source_kind": "unset", "source_ref": "phynotype2 4.1"}
+ }
+}

@@ -1,0 +1,73 @@
+# ============================================================
+# Tomato 3D phenotyping analysis - git 추적 제외 규칙
+# 2026-10-13 작성. 원칙: 사람이 만든 기록과 코드는 추적,
+#            기계가 다시 만들 수 있는 산출물과 원본 사진은 제외.
+# ============================================================
+
+# ---- 생성물 (코드로 다시 만들 수 있음) ----
+build/
+runs/
+*.log
+
+# ---- 원본 사진·대용량 입력 (git 밖에서 보관) ----
+data/raw/
+date_data/
+tomato_photos_by_view_/
+tomato_photos_organized_/
+토마토/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# ---- 대용량 바이너리 (어디에 있어도 제외) ----
+*.HEIC
+*.heic
+*.jpg
+*.jpeg
+*.tif
+*.tiff
+*.npy
+*.npz
+*.zip
+*.7z
+*.rar
+*.mp4
+*.mov
+*.ply
+*.obj
+*.pcd
+
+# ---- PNG·PDF: 기본 제외, 단 사람이 만든 기록과 문서는 추적 ----
+# (data/records/ 안의 대조표·컨택트시트는 관측 근거이므로 남긴다)
+*.png
+*.pdf
+!data/records/**/*.png
+!data/records/**/*.pdf
+!docs/**/*.png
+!docs/**/*.pdf
+!flow/**/*.png
+
+# ---- 비밀값이 들어갈 수 있는 파일 ----
+.env
+.env.*
+*.pem
+*.key
+kaggle.json
+credentials*.json
+service_account*.json
+
+# ---- OS / 클라우드 동기화 찌꺼기 ----
+Thumbs.db
+desktop.ini
+.DS_Store
+~$*
+*.tmp
+*.bak

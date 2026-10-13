@@ -1,0 +1,13 @@
+order,stage,program,path,owner,status,note
+1,P1 exchange,Declared axis producer adapter,tools/fsp_axes.py,Codex,executed,A4/A5 multiscale parent and exact axil binding; actual P1 fixture consumed; explicit aliases reject disagreement
+1,P1 exchange,Truss and segment history contract,tools/fsp_axes_segments.py,Codex,executed,No missing index imputation; same-axis node binding; immutable organ segment and current axis counter
+1,P1 exchange,Frozen P1 native initialization,tools/tomato_fsp_io.py,Codex,executed,Freeze trusses.csv; explicit geometry supplement for unlocated Truss; actual P1 fixture_truth route
+4,P4 physiology,Native per-axis truss and stop program,tools/vtc_development_native.rgg,Codex,executed,User-authorized conditional truss generation on declared axes; independent stop; shared plant pool
+4,P4 physiology,Native organ segment initialization,tools/vtc_development_observation.py,Codex,executed,Imported segments retained; unavailable remains unavailable
+4,P4 physiology,Native contract IO,tools/vtc_development_io.py,Codex,executed,Segment strings preserved through native reads and validation
+4,P4 physiology,Native source binding,tools/vtc_development.py,Codex,executed,Includes segment helper in source hashes
+5,P3 growth,Axis-aware immutable pipeline checkpoints,tools/tomato_fsp_pipeline.py,Codex,executed,Committed axis and organ inventories include segment; native checkpoint published once
+6,Verification,Native truss and segment controls,tools/fsp_axes_truss_acceptance.py,Codex,executed,Four core synthetic controls plus three exchange runs; 15 intervals at 4.8M rays; max carbon residual 2.34e-17 gC
+6,Verification,Segment and history regression,tools/tests/test_fsp_axes_segments.py,Codex,executed,24 new cases; focused union 219 unique passed; overlaps excluded
+6,Verification,P4 substem truss execution,handoff/P4_SUBSTEM_TRUSS_EXECUTION_2026-10-12.md,Codex,executed,Conditional software acceptance and actual P1 fixture interoperability; biological accuracy not established
+4,P4 physiology,Resource contract addendum,handoff/P4_SIDESHOOT_RESOURCE_CONTRACT_2026-10-12.md,Codex,executed,Section 7 selects substem applicability from user observation; timing and hidden state remain pending

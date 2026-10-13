@@ -1,0 +1,65 @@
+{
+  "schema": "plant-pipeline-plants-1",
+  "note": "Inputs per plant. Paths are relative to the project root. Downloads is scanned read-only for saved review files named cross_view_decisions_<plant>_*.json. Growth records are read from the originals the user edits (tomato_photos_organized_), not the by_view copies.",
+  "downloads": "C:/Users/sho36/Downloads",
+  "intrinsics": "build/photo_audit_board_20260919/intrinsics.board_only.trial.json",
+  "mapping": "tomato_photos_organized_/filename_mapping.csv",
+  "segmenter_config": "build/photos1_manual3d_20260919/sam_auto_20260920/sam2_config.json",
+  "plants": {
+    "dwt_01": {
+      "photo_source": "tomato_photos_organized_/260920",
+      "capture": "build/new_captures_20260920/dwt_01",
+      "labels": "build/dwt_01_02_3d_20260922/dwt_01/labels",
+      "growth": "tomato_photos_organized_/260920/dwt_01/260920/dwt_01_260920.json",
+      "batch": "build/leaflet_mask_batch_20260922/dwt_01",
+      "decisions": [
+        "build/dwt_01_02_3d_20260922/dwt_01/multiview_candidates/review_db/decisions",
+        "build/dwt_01_02_3d_20260922/dwt_01/multiview_candidates/struct_prior/review_db/decisions"
+      ],
+      "direction_labels": null,
+      "editor_port": 8821,
+      "pose_session": "build/pose_rescue_20261001/dwt_01/edit_session"
+    },
+    "dwt_02": {
+      "photo_source": "tomato_photos_organized_/260920",
+      "capture": "build/new_captures_20260920/dwt_02",
+      "labels": "build/dwt_01_02_3d_20260922/dwt_02/labels",
+      "growth": "tomato_photos_organized_/260920/dwt_02/260920/dwt_02_260920.json",
+      "batch": "build/leaflet_mask_batch_20260922/dwt_02",
+      "decisions": [],
+      "direction_labels": null,
+      "editor_port": 8822,
+      "feature_poses": "build/feature_pose_20260923/dwt_02_r4/feature_poses.json",
+      "pose_session": "build/pose_rescue_20261001/dwt_02/edit_session"
+    },
+    "dwt_03": {
+      "photo_source": "tomato_photos_organized_/260921",
+      "capture": "build/new_captures_20260921/dwt_03",
+      "labels": "build/dwt_03_04_3d_20260922/dwt_03",
+      "growth": "tomato_photos_organized_/260921/dwt_03/260921/dwt_03_260921.json",
+      "batch": "build/leaflet_mask_batch_20260925_tuned/dwt_03",
+      "decisions": [],
+      "direction_labels": null,
+      "editor_port": 8823,
+      "batch_note": "leaflet-tuned SAM drafts (2026-09-25); base-SAM drafts kept in build/leaflet_mask_batch_20260922/dwt_03",
+      "feature_poses": "build/feature_pose_20260927/dwt_03/feature_poses.json",
+      "pose_session": "build/pose_rescue_20261001/dwt_03/edit_session"
+    },
+    "dwt_04": {
+      "photo_source": "tomato_photos_organized_/260921",
+      "capture": "build/new_captures_20260921/dwt_04",
+      "exclude_views": {
+        "01": "portrait 3024x4032 frame; square trial intrinsics cannot describe it (not cropped)"
+      },
+      "labels": "build/dwt_03_04_3d_20260922/dwt_04",
+      "growth": "tomato_photos_organized_/260921/dwt_04/260920/dwt_04_260920.json",
+      "batch": "build/leaflet_mask_batch_20260925_tuned/dwt_04",
+      "decisions": [],
+      "direction_labels": null,
+      "editor_port": 8824,
+      "batch_note": "leaflet-tuned SAM drafts (2026-09-25); base-SAM drafts kept in build/leaflet_mask_batch_20260922/dwt_04",
+      "feature_poses": "build/feature_pose_20260927/dwt_04/feature_poses.json",
+      "pose_session": "build/pose_rescue_20261001/dwt_04/edit_session"
+    }
+  }
+}

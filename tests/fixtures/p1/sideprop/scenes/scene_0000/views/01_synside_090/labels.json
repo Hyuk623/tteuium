@@ -1,0 +1,289 @@
+{
+ "schema": "synth-sideview-labels-1",
+ "origin": "synthetic",
+ "scene_id": "scene_0000",
+ "view_id": "synside/scene_0000/090",
+ "protocol_azimuth_deg": 90,
+ "camera_azimuth_deg": 177.899,
+ "view0_camera_azimuth_deg": 270.0,
+ "camera_elevation_deg": 26.586,
+ "image_size_px": [
+  512,
+  512
+ ],
+ "exclusion_deg": 10.0,
+ "min_visible_px": 150,
+ "compounds": [
+  {
+   "compound_id": "L01",
+   "rank_from_bottom": 1,
+   "instance": 1,
+   "theta_deg": 32.5093,
+   "direction_source": "terminal_leaflet_heading",
+   "pitch_deg": 5.739,
+   "camera_azimuth_deg": 177.899,
+   "quadrant_gt": 4,
+   "visible_px": 4282,
+   "amodal_px": 6197,
+   "vis_frac": 0.691,
+   "box_xyxy": [
+    166.0,
+    175.0,
+    270.0,
+    259.0
+   ],
+   "amodal_box_xyxy": [
+    166.0,
+    175.0,
+    277.0,
+    264.0
+   ],
+   "delta_deg": -145.39,
+   "cls": "cl_away",
+   "boundary_distance_deg": 10.39,
+   "excluded_boundary": false,
+   "excluded_occluded": false
+  },
+  {
+   "compound_id": "L02",
+   "rank_from_bottom": 2,
+   "instance": 2,
+   "theta_deg": 170.2995,
+   "direction_source": "terminal_leaflet_heading",
+   "pitch_deg": -20.513,
+   "camera_azimuth_deg": 177.899,
+   "quadrant_gt": 2,
+   "visible_px": 4556,
+   "amodal_px": 4561,
+   "vis_frac": 0.9989,
+   "box_xyxy": [
+    224.0,
+    212.0,
+    309.0,
+    313.0
+   ],
+   "amodal_box_xyxy": [
+    224.0,
+    210.0,
+    309.0,
+    313.0
+   ],
+   "delta_deg": -7.6,
+   "cls": "cl_toward",
+   "boundary_distance_deg": 37.4,
+   "excluded_boundary": false,
+   "excluded_occluded": false
+  },
+  {
+   "compound_id": "L03",
+   "rank_from_bottom": 3,
+   "instance": 3,
+   "theta_deg": -69.9684,
+   "direction_source": "terminal_leaflet_heading",
+   "pitch_deg": 12.071,
+   "camera_azimuth_deg": 177.899,
+   "quadrant_gt": 1,
+   "visible_px": 967,
+   "amodal_px": 1580,
+   "vis_frac": 0.612,
+   "box_xyxy": [
+    283.0,
+    170.0,
+    362.0,
+    216.0
+   ],
+   "amodal_box_xyxy": [
+    270.0,
+    170.0,
+    362.0,
+    216.0
+   ],
+   "delta_deg": 112.133,
+   "cls": "cl_right",
+   "boundary_distance_deg": 22.867,
+   "excluded_boundary": false,
+   "excluded_occluded": false
+  },
+  {
+   "compound_id": "L04",
+   "rank_from_bottom": 4,
+   "instance": 4,
+   "theta_deg": 33.4741,
+   "direction_source": "terminal_leaflet_heading",
+   "pitch_deg": 2.482,
+   "camera_azimuth_deg": 177.899,
+   "quadrant_gt": 4,
+   "visible_px": 901,
+   "amodal_px": 3090,
+   "vis_frac": 0.2916,
+   "box_xyxy": [
+    209.0,
+    141.0,
+    295.0,
+    200.0
+   ],
+   "amodal_box_xyxy": [
+    209.0,
+    141.0,
+    298.0,
+    200.0
+   ],
+   "delta_deg": -144.425,
+   "cls": "cl_away",
+   "boundary_distance_deg": 9.425,
+   "excluded_boundary": true,
+   "excluded_occluded": false
+  },
+  {
+   "compound_id": "L05",
+   "rank_from_bottom": 5,
+   "instance": 5,
+   "theta_deg": 170.0202,
+   "direction_source": "terminal_leaflet_heading",
+   "pitch_deg": 23.574,
+   "camera_azimuth_deg": 177.899,
+   "quadrant_gt": 2,
+   "visible_px": 2431,
+   "amodal_px": 2436,
+   "vis_frac": 0.9979,
+   "box_xyxy": [
+    214.0,
+    166.0,
+    325.0,
+    202.0
+   ],
+   "amodal_box_xyxy": [
+    214.0,
+    166.0,
+    325.0,
+    202.0
+   ],
+   "delta_deg": -7.879,
+   "cls": "cl_toward",
+   "boundary_distance_deg": 37.121,
+   "excluded_boundary": false,
+   "excluded_occluded": false
+  },
+  {
+   "compound_id": "L06",
+   "rank_from_bottom": 6,
+   "instance": 6,
+   "theta_deg": -81.8301,
+   "direction_source": "terminal_leaflet_heading",
+   "pitch_deg": 24.205,
+   "camera_azimuth_deg": 177.899,
+   "quadrant_gt": 1,
+   "visible_px": 1841,
+   "amodal_px": 2234,
+   "vis_frac": 0.8241,
+   "box_xyxy": [
+    285.0,
+    120.0,
+    387.0,
+    182.0
+   ],
+   "amodal_box_xyxy": [
+    278.0,
+    120.0,
+    387.0,
+    183.0
+   ],
+   "delta_deg": 100.271,
+   "cls": "cl_right",
+   "boundary_distance_deg": 34.729,
+   "excluded_boundary": false,
+   "excluded_occluded": false
+  },
+  {
+   "compound_id": "L07",
+   "rank_from_bottom": 7,
+   "instance": 7,
+   "theta_deg": 38.6921,
+   "direction_source": "terminal_leaflet_heading",
+   "pitch_deg": 34.522,
+   "camera_azimuth_deg": 177.899,
+   "quadrant_gt": 4,
+   "visible_px": 1455,
+   "amodal_px": 2069,
+   "vis_frac": 0.7032,
+   "box_xyxy": [
+    242.0,
+    118.0,
+    297.0,
+    175.0
+   ],
+   "amodal_box_xyxy": [
+    241.0,
+    118.0,
+    297.0,
+    181.0
+   ],
+   "delta_deg": -139.207,
+   "cls": "cl_away",
+   "boundary_distance_deg": 4.207,
+   "excluded_boundary": true,
+   "excluded_occluded": false
+  }
+ ],
+ "excluded_boundary": [
+  {
+   "compound_id": "L04",
+   "delta_deg": -144.425,
+   "boundary_distance_deg": 9.425
+  },
+  {
+   "compound_id": "L07",
+   "delta_deg": -139.207,
+   "boundary_distance_deg": 4.207
+  }
+ ],
+ "excluded_occluded": [],
+ "main_stem": {
+  "box_xyxy": [
+   260.0,
+   172.0,
+   286.0,
+   246.0
+  ],
+  "visible_px": 527
+ },
+ "growth_shoot": {
+  "box_xyxy": [
+   275.0,
+   162.0,
+   287.0,
+   174.0
+  ],
+  "visible_px": 88
+ },
+ "instances": {
+  "L01": 1,
+  "L02": 2,
+  "L03": 3,
+  "L04": 4,
+  "L05": 5,
+  "L06": 6,
+  "L07": 7,
+  "main_stem": 8,
+  "growth_shoot": 9
+ },
+ "camera_plan": {
+  "k": 1,
+  "protocol_azimuth_deg": 90,
+  "camera_azimuth_deg": 177.899,
+  "azimuth_jitter_deg": -2.101,
+  "elevation_deg": 26.5863,
+  "elevation_jitter_deg": 1.5863,
+  "distance_mm": 270.0
+ },
+ "target_mm": [
+  95.0,
+  -57.0,
+  69.74752095377222
+ ],
+ "seed": 20275000,
+ "parameter_hash": "e6496420293a3082492fa979f316fe22a3a7d9555de57e54e206caa74e0ddaae",
+ "generator_version": "synth-stage1-0.2.0",
+ "capture_rotation": "clockwise_assumed_unverified",
+ "view_dir": "01_synside_090"
+}

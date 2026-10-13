@@ -1,0 +1,398 @@
+# 복엽 내부 소엽 겹침 분리 및 Multi-view 보완 Flow
+
+## 1. 현재 구현 상태
+
+현재 파이프라인은 다음 단계까지 구현 중이다.
+
+RGB Image
+→ Roboflow 복엽 Bounding Box 검출
+→ Bounding Box를 ROI로 Crop
+→ ROI 내부 SAM / Instance Segmentation
+→ 소엽 Mask 생성
+→ Mask 민감도 조정
+
+Bounding Box는 실제 소엽의 형상을 의미하지 않는다.
+특정 복엽에 포함된 소엽을 탐색하기 위한 ROI 역할을 한다.
+
+현재 핵심 문제는 서로 다른 소엽이 영상에서 겹치는 경우
+SAM이 두 소엽을 하나의 Mask로 병합하는 현상이다.
+
+
+# 2. 목표
+
+단일 View에서 완벽한 Instance Segmentation을 만드는 것이 목표가 아니다.
+
+최종 목표는 다음과 같다.
+
+불완전한 2D Instance Segmentation
++
+다른 View의 관측 정보
++
+Camera Geometry
+→
+소엽별 일관된 3D Instance 생성
+
+따라서 한 View에서 소엽이 겹쳐 분리에 실패하더라도
+다른 View에서 얻은 정보를 이용하여 이를 보완한다.
+
+
+# 3. 전체 Pipeline
+
+Roboflow BBox
+↓
+ROI Crop
+↓
+SAM 1차 Instance Segmentation
+↓
+Merge Detection
+↓
+┌─────────────────────┐
+│ 정상 Instance       │
+│ → 그대로 저장       │
+└─────────────────────┘
+
+┌─────────────────────┐
+│ Merge 의심 Instance │
+└─────────────────────┘
+↓
+다른 View 탐색
+↓
+분리가 잘 된 View 선택
+↓
+Camera Pose 기반 위치 변환
+↓
+현재 View에 소엽 위치 Reprojection
+↓
+SAM Point Prompt 생성
+↓
+SAM 재실행
+↓
+소엽 A / B 재분할
+↓
+Multi-view Consistency 검사
+↓
+최종 Instance Mask
+
+
+# 4. Merge Detection
+
+SAM이 생성한 하나의 Mask에 실제로 여러 소엽이 포함되었는지 검사한다.
+
+## 4.1 Mask 크기
+
+동일 복엽의 다른 소엽보다 비정상적으로 큰 Mask를 Merge 후보로 지정한다.
+
+예:
+
+median_leaf_area = 동일 복엽 내 소엽 Mask 면적 중앙값
+
+if mask_area > median_leaf_area * threshold:
+    merge_candidate = True
+
+
+## 4.2 Concavity
+
+두 소엽이 겹치거나 붙으면 Mask 외곽에 깊은 오목 영역이 발생할 수 있다.
+
+Convex Hull과 실제 Mask의 차이를 이용하여
+비정상적인 concavity를 탐지할 수 있다.
+
+
+## 4.3 Skeleton Branching
+
+Mask를 Skeletonization한 뒤 분기점을 분석한다.
+
+정상적인 소엽보다 비정상적으로 많은 주요 branch가 존재한다면
+여러 소엽이 하나의 Mask에 포함되었을 가능성을 검사한다.
+
+
+## 4.4 Texture / Leaf Vein Direction
+
+하나의 Mask 내부에서
+
+- texture 방향
+- 잎맥 방향
+- 표면 특징
+
+등이 두 개 이상의 방향 그룹으로 나뉘면 Merge 후보로 사용할 수 있다.
+
+
+## 4.5 Multi-view Evidence
+
+가장 중요한 기준이다.
+
+View 01에서는:
+
+Leaf A + Leaf B
+→ 하나의 Mask
+
+하지만 View 07에서는:
+
+Leaf A
+Leaf B
+→ 두 개의 Mask
+
+로 검출된다면 View 01의 Mask를 Merge 후보로 판단할 수 있다.
+
+
+# 5. Multi-view 기반 재분할
+
+## Step 1. 분리가 잘 된 View 탐색
+
+현재 View에서 Merge가 발생하면
+인접한 다른 View에서 동일 영역을 탐색한다.
+
+예:
+
+View 01 → A+B 병합
+
+View 02 → A+B 병합
+
+View 05 → A / B 분리 성공
+
+View 07 → A / B 분리 성공
+
+
+## Step 2. 다른 View의 소엽 위치 획득
+
+분리가 성공한 View에서 각 소엽의
+
+- Mask
+- Centroid
+- Bounding Box
+- Confidence
+- Camera Pose
+
+를 저장한다.
+
+
+## Step 3. 3D Geometry를 이용한 Reprojection
+
+Camera calibration / pose 정보를 이용하여
+잘 분리된 View에서 얻은 소엽 위치를 현재 View로 재투영한다.
+
+View 07
+
+Leaf A centroid ●
+Leaf B centroid ●
+
+↓
+
+Camera Geometry
+
+↓
+
+View 01
+
+예상 Leaf A 위치 ●
+예상 Leaf B 위치 ●
+
+
+# 6. SAM Re-prompt
+
+재투영된 위치를 SAM의 추가 Prompt로 사용한다.
+
+기존:
+
+BBox
+→ SAM
+→ A+B 하나의 Mask
+
+개선:
+
+BBox
++
+Leaf A Point
++
+Leaf B Point
+→ SAM 재실행
+→ Mask A
+→ Mask B
+
+즉 다른 View가 어려운 View의 segmentation을 보조한다.
+
+
+# 7. Watershed 보조
+
+형태적으로 두 소엽의 경계가 어느 정도 남아 있다면
+Watershed를 보조 방법으로 사용할 수 있다.
+
+Merged Mask
+↓
+Distance Transform
+↓
+Peak Detection
+↓
+Marker 생성
+↓
+Watershed
+↓
+Mask A / Mask B
+
+그러나 실제 소엽이 크게 겹치는 경우
+Watershed만으로 안정적인 분리가 어려울 수 있다.
+
+따라서 권장 우선순위는:
+
+1. Multi-view Reprojection + SAM Re-prompt
+2. Shape / Skeleton 정보
+3. Watershed 보조
+
+
+# 8. 분리에 실패한 경우
+
+강제로 분리하지 않는다.
+
+예:
+
+instance_id: 37
+merge_status: uncertain
+candidate_leaflets:
+  - leaflet_04
+  - leaflet_05
+confidence: 0.42
+
+이 상태를 그대로 저장한 뒤
+최종 3D Multi-view Fusion 단계에서 판단한다.
+
+잘못 분리하는 것보다
+불확실성을 유지하는 것이 중요하다.
+
+
+# 9. Multi-view 3D Fusion
+
+각 View의 소엽 Mask를 Camera Pose를 이용해
+공통 3D 좌표계로 변환한다.
+
+View 01 Mask
+View 02 Mask
+View 03 Mask
+...
+View 24 Mask
+
+↓
+
+3D Evidence Fusion
+
+↓
+
+각 voxel / point가
+어느 소엽에 속하는지 계산
+
+↓
+
+최종 소엽별 3D Instance
+
+
+# 10. JSON Ground Truth의 역할
+
+현재 JSON annotation은 학습 및 검증용 Ground Truth로 사용한다.
+
+JSON에는 가능하면 다음 정보를 포함한다.
+
+- view_id
+- compound_leaf_id
+- leaflet_id
+- bbox
+- mask
+- visibility
+- occlusion
+- 동일 소엽의 cross-view ID
+
+JSON의 목적은:
+
+1. SAM Mask 정확도 평가
+2. Merge Detection 평가
+3. Cross-view Matching 평가
+4. Multi-view Fusion 평가
+5. 최종 모델 학습
+
+이다.
+
+
+# 11. 최종 목표: JSON 없는 Inference
+
+JSON은 최종 시스템의 입력값이 아니다.
+
+학습 완료 후:
+
+새로운 식물 RGB Multi-view
+↓
+Roboflow BBox
+↓
+Instance Segmentation
+↓
+Merge Detection
+↓
+Multi-view Re-prompt
+↓
+Cross-view Leaflet Matching
+↓
+3D Fusion
+↓
+소엽별 3D Instance
+
+과정이 자동으로 수행되어야 한다.
+
+
+# 12. 권장 Instance 데이터 구조
+
+각 Instance는 최소 다음 정보를 저장한다.
+
+{
+    "plant_id": "...",
+    "view_id": "...",
+    "compound_leaf_id": "...",
+    "instance_id": "...",
+    "bbox": [...],
+    "mask": "...",
+    "confidence": 0.0,
+    "merge_status": "normal | suspected | merged | uncertain",
+    "visibility": 0.0,
+    "cross_view_leaflet_id": null
+}
+
+
+# 13. 현재 Codex 구현 우선순위
+
+현재:
+
+Roboflow BBox
+→ BBox 내부 Mask 생성
+→ Mask sensitivity 조정
+
+이 단계에 있다.
+
+다음 구현 순서는 다음과 같이 진행한다.
+
+1. Mask sensitivity sweep 자동화
+2. JSON Ground Truth와 IoU / Dice 비교
+3. Merge / Split / Miss 오류 유형 저장
+4. Merge Detection 모듈 추가
+5. Multi-view Instance 저장 구조 통일
+6. Camera Pose 연결
+7. 다른 View의 Centroid / Mask Reprojection
+8. Reprojection 결과로 SAM Re-prompt
+9. Multi-view consistency 평가
+10. Cross-view Re-ID
+11. 3D Evidence Fusion
+
+
+# 14. 핵심 설계 원칙
+
+이 시스템의 핵심은
+
+"모든 View에서 완벽한 Instance Segmentation"
+
+이 아니다.
+
+목표는
+
+"각 View의 불완전한 관측을 Multi-view로 상호 보완하여
+최종적으로 정확한 소엽 단위 3D 구조를 복원"
+
+하는 것이다.
+
+따라서 단일 View의 segmentation 오류를
+전체 파이프라인의 실패로 처리하지 않고,
+다른 View의 정보를 이용해 수정할 수 있도록 설계한다.

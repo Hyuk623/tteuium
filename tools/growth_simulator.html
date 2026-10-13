@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>토마토 생장 시뮬레이터 · 기본 틀</title>
+<style>
+body{margin:0;background:#101d1a;color:#e5ede7;font:16px system-ui}main{max-width:1100px;margin:auto;padding:24px}h1{font-size:27px;margin:0 0 10px}.note{color:#f6d6a0;background:#293329;padding:14px;border-radius:10px}section{display:grid;grid-template-columns:1fr 280px;gap:20px;margin-top:20px}canvas{width:100%;height:560px;background:#162722;border-radius:12px;touch-action:none}aside{background:#1b3028;padding:20px;border-radius:12px}label{display:block;margin:16px 0}input{width:100%;accent-color:#91d593}button{background:#a3dd97;border:0;border-radius:7px;padding:9px 20px;cursor:pointer}pre{white-space:pre-wrap;font:13px monospace;color:#aacbb8}#stats{line-height:1.8}small{color:#b6c7bc}@media(max-width:760px){section{grid-template-columns:1fr}canvas{height:440px}}
+</style>
+<main><h1>환경 입력 → 3D 기관 생장</h1><div class="note">작동 방식을 확인하는 데모입니다. 날짜·크기·환경 반응은 임의 설정이며 실제 토마토 생장·개화 예측이 아닙니다.</div>
+<section><canvas id="scene" aria-label="시간별 3D 잎과 화방"></canvas><aside>
+<button id="play">재생</button><label>시간 <strong id="day"></strong><input id="time" type="range" min="0" step="1" value="0"></label>
+<label>수평 회전<input id="yaw" type="range" min="-180" max="180" value="30"></label>
+<label>위에서 보는 각도<input id="pitch" type="range" min="-20" max="85" value="25"></label>
+<div id="stats"></div><small>초록: 소엽 · 연두: 줄기 · 주황: 화방 · 노랑: 꽃<br>좌표: 가상 개체의 밑동 원점, Z 위쪽, mm</small>
+<details><summary>해당 구간의 환경 입력</summary><pre id="env"></pre></details>
+<details><summary>기관 ID와 부모 관계</summary><pre id="organs"></pre></details>
+</aside></section><p>환경은 input.json에서 변경하여 다시 실행합니다. 광선 추적·PPFD 검증·광합성·실측 잎 복원은 이 데모에 포함되지 않습니다.</p></main>
+<script id="data" type="application/json">__SIMULATION_JSON__</script>
+<script>
+'use strict';
+const data=JSON.parse(document.querySelector('#data').textContent),frames=data.frames;
+const canvas=document.querySelector('#scene'),ctx=canvas.getContext('2d'),time=document.querySelector('#time');
+time.max=frames.length-1;let timer=null;
+const points=frames.at(-1).organs.flatMap(o=>o.points_mm.concat(o.triangles_mm.flat()));
+const extent=Math.max(50,...points.map(p=>Math.hypot(...p))), centreZ=Math.max(0,...points.map(p=>p[2]))*.48;
+function render(){
+ const w=canvas.clientWidth,h=canvas.clientHeight,dpr=window.devicePixelRatio||1;canvas.width=w*dpr;canvas.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+ const frame=frames[+time.value],yaw=+document.querySelector('#yaw').value*Math.PI/180,pitch=+document.querySelector('#pitch').value*Math.PI/180,scale=Math.min(w,h)*.8/extent;
+ function project(p){let x=p[0]*Math.cos(yaw)-p[1]*Math.sin(yaw),y=p[0]*Math.sin(yaw)+p[1]*Math.cos(yaw),z=p[2]-centreZ;return [w/2+x*scale,h*.55-(z*Math.cos(pitch)-y*Math.sin(pitch))*scale,y*Math.cos(pitch)+z*Math.sin(pitch)];}
+ const primitives=[];
+ for(const o of frame.organs){let colour=o.organ_type==='Flower'?'#edce65':o.organ_type==='Truss'?'#f7a960':'#83b782';
+  for(const t of o.triangles_mm)primitives.push({kind:'triangle',p:t.map(project),colour:o.organ_type==='Leaflet'?'#65ac71':colour});
+  if(o.points_mm.length>1)primitives.push({kind:'line',p:o.points_mm.map(project),colour});
+ }
+ primitives.sort((a,b)=>b.p.reduce((s,p)=>s+p[2],0)/b.p.length-a.p.reduce((s,p)=>s+p[2],0)/a.p.length);
+ ctx.strokeStyle='#30483c';ctx.beginPath();const a=project([-extent*.5,0,0]),b=project([extent*.5,0,0]);ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();
+ for(const q of primitives){ctx.beginPath();q.p.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.strokeStyle=q.colour;ctx.lineWidth=q.kind==='line'?3:.7;if(q.kind==='triangle'){ctx.closePath();ctx.fillStyle=q.colour;ctx.fill();}ctx.stroke();}
+ const count=kind=>frame.organs.filter(o=>o.organ_type===kind).length;
+ document.querySelector('#day').textContent=frame.day.toFixed(1)+'일 (데모)';
+ document.querySelector('#stats').textContent=`복엽 ${count('CompoundLeaf')} · 소엽 ${count('Leaflet')} · 화방 ${count('Truss')} · 꽃 ${count('Flower')}`;
+ document.querySelector('#env').textContent=JSON.stringify(frame.environment,null,2);
+ document.querySelector('#organs').textContent=frame.organs.map(o=>`${o.organ_id}\n  ← ${o.parent_id||'원점'}`).join('\n');
+}
+for(const id of ['time','yaw','pitch'])document.getElementById(id).addEventListener('input',render);
+document.querySelector('#play').onclick=()=>{if(timer){clearInterval(timer);timer=null;}else{if(+time.value===frames.length-1)time.value=0;timer=setInterval(()=>{time.value=(+time.value+1)%frames.length;render();},250);}document.querySelector('#play').textContent=timer?'정지':'재생';};
+window.addEventListener('resize',render);render();
+</script></html>

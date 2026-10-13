@@ -1,0 +1,6 @@
+interface:
+  display_name: "Claude Review and Integration"
+  short_description: "Review Claude changes and verify project integration"
+  default_prompt: "Use $claude-review-integrate to review Claude Code's latest changes and integrate them into the existing tomato labeling and 3D workflow."
+policy:
+  allow_implicit_invocation: true

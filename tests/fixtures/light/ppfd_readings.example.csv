@@ -1,0 +1,11 @@
+reading_id,setup_id,scenario_id,measured_at,sensor_model,x_mm,y_mm,z_mm,normal_x,normal_y,normal_z,all_fixtures_full_output,ppfd_umol_m2_s,split_role,region_label,observer,note
+R01,example_shelf,as_built,2026-09-20T12:00:00+09:00,EXAMPLE sensor,300.0,200.0,0.0,0,0,1,yes,173.1,calibration,open_shelf,example,SYNTHETIC - generated from the model x1.12 with noise; not a measurement
+R02,example_shelf,as_built,2026-09-20T12:00:00+09:00,EXAMPLE sensor,40.0,40.0,0.0,0,0,1,yes,96.9,calibration,open_shelf,example,SYNTHETIC - generated from the model x1.12 with noise; not a measurement
+R03,example_shelf,as_built,2026-09-20T12:00:00+09:00,EXAMPLE sensor,560.0,360.0,0.0,0,0,1,yes,100.9,calibration,open_shelf,example,SYNTHETIC - generated from the model x1.12 with noise; not a measurement
+R04,example_shelf,as_built,2026-09-20T12:00:00+09:00,EXAMPLE sensor,300.0,60.0,250.0,0,0,1,yes,326.5,calibration,open_air,example,SYNTHETIC - generated from the model x1.12 with noise; not a measurement
+R05,example_shelf,as_built,2026-09-20T12:00:00+09:00,EXAMPLE sensor,215.0,200.0,60.0,0,0,1,yes,165.3,evaluation,under_canopy,example,SYNTHETIC - generated from the model x1.12 with noise; not a measurement
+R06,example_shelf,as_built,2026-09-20T12:00:00+09:00,EXAMPLE sensor,170.0,245.0,50.0,0,0,1,yes,101.9,evaluation,under_canopy,example,SYNTHETIC - generated from the model x1.12 with noise; not a measurement
+R07,example_shelf,as_built,2026-09-20T12:00:00+09:00,EXAMPLE sensor,430.0,200.0,220.0,0,0,1,yes,386.3,evaluation,above_canopy,example,SYNTHETIC - generated from the model x1.12 with noise; not a measurement
+R08,example_shelf,as_built,2026-09-20T12:00:00+09:00,EXAMPLE sensor,125.0,200.0,80.0,0,0,1,yes,49.7,evaluation,under_canopy,example,SYNTHETIC - generated from the model x1.12 with noise; not a measurement
+R09,example_shelf,as_built,2026-09-20T12:00:00+09:00,EXAMPLE sensor,300.0,340.0,100.0,0,0,1,yes,197.5,evaluation,open_shelf,example,SYNTHETIC - generated from the model x1.12 with noise; not a measurement
+R10,example_shelf,as_built,2026-09-20T12:00:00+09:00,EXAMPLE sensor,170.0,150.0,40.0,0,0,1,yes,122.4,evaluation,under_canopy,example,SYNTHETIC - generated from the model x1.12 with noise; not a measurement

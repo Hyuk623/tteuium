@@ -1,0 +1,1366 @@
+{
+  "schema_version": "light-growth-1",
+  "csv_missing": "unavailable",
+  "nonapplicable_identity": "__all__",
+  "unknown_identity": "__unassigned__",
+  "availability": "Every row references availability.json; every unavailable numeric or nullable string column has a field-specific reason.",
+  "join_key": [
+    "run_id",
+    "scenario_id",
+    "geometry_snapshot_id",
+    "plant_instance_id",
+    "session_id",
+    "compound_id",
+    "time_step_id",
+    "backend",
+    "replicate"
+  ],
+  "tables": {
+    "instance_map.csv": {
+      "columns": [
+        {
+          "name": "run_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "scenario_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "geometry_snapshot_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "plant_instance_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "source_plant_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "session_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "compound_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "compound_leaf_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "observed_at",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "frame_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "transform_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "geometry_sha256",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "data_kind",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "association_status",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "evidence_sha256",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "availability_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        }
+      ],
+      "primary_key": [
+        "run_id",
+        "scenario_id",
+        "geometry_snapshot_id",
+        "plant_instance_id",
+        "session_id",
+        "compound_id"
+      ]
+    },
+    "light_samples.csv": {
+      "columns": [
+        {
+          "name": "run_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "scenario_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "geometry_snapshot_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "plant_instance_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "session_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "compound_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "time_step_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "backend",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "replicate",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "source_plant_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "capture_date",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "observed_at",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "geometry_variant_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "data_kind",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "organ_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "leaflet_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "compound_leaf_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "frame_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "transform_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "area_basis_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "triangle_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "sample_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "fixture_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "position_grow_x_mm",
+          "type": "number",
+          "unit": "mm",
+          "nullable": true
+        },
+        {
+          "name": "position_grow_y_mm",
+          "type": "number",
+          "unit": "mm",
+          "nullable": true
+        },
+        {
+          "name": "position_grow_z_mm",
+          "type": "number",
+          "unit": "mm",
+          "nullable": true
+        },
+        {
+          "name": "normal_grow_x",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "normal_grow_y",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "normal_grow_z",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "position_board_x_mm",
+          "type": "number",
+          "unit": "mm",
+          "nullable": true
+        },
+        {
+          "name": "position_board_y_mm",
+          "type": "number",
+          "unit": "mm",
+          "nullable": true
+        },
+        {
+          "name": "position_board_z_mm",
+          "type": "number",
+          "unit": "mm",
+          "nullable": true
+        },
+        {
+          "name": "normal_board_x",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "normal_board_y",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "normal_board_z",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "quadrature_area_m2",
+          "type": "number",
+          "unit": "m2",
+          "nullable": true
+        },
+        {
+          "name": "normal_side_ppfd_umol_m2_s",
+          "type": "number",
+          "unit": "umol/m2/s",
+          "nullable": true
+        },
+        {
+          "name": "opposite_side_ppfd_umol_m2_s",
+          "type": "number",
+          "unit": "umol/m2/s",
+          "nullable": true
+        },
+        {
+          "name": "received_ppfd_umol_m2_s",
+          "type": "number",
+          "unit": "umol/m2/s",
+          "nullable": true
+        },
+        {
+          "name": "absorbed_ppfd_umol_m2_s",
+          "type": "number",
+          "unit": "umol/m2/s",
+          "nullable": true
+        },
+        {
+          "name": "normal_convention",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "receiver_index",
+          "type": "number",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "arrival_path_unknown_count",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "arrival_flux_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "arrival_M_x_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "arrival_M_y_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "arrival_M_z_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "arrival_B_xx_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "arrival_B_xy_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "arrival_B_xz_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "arrival_B_yy_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "arrival_B_yz_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "arrival_B_zz_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "availability_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "normal_biological_face",
+          "type": "string",
+          "unit": "1",
+          "nullable": true,
+          "enum": [
+            "adaxial",
+            "abaxial"
+          ]
+        },
+        {
+          "name": "illuminated_faces",
+          "type": "string",
+          "unit": "1",
+          "nullable": true,
+          "enum": [
+            "adaxial_only",
+            "abaxial_only",
+            "both"
+          ]
+        },
+        {
+          "name": "face_mapping_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "face_source_ref",
+          "type": "string",
+          "unit": "1",
+          "nullable": true
+        }
+      ],
+      "primary_key": [
+        "run_id",
+        "scenario_id",
+        "geometry_snapshot_id",
+        "plant_instance_id",
+        "session_id",
+        "compound_id",
+        "time_step_id",
+        "backend",
+        "replicate",
+        "organ_id",
+        "leaflet_id",
+        "triangle_id",
+        "sample_id",
+        "fixture_id"
+      ]
+    },
+    "compound_light_features.csv": {
+      "columns": [
+        {
+          "name": "run_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "scenario_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "geometry_snapshot_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "plant_instance_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "session_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "compound_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "time_step_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "backend",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "replicate",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "source_plant_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "capture_date",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "observed_at",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "geometry_variant_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "data_kind",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "organ_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "leaflet_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "compound_leaf_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "frame_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "transform_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "area_basis_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "level",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "entity_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "fixture_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "region_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "quantity_frame",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "supported_area_m2",
+          "type": "number",
+          "unit": "m2",
+          "nullable": true
+        },
+        {
+          "name": "estimated_total_area_m2",
+          "type": "number",
+          "unit": "m2",
+          "nullable": true
+        },
+        {
+          "name": "supported_area_cm2",
+          "type": "number",
+          "unit": "cm2",
+          "nullable": true
+        },
+        {
+          "name": "coverage_fraction",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "coverage_status",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "received_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "absorbed_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "received_supported_subtotal_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "absorbed_supported_subtotal_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "normal_side_ppfd_umol_m2_s",
+          "type": "number",
+          "unit": "umol/m2/s",
+          "nullable": true
+        },
+        {
+          "name": "opposite_side_ppfd_umol_m2_s",
+          "type": "number",
+          "unit": "umol/m2/s",
+          "nullable": true
+        },
+        {
+          "name": "received_ppfd_umol_m2_s",
+          "type": "number",
+          "unit": "umol/m2/s",
+          "nullable": true
+        },
+        {
+          "name": "absorbed_ppfd_umol_m2_s",
+          "type": "number",
+          "unit": "umol/m2/s",
+          "nullable": true
+        },
+        {
+          "name": "received_p10_umol_m2_s",
+          "type": "number",
+          "unit": "umol/m2/s",
+          "nullable": true
+        },
+        {
+          "name": "received_p50_umol_m2_s",
+          "type": "number",
+          "unit": "umol/m2/s",
+          "nullable": true
+        },
+        {
+          "name": "received_p90_umol_m2_s",
+          "type": "number",
+          "unit": "umol/m2/s",
+          "nullable": true
+        },
+        {
+          "name": "observed_rachis_x",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "observed_rachis_y",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "observed_rachis_z",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "observed_azimuth_deg",
+          "type": "number",
+          "unit": "degree",
+          "nullable": true
+        },
+        {
+          "name": "observed_elevation_deg",
+          "type": "number",
+          "unit": "degree",
+          "nullable": true
+        },
+        {
+          "name": "arrival_flux_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "arrival_M_x_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "arrival_M_y_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "arrival_M_z_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "arrival_B_xx_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "arrival_B_xy_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "arrival_B_xz_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "arrival_B_yy_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "arrival_B_yz_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "arrival_B_zz_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "mean_arrival_x",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "mean_arrival_y",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "mean_arrival_z",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "dominant_arrival_x",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "dominant_arrival_y",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "dominant_arrival_z",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "directionality",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "angular_second_xx",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "angular_second_xy",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "angular_second_xz",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "angular_second_yy",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "angular_second_yz",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "angular_second_zz",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "left_right_flux_difference_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "proximal_distal_flux_difference_umol_s",
+          "type": "number",
+          "unit": "umol/s",
+          "nullable": true
+        },
+        {
+          "name": "left_right_mean_contrast",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "proximal_distal_mean_contrast",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "availability_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        }
+      ],
+      "primary_key": [
+        "run_id",
+        "scenario_id",
+        "geometry_snapshot_id",
+        "plant_instance_id",
+        "session_id",
+        "compound_id",
+        "time_step_id",
+        "backend",
+        "replicate",
+        "level",
+        "entity_id",
+        "fixture_id",
+        "region_id",
+        "quantity_frame"
+      ]
+    },
+    "light_intervals.csv": {
+      "columns": [
+        {
+          "name": "run_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "scenario_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "geometry_snapshot_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "plant_instance_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "session_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "compound_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "time_step_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "backend",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "replicate",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "fixture_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "start_at",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "end_at",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "timezone",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "geometry_mode",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "schedule_evidence_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "duration_s",
+          "type": "number",
+          "unit": "s",
+          "nullable": true
+        },
+        {
+          "name": "output_fraction",
+          "type": "number",
+          "unit": "1",
+          "nullable": true
+        },
+        {
+          "name": "availability_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        }
+      ],
+      "primary_key": [
+        "run_id",
+        "scenario_id",
+        "geometry_snapshot_id",
+        "time_step_id",
+        "backend",
+        "replicate",
+        "fixture_id"
+      ]
+    },
+    "light_dose.csv": {
+      "columns": [
+        {
+          "name": "run_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "scenario_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "geometry_snapshot_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "plant_instance_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "session_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "compound_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "time_step_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "backend",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "replicate",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "source_plant_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "organ_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "leaflet_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "level",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "entity_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "fixture_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "area_basis_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "start_at",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "end_at",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "timezone",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "requested_seconds",
+          "type": "number",
+          "unit": "s",
+          "nullable": true
+        },
+        {
+          "name": "covered_seconds",
+          "type": "number",
+          "unit": "s",
+          "nullable": true
+        },
+        {
+          "name": "absorbed_covered_seconds",
+          "type": "number",
+          "unit": "s",
+          "nullable": true
+        },
+        {
+          "name": "incident_dose_mol_m2",
+          "type": "number",
+          "unit": "mol/m2",
+          "nullable": true
+        },
+        {
+          "name": "absorbed_dose_mol_m2",
+          "type": "number",
+          "unit": "mol/m2",
+          "nullable": true
+        },
+        {
+          "name": "incident_supported_dose_mol_m2",
+          "type": "number",
+          "unit": "mol/m2",
+          "nullable": true
+        },
+        {
+          "name": "absorbed_supported_dose_mol_m2",
+          "type": "number",
+          "unit": "mol/m2",
+          "nullable": true
+        },
+        {
+          "name": "dli_mol_m2_day",
+          "type": "number",
+          "unit": "mol/m2/day",
+          "nullable": true
+        },
+        {
+          "name": "incident_photons_mol",
+          "type": "number",
+          "unit": "mol",
+          "nullable": true
+        },
+        {
+          "name": "absorbed_photons_mol",
+          "type": "number",
+          "unit": "mol",
+          "nullable": true
+        },
+        {
+          "name": "complete_local_day",
+          "type": "boolean",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "integration_method",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        },
+        {
+          "name": "availability_id",
+          "type": "string",
+          "unit": "1",
+          "nullable": false
+        }
+      ],
+      "primary_key": [
+        "run_id",
+        "scenario_id",
+        "plant_instance_id",
+        "session_id",
+        "compound_id",
+        "backend",
+        "replicate",
+        "level",
+        "entity_id",
+        "fixture_id",
+        "start_at",
+        "end_at"
+      ]
+    }
+  },
+  "numerical_policy": {
+    "absolute_tolerance": 1e-10,
+    "relative_tolerance": 1e-09,
+    "direction_degeneracy_tolerance": 1e-12,
+    "description": "Numerical precision only; no biological or physical acceptance threshold."
+  },
+  "conventions": {
+    "arrival": "receiver toward arriving-light origin; opposite photon travel",
+    "area": "supported one-sided m2",
+    "received": "two faces per one-sided area",
+    "matrix": "column vectors; second order xx,xy,xz,yy,yz,zz",
+    "schedule": "Explicit daily lit intervals; outside a supplied complete schedule is off. Absent schedule is unknown.",
+    "moments": "Sum unnormalized flux moments before normalization; never sum all plus fixture rows.",
+    "tissue_dli": "light_dose.csv dli_mol_m2_day is supported-tissue incident DLI on its area_basis_id, not a reference-position sensor-plane value; whole-plant model scope does not mean a tissue average.",
+    "reference_dli": "Implemented measured_logged and measured_spot_schedule incident reference-position complete-day DLI; hashed result, declared plane, separate basis, evidence and P3 domain required. Simulation is readiness only. Availability is per supplied result, only for explicitly associated plant instances.",
+    "growth_orientation": "Arrival vectors/moments are illumination diagnostics, never growth orientation parameters; P3 owns rejecting such bindings.",
+    "nonlinear_light_use": "Sum simultaneous fixtures on the same patch/time before nonlinear exchange, without adding all twice or applying absorptance twice. D15-D20 dwarf-source P4 uses absorbed PPFD, before_mito and evidenced adaxial_only; P4 owns two-face refusal and coefficient-basis issues.",
+    "sample_moments": "Actual direct paths reduced to area-weighted unnormalized grow-frame F/M/B per receiver; units umol/s. receiver_index is global within the source call. Unknown path count is null for unavailable fixture inventory. No native/direct mixture.",
+    "illuminated_faces": "Actual positive normal/opposite photon contributions plus reviewed biological mapping. Zero, unknown exposure or missing identity remains unavailable. Aggregate simultaneous fixtures before classifying all. No clipping, halving, changed absorption or Native face claims."
+  },
+  "required_json": [
+    "package.json",
+    "schema.json",
+    "transforms.json",
+    "availability.json",
+    "consumer_mapping.json",
+    "capabilities.json",
+    "audit.json",
+    "angular_diagnostics.json",
+    "reference_channel.json",
+    "face_mappings.json"
+  ],
+  "region_convention": "Explicit measured local frame: +x attachment-to-tip chord; +y reviewed transverse. Left y<0, right y>0; proximal x<declared boundary, distal x>boundary. Numerical boundary samples stay unassigned. Means describe supported tissue only.",
+  "angular_protocol": "direct-angular-1",
+  "request_extensions": {
+    "reference_dli": {
+      "optional": true,
+      "fields": {
+        "path": "reference_dli.json, relative to package request or absolute",
+        "sha256": "SHA256 of the producer JSON"
+      },
+      "missing": "implemented channel, reference_inputs_not_supplied",
+      "unavailable": "retain full evidence; expose no usable value"
+    },
+    "face_mappings": {
+      "optional": true,
+      "scope_fields": [
+        "geometry_snapshot_id",
+        "plant_instance_id",
+        "session_id",
+        "organ_id",
+        "leaflet_id",
+        "triangle_id"
+      ],
+      "evidence_fields": [
+        "mapping_id",
+        "geometry_sha256",
+        "normal_biological_face",
+        "review_status",
+        "reviewer",
+        "evidence_path",
+        "evidence_sha256"
+      ],
+      "meaning": "Reviewed normal-to-biological-face identity for one original triangle. Actual positive transport contributions determine exposed faces after fixture and schedule summation."
+    }
+  }
+}

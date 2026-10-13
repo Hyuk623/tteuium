@@ -1,0 +1,17 @@
+grid_row,grid_col,tray,tray_position_photo_reading,ratio_to_mean,ratio_to_max,par_app_raw_uncalibrated,note
+1,1,tray1,right_end_by_post,0.920,0.741,272.283,
+1,2,tray2,middle,1.242,1.000,367.416,max
+1,3,tray3,left_tray,1.152,0.927,340.724,
+1,4,col4_separate,left_end_outside_trays,0.972,0.783,287.512,
+2,1,tray1,right_end_by_post,0.981,0.790,290.368,
+2,2,tray2,middle,1.114,0.897,329.529,
+2,3,tray3,left_tray,1.103,0.888,326.446,
+2,4,col4_separate,left_end_outside_trays,0.879,0.708,259.983,
+3,1,tray1,right_end_by_post,0.977,0.787,289.106,
+3,2,tray2,middle,1.145,0.922,338.926,
+3,3,tray3,left_tray,0.951,0.766,281.457,
+3,4,col4_separate,left_end_outside_trays,0.904,0.728,267.373,
+4,1,tray1,right_end_by_post,0.967,0.779,286.186,
+4,2,tray2,middle,0.995,0.801,294.471,
+4,3,tray3,left_tray,1.010,0.814,298.913,
+4,4,col4_separate,left_end_outside_trays,0.688,0.554,203.528,min

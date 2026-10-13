@@ -1,0 +1,259 @@
+{
+ "environment": {
+  "schema": "env_light_v1",
+  "recorded": "2026-10-10",
+  "source_kind": "user_stated",
+  "assumption": "day period = lights-on period (14 h); night = lights-off (10 h); setpoints, not logged values",
+  "day": {
+   "T": 26.0,
+   "RH": 60.0,
+   "hours": 14,
+   "es_kPa": 3.361,
+   "ea_kPa": 2.017,
+   "VPD_kPa": 1.345,
+   "dewpoint_C": 17.6,
+   "abs_humidity_g_m3": 14.61
+  },
+  "night": {
+   "T": 22.0,
+   "RH": 60.0,
+   "hours": 10,
+   "es_kPa": 2.644,
+   "ea_kPa": 1.586,
+   "VPD_kPa": 1.058,
+   "dewpoint_C": 13.9,
+   "abs_humidity_g_m3": 11.65
+  },
+  "photoperiod_h": {
+   "light": 14,
+   "dark": 10
+  },
+  "lights_on_clock_time": null,
+  "derived": {
+   "daily_mean_T_C_time_weighted": 24.33,
+   "thermal_time_Cd_per_day_Tbase5p7": 18.63,
+   "tbase_note": "T_base 5.7 C = Butturini diaf024 organ beta-growth base; reuse is an assumption",
+   "vs_diaf024_conditions": {
+    "diaf024": "22/19 C, 16 h light",
+    "thermal_time_Cd_per_day": 15.3,
+    "ours_over_diaf024": 1.218
+   },
+   "lights_off_dehumidification": {
+    "vapor_to_remove_g_per_m3": 2.96,
+    "rh_at_22C_if_no_dehumidification_pct": 76.3,
+    "note": "holding RH 60 % through the 26->22 C drop requires removing water; log RH at lights-off to confirm the setpoint is actually held"
+   },
+   "DLI_rule": "DLI [mol m-2 d-1] = PPFD_mean [umol m-2 s-1] x 14 h x 0.0036 = 0.0504 x PPFD_mean; PPFD_mean from the PPFD meter only"
+  }
+ },
+ "light_ratio_map": {
+  "schema": "light_ratio_map_v1",
+  "source": "PAR Collector (iPhone app) screenshot, clock 10:37 (date assumed 2026-10-10 - confirm)",
+  "status": "uncalibrated phone app - values are used ONLY as ratios (user decision 2026-10-10: 광분포는 비율로만 적용)",
+  "grid": {
+   "rows": 4,
+   "cols": 4,
+   "app_grid": "6x6 with only the top-left 4x4 filled; zeros are UNMEASURED cells, not dark - excluded",
+   "orientation": "row 1 = top row of the app screen, col 1 = leftmost app column (screen order, not shelf order); physical mapping: see layout",
+   "cell_spacing_cm": null,
+   "measurement_height": null,
+   "plants_present_during_measurement": null
+  },
+  "ratio_definition": "r = value / mean(16 measured cells) (canonical; mean = 1.00). ratio_to_max kept for reference only.",
+  "ratio_to_mean": [
+   [
+    0.92,
+    1.242,
+    1.152,
+    0.972
+   ],
+   [
+    0.981,
+    1.114,
+    1.103,
+    0.879
+   ],
+   [
+    0.977,
+    1.145,
+    0.951,
+    0.904
+   ],
+   [
+    0.967,
+    0.995,
+    1.01,
+    0.688
+   ]
+  ],
+  "ratio_to_max": [
+   [
+    0.741,
+    1.0,
+    0.927,
+    0.783
+   ],
+   [
+    0.79,
+    0.897,
+    0.888,
+    0.708
+   ],
+   [
+    0.787,
+    0.922,
+    0.766,
+    0.728
+   ],
+   [
+    0.779,
+    0.801,
+    0.814,
+    0.554
+   ]
+  ],
+  "row_mean_ratio": [
+   1.071,
+   1.019,
+   0.994,
+   0.915
+  ],
+  "col_mean_ratio": [
+   0.961,
+   1.124,
+   1.054,
+   0.86
+  ],
+  "uniformity": {
+   "min_over_mean": 0.688,
+   "min_over_max": 0.554,
+   "cv_population": 0.127,
+   "cv_sample": 0.131,
+   "max_cell": "r1c2",
+   "min_cell": "r4c4"
+  },
+  "application_rule": "PPFD(plant) = PPFD_ref x r(position). r at a plant = its cell value, or bilinear interpolation between cell centres when the plant sits between cells; outside the measured 4x4 hull use the nearest cell and flag extrapolated=true. PPFD_ref comes from the calibrated PPFD meter (or the light model's own normalisation) - never from the app's absolute values.",
+  "uses": {
+   "light_model_validation": "normalise model-predicted PPFD at the same 16 points by their mean; compare with r (report ratio RMSE and Pearson r) - shape check without absolute calibration",
+   "density_experiment_covariate": "pots are never moved, so each plant's r is a fixed covariate - join plant IDs to slot_id in plant_slot_light_ratio_20261010.csv"
+  },
+  "planned_check_when_meter_arrives": "re-measure r1c2 (max), r4c4 (min), r2c2 and r1c1 at the same height with the PPFD meter; if any meter ratio differs from the app ratio by > 0.05 (proposed threshold), re-map the grid with the meter",
+  "known_limits": [
+   "phone sensors have poor cosine response: oblique-light cells (edges) may read low, exaggerating the gradient",
+   "a single snapshot; lamp warm-up, height and plant shading at measurement time are unrecorded",
+   "the other-variety plants are taller and stand in the front row: they may shade the front dwarf row and sit closer to the lamp than the measurement height; neither is in the app grid"
+  ],
+  "raw_uncalibrated_app_values": [
+   [
+    272.283,
+    367.416,
+    340.724,
+    287.512
+   ],
+   [
+    290.368,
+    329.529,
+    326.446,
+    259.983
+   ],
+   [
+    289.106,
+    338.926,
+    281.457,
+    267.373
+   ],
+   [
+    286.186,
+    294.471,
+    298.913,
+    203.528
+   ]
+  ],
+  "layout": {
+   "source_kind": "user_stated (2026-10-10) + user photos 2026-10-10 (3 top-down, 1 oblique overview, 1 cropped photo)",
+   "trays": "3 trays only (user correction 2026-10-10: '트레이는 3개'), each 6 dwarf '앉은뱅이' + 2 other-variety plants = 24 plants. Grid column 4 is NOT a tray (user: '따로 1개').",
+   "column_to_tray": {
+    "col1": "tray1",
+    "col2": "tray2",
+    "col3": "tray3",
+    "col4": "col4_separate (따로 1개, not a tray)"
+   },
+   "column_to_tray_source": "user_stated",
+   "tray_internal_layout": {
+    "status": "confirmed from the 3 top-down photos (all three trays)",
+    "dwarf": "2 pots wide x 3 rows deep (6 pots) - the three rows nearest the back wall",
+    "other_variety": "2 tall pots in the front row, directly in front of the dwarf rows (light green, fruiting)",
+    "tray_axis": "long axis runs front-back: 2 pots wide x 4 pot rows deep including the other-variety row"
+   },
+   "grid_fit": "1 grid column = 1 tray width (2 pots); 1 grid row ~ 1 pot row (4 rows = 3 dwarf rows + 1 other-variety row). Assumes the user's evenly spaced grid lines up with the pot rows (user: grid taken irrespective of trays, the 3 trays lie inside the 4x4 area).",
+   "within_row_resolution": "the left and right pot of a row share one grid cell; no left/right difference is resolvable",
+   "rows": "grid row 1 = back (wall side), row 4 = front (user_stated 2026-10-10: '벽'). Pot row k from the wall = grid row k; row 4 = other-variety front row",
+   "column_physical_order": {
+    "status": "user_confirmed 2026-10-10 (user agreed with the photo reading: col4 at the left end)",
+    "photo_reading": "the right end of the tray row is the shelf post with nothing beyond it (top-down photo 3), so the extra grid column 4 ('따로 1개') must lie at the LEFT end, where the overview photo shows tall white pots with dwarf plants behind the glass. Hence col1 = right-end tray by the post, col2 = middle tray, col3 = left tray (leggy plants with adventitious roots on the stems), col4 = left end, outside the trays.",
+    "superseded": "'left -> right seen from the front' in the first version was Claude's assumption, never user-stated",
+    "robust_under_either_order": "tray2 is the middle tray (mean 1.124); only the physical identities of tray1 and tray3 swap"
+   },
+   "col4_contents": "user: '따로 1개' (one separate item), not a tray. Photos show tall white pots with dwarf plants at the left end; what '1개' refers to is unrecorded."
+  },
+  "tray_mean_ratio": {
+   "tray1": 0.961,
+   "tray2": 1.124,
+   "tray3": 1.054,
+   "col4_separate": 0.86
+  },
+  "tray_ratio_range": {
+   "tray1": [
+    0.92,
+    0.981
+   ],
+   "tray2": [
+    0.995,
+    1.242
+   ],
+   "tray3": [
+    0.951,
+    1.152
+   ],
+   "col4_separate": [
+    0.688,
+    0.972
+   ]
+  },
+  "tray_area_base": {
+   "tray_area_mean_on_16cell_base": 1.047,
+   "note": "r is normalised by the 16-cell mean (incl. column 4, outside the trays). If PPFD_ref is measured as the mean over the 3 trays (cols 1-3) instead, divide r by this value so the trays average 1.00."
+  },
+  "per_plant_rule_now": {
+   "version": 3,
+   "replaces": "v1 (2026-10-10): tray mean with the tray range as uncertainty - written before the in-tray layout was confirmed",
+   "rule": "slot ratio = the grid cell of its tray column and pot row (row 1 = wall). v2 interim (before the row direction was known): each slot had two candidates (row 1 = back, row 1 = front); ratio_now = their mean, bounds = the two candidates. Pot rows 2-3 swap grid rows 2<->3 and stay close; pot row 1 (back dwarf) and row 4 (other variety) swap grid rows 1<->4.",
+   "table": "plant_slot_light_ratio_20261010.csv",
+   "row_direction": "resolved 2026-10-10: row 1 = wall side. ratio_now = ratio_if_row1_back (lo = hi = same); the row1_front column is kept only for traceability"
+  },
+  "dwarf_mean_ratio_by_tray": {
+   "tray1": {
+    "if_row1_back": 0.96,
+    "if_row1_front": 0.975
+   },
+   "tray2": {
+    "if_row1_back": 1.167,
+    "if_row1_front": 1.085
+   },
+   "tray3": {
+    "if_row1_back": 1.069,
+    "if_row1_front": 1.022
+   }
+  },
+  "dwarf_18_range": {
+   "if_row1_back": [
+    0.92,
+    1.242
+   ],
+   "if_row1_front": [
+    0.951,
+    1.145
+   ]
+  }
+ }
+}

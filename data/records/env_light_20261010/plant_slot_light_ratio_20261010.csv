@@ -1,0 +1,26 @@
+slot_id,tray,grid_col,tray_position,variety,pot_row_from_back,side_from_front,ratio_now,ratio_now_lo,ratio_now_hi,grid_row_if_row1_back,ratio_if_row1_back,grid_row_if_row1_front,ratio_if_row1_front,note
+T1-row1-L,tray1,1,right_end_by_post,dwarf,1,L,0.92,0.92,0.92,1,0.92,4,0.967,L and R pots of a row share one grid cell
+T1-row1-R,tray1,1,right_end_by_post,dwarf,1,R,0.92,0.92,0.92,1,0.92,4,0.967,L and R pots of a row share one grid cell
+T1-row2-L,tray1,1,right_end_by_post,dwarf,2,L,0.981,0.981,0.981,2,0.981,3,0.977,L and R pots of a row share one grid cell
+T1-row2-R,tray1,1,right_end_by_post,dwarf,2,R,0.981,0.981,0.981,2,0.981,3,0.977,L and R pots of a row share one grid cell
+T1-row3-L,tray1,1,right_end_by_post,dwarf,3,L,0.977,0.977,0.977,3,0.977,2,0.981,L and R pots of a row share one grid cell
+T1-row3-R,tray1,1,right_end_by_post,dwarf,3,R,0.977,0.977,0.977,3,0.977,2,0.981,L and R pots of a row share one grid cell
+T1-row4-L,tray1,1,right_end_by_post,other_variety,4,L,0.967,0.967,0.967,4,0.967,1,0.92,L and R pots of a row share one grid cell
+T1-row4-R,tray1,1,right_end_by_post,other_variety,4,R,0.967,0.967,0.967,4,0.967,1,0.92,L and R pots of a row share one grid cell
+T2-row1-L,tray2,2,middle,dwarf,1,L,1.242,1.242,1.242,1,1.242,4,0.995,L and R pots of a row share one grid cell
+T2-row1-R,tray2,2,middle,dwarf,1,R,1.242,1.242,1.242,1,1.242,4,0.995,L and R pots of a row share one grid cell
+T2-row2-L,tray2,2,middle,dwarf,2,L,1.114,1.114,1.114,2,1.114,3,1.145,L and R pots of a row share one grid cell
+T2-row2-R,tray2,2,middle,dwarf,2,R,1.114,1.114,1.114,2,1.114,3,1.145,L and R pots of a row share one grid cell
+T2-row3-L,tray2,2,middle,dwarf,3,L,1.145,1.145,1.145,3,1.145,2,1.114,L and R pots of a row share one grid cell
+T2-row3-R,tray2,2,middle,dwarf,3,R,1.145,1.145,1.145,3,1.145,2,1.114,L and R pots of a row share one grid cell
+T2-row4-L,tray2,2,middle,other_variety,4,L,0.995,0.995,0.995,4,0.995,1,1.242,L and R pots of a row share one grid cell
+T2-row4-R,tray2,2,middle,other_variety,4,R,0.995,0.995,0.995,4,0.995,1,1.242,L and R pots of a row share one grid cell
+T3-row1-L,tray3,3,left_tray,dwarf,1,L,1.152,1.152,1.152,1,1.152,4,1.01,L and R pots of a row share one grid cell
+T3-row1-R,tray3,3,left_tray,dwarf,1,R,1.152,1.152,1.152,1,1.152,4,1.01,L and R pots of a row share one grid cell
+T3-row2-L,tray3,3,left_tray,dwarf,2,L,1.103,1.103,1.103,2,1.103,3,0.951,L and R pots of a row share one grid cell
+T3-row2-R,tray3,3,left_tray,dwarf,2,R,1.103,1.103,1.103,2,1.103,3,0.951,L and R pots of a row share one grid cell
+T3-row3-L,tray3,3,left_tray,dwarf,3,L,0.951,0.951,0.951,3,0.951,2,1.103,L and R pots of a row share one grid cell
+T3-row3-R,tray3,3,left_tray,dwarf,3,R,0.951,0.951,0.951,3,0.951,2,1.103,L and R pots of a row share one grid cell
+T3-row4-L,tray3,3,left_tray,other_variety,4,L,1.01,1.01,1.01,4,1.01,1,1.152,L and R pots of a row share one grid cell
+T3-row4-R,tray3,3,left_tray,other_variety,4,R,1.01,1.01,1.01,4,1.01,1,1.152,L and R pots of a row share one grid cell
+COL4-*,col4_separate,4,left_end_outside_trays,unrecorded (photo: dwarf in tall white pots),,,0.860,0.688,0.972,,,,,not a tray (user: 따로 1개); mean and range of grid column 4

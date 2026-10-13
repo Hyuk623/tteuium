@@ -1,0 +1,55 @@
+{
+  "recorded_date": "2026-10-13",
+  "source_kind": "measured",
+  "board": {
+    "width_cm": 60,
+    "depth_cm": 40,
+    "status": "user_stated"
+  },
+  "tray": {
+    "width_cm": 14,
+    "length_cm": 28,
+    "depth_cm": 7,
+    "count": 3,
+    "status": "user_stated",
+    "placement": "inset about 7 cm from the board edges; within 10 cm of the front",
+    "placement__status": "approximate"
+  },
+  "pot": {
+    "outer_edge_mm": 60,
+    "depth_mm": 70,
+    "note": "pot depth 70 mm = the 7 cm rim plane"
+  },
+  "lamp": {
+    "bar_count": 3,
+    "bar_spacing_cm": 5,
+    "height_above_board_cm": 30,
+    "type": "linear LED bars with lenses",
+    "position_on_board": "unavailable",
+    "bar_orientation": "unavailable",
+    "bar_length_cm": 50,
+    "note": "position and orientation relative to the board are NOT recorded - needed to pin the direct component",
+    "height_reference": "emitting_surface",
+    "height_reference__status": "user_stated",
+    "height_reference_note": "2026-10-13 user_stated: the 30 cm is measured to the EMITTING SURFACE, not the housing. So lamp-to-plane distances are 23 cm (rim plane, 7 cm) and 15 cm (canopy plane, 15 cm) exactly as used in the analysis; no correction needed. Resolves height_is_emitting_surface = null in build/p2_lamp_calibration_20261013_01/readiness/readiness.json",
+    "bar_length__status": "user_stated",
+    "bar_length_note": "2026-10-13 user_stated: each emitting bar is about 50 cm long on a 60 cm board. Bar width still unavailable."
+  },
+  "environment": {
+    "enclosure": "white walls + white ceiling (reflective)",
+    "reflectance": "unavailable"
+  },
+  "canopy_grid": {
+    "extent": "3-tray block",
+    "width_cm": 42,
+    "depth_cm": 28,
+    "cell_cm": [
+      10.5,
+      7.0
+    ],
+    "inset_from_board_edges_cm": 7,
+    "status": "user_stated",
+    "stated_date": "2026-10-13",
+    "remaining_ambiguity": "which corner is (1,1) and which axis carries the 42 cm side - declared variants only"
+  }
+}

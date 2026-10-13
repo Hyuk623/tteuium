@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>위 사진 인스턴스 확인</title>
+<style>
+:root {
+  --bg: #f6f6f4; --panel: #ffffff; --ink: #1d1d1b; --muted: #6b6b66; --line: #d9d9d4;
+  --accent: #1f6feb; --warn: #b54708; --ok: #1a7f37; --bad: #c62828;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #161616; --panel: #202020; --ink: #ededea; --muted: #a3a39d; --line: #3a3a37;
+    --accent: #58a6ff; --warn: #f0a050; --ok: #4ac26b; --bad: #ff6b6b; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, "Malgun Gothic", sans-serif;
+  display: grid; grid-template-columns: 230px 1fr 380px; height: 100vh; overflow: hidden; }
+aside, section { background: var(--panel); padding: 12px; overflow-y: auto; }
+aside { border-right: 1px solid var(--line); }
+section { border-left: 1px solid var(--line); }
+h1 { font-size: 16px; margin: 0 0 6px; }
+h2 { font-size: 14px; margin: 12px 0 4px; }
+.small { font-size: 12px; color: var(--muted); }
+label { display: block; margin-top: 8px; font-size: 12px; color: var(--muted); }
+input[type=text], select { width: 100%; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--bg); color: var(--ink); font: inherit; }
+button { border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 6px; padding: 5px 8px;
+  cursor: pointer; font: inherit; }
+button.on { outline: 2px solid var(--accent); }
+.row { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+ul { list-style: none; padding: 0; margin: 10px 0 0; }
+li { padding: 5px 8px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; }
+li.cur { border-color: var(--accent); }
+li .st { font-size: 11px; color: var(--muted); }
+main { position: relative; overflow: hidden; background: #000; }
+canvas { display: block; width: 100%; height: 100%; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+td { padding: 3px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr.sel td { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+tr { cursor: pointer; }
+.d-accept { color: var(--ok); } .d-reject { color: var(--bad); } .d-fix { color: var(--warn); }
+.d-proposed { color: var(--muted); }
+#edit { border: 1px solid var(--line); border-radius: 8px; padding: 8px; margin-top: 8px; }
+.err { color: var(--bad); font-size: 12px; }
+</style>
+</head>
+<body>
+<aside>
+  <h1>인스턴스 확인 (X4)</h1>
+  <div class="small">검출기 상자 + SAM 마스크는 <b>제안</b>입니다. 복엽·소엽마다 수락 / 거부 / 수정을 고르세요. 고르지 않은 것은 <code>proposed</code>로 남습니다.</div>
+  <label>작성자 이니셜<input id="annotator" type="text" placeholder="예: SH"></label>
+  <div class="row"><button id="save">CSV 저장</button><label style="margin:0"><input id="load" type="file" accept=".csv" hidden><span class="small" style="cursor:pointer;text-decoration:underline" onclick="document.getElementById('load').click()">저장한 CSV 이어서</span></label></div>
+  <div id="msg" class="small"></div>
+  <ul id="photos"></ul>
+  <div class="small" style="margin-top:10px">흰 사각형 = 화분 테두리(기록). 노랑 = 복엽, 초록 = 소엽(안), 자주 = 소엽(애매), 빨강 = 소엽(밖). 사진은 절반 해상도로 표시.</div>
+</aside>
+<main><canvas id="cv"></canvas></main>
+<section>
+  <h2 id="ptitle"></h2>
+  <div class="small" id="pinfo"></div>
+  <div id="edit"></div>
+  <h2>인스턴스</h2>
+  <table id="tbl"></table>
+</section>
+<script>
+const DATA = __DATA__;
+const COLS = DATA.columns;
+const rows = DATA.rows.map(r => Object.assign({}, r));
+const byId = Object.fromEntries(rows.map(r => [r.instance_id, r]));
+let cur = 0, sel = null;
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const imgs = {}, maskImgs = {};
+function photo() { return DATA.photos[cur]; }
+function prow(p) { return rows.filter(r => r.plant_id === p.plant_id); }
+function msg(t, bad) { const m = document.getElementById('msg'); m.textContent = t; m.className = bad ? 'err' : 'small'; }
+try { const a = localStorage.getItem('confirm_annotator'); if (a) document.getElementById('annotator').value = a; } catch (e) {}
+document.getElementById('annotator').addEventListener('change', e => { try { localStorage.setItem('confirm_annotator', e.target.value); } catch (x) {} });
+
+function loadImages(p, done) {
+  if (imgs[p.plant_id]) return done();
+  const im = new Image(); im.onload = () => { imgs[p.plant_id] = im; let n = Object.keys(p.masks).length; if (!n) done();
+    for (const [id, m] of Object.entries(p.masks)) { const mi = new Image(); mi.onload = () => { maskImgs[id] = mi; if (--n === 0) done(); }; mi.src = m.png; } };
+  im.src = p.jpg;
+}
+function tint(id, color, alpha) {
+  const m = photo().masks[id], mi = maskImgs[id]; if (!m || !mi) return null;
+  const c = document.createElement('canvas'); c.width = m.w; c.height = m.h; const g = c.getContext('2d');
+  g.drawImage(mi, 0, 0); g.globalCompositeOperation = 'source-in'; g.fillStyle = color; g.globalAlpha = alpha; g.fillRect(0, 0, m.w, m.h);
+  return c;
+}
+let view = { s: 1, ox: 0, oy: 0 };
+function draw() {
+  const p = photo(), im = imgs[p.plant_id]; cv.width = cv.clientWidth; cv.height = cv.clientHeight;
+  if (!im) return;
+  const W = p.size_px[0], H = p.size_px[1]; view.s = Math.min(cv.width / W, cv.height / H);
+  view.ox = (cv.width - W * view.s) / 2; view.oy = (cv.height - H * view.s) / 2;
+  ctx.drawImage(im, view.ox, view.oy, W * view.s, H * view.s);
+  const col = { inside: '#22c55e', ambiguous: '#d946ef', outside: '#ef4444' };
+  for (const r of prow(p)) {
+    if (r.decision === 'reject') continue;
+    const m = p.masks[r.instance_id]; if (!m) continue;
+    const isSel = r.instance_id === sel;
+    const color = r.kind === 'compound' ? '#facc15' : col[r.attribution] || '#999';
+    const t = tint(r.instance_id, color, isSel ? 0.85 : (r.kind === 'compound' ? 0.25 : 0.45));
+    if (t) ctx.drawImage(t, view.ox + m.x * view.s, view.oy + m.y * view.s, m.w * view.s, m.h * view.s);
+  }
+  if (p.rim_polygon_px) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath();
+    p.rim_polygon_px.forEach(([x, y], i) => { const X = view.ox + x * view.s, Y = view.oy + y * view.s; i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); });
+    ctx.closePath(); ctx.stroke(); }
+}
+function hit(px, py) {
+  const p = photo(); const order = prow(p).slice().sort((a, b) => (a.kind === 'leaflet' ? -1 : 1) - (b.kind === 'leaflet' ? -1 : 1));
+  for (const r of order) { const m = p.masks[r.instance_id], mi = maskImgs[r.instance_id]; if (!m || !mi) continue;
+    const x = Math.floor(px - m.x), y = Math.floor(py - m.y); if (x < 0 || y < 0 || x >= m.w || y >= m.h) continue;
+    const c = document.createElement('canvas'); c.width = 1; c.height = 1; const g = c.getContext('2d'); g.drawImage(mi, -x, -y);
+    if (g.getImageData(0, 0, 1, 1).data[3] > 0) return r.instance_id; }
+  return null;
+}
+cv.addEventListener('click', e => { const b = cv.getBoundingClientRect();
+  const id = hit((e.clientX - b.left - view.ox) / view.s, (e.clientY - b.top - view.oy) / view.s); if (id) select(id); });
+
+function short(id) { return id.split('#')[1] || id; }
+function renderList() {
+  const ul = document.getElementById('photos'); ul.innerHTML = '';
+  DATA.photos.forEach((p, i) => { const rs = prow(p), done = rs.filter(r => r.decision !== 'proposed').length;
+    const li = document.createElement('li'); li.className = i === cur ? 'cur' : '';
+    li.innerHTML = `<div>${p.plant_id}</div><div class="st">${done}/${rs.length} 결정 · v4 ${p.v4_split}</div>`;
+    li.onclick = () => { cur = i; sel = null; show(); }; ul.appendChild(li); });
+}
+function renderTable() {
+  const p = photo(), t = document.getElementById('tbl');
+  t.innerHTML = '<tr><td>id</td><td>클래스</td><td>복엽</td><td>귀속</td><td>결정</td></tr>';
+  for (const r of prow(p)) { const tr = document.createElement('tr'); if (r.instance_id === sel) tr.className = 'sel';
+    tr.innerHTML = `<td>${short(r.instance_id)}</td><td>${r.class}</td><td>${r.kind === 'compound' ? '—' : short(r.compound_id)}</td><td>${r.attribution}</td><td class="d-${r.decision}">${r.decision}</td>`;
+    tr.onclick = () => select(r.instance_id); t.appendChild(tr); }
+}
+function opts(list, v) { return list.map(x => `<option ${x === v ? 'selected' : ''}>${x}</option>`).join(''); }
+function renderEdit() {
+  const e = document.getElementById('edit'); if (!sel) { e.innerHTML = '<span class="small">사진이나 표에서 인스턴스를 고르세요.</span>'; return; }
+  const r = byId[sel], p = photo();
+  const comps = ['none'].concat(prow(p).filter(x => x.kind === 'compound').map(x => x.instance_id));
+  const classes = r.kind === 'compound' ? [DATA.compound_class] : DATA.leaflet_classes;
+  e.innerHTML = `<b>${short(r.instance_id)}</b> <span class="small">(${r.kind}; 제안: ${r.proposed_class}, ${short(r.proposed_compound_id)}, ${r.proposed_attribution})</span>
+    <div class="row"><button data-d="accept">수락</button><button data-d="reject">거부</button><button data-d="fix">수정</button><button data-d="proposed">되돌리기</button></div>
+    <label>클래스<select id="f_class">${opts(classes, r.class)}</select></label>
+    ${r.kind === 'leaflet' ? `<label>복엽 소속<select id="f_comp">${comps.map(c => `<option value="${c}" ${c === r.compound_id ? 'selected' : ''}>${short(c)}</option>`).join('')}</select></label>` : ''}
+    <label>화분 귀속<select id="f_attr">${opts(DATA.attributions, r.attribution)}</select></label>
+    <label>마스크<select id="f_mask">${opts(['', 'yes', 'no'], r.mask_ok)}</select></label>
+    <label>메모<input id="f_note" type="text" value="${(r.note || '').replace(/"/g, '&quot;')}"></label>
+    <div id="f_err" class="err"></div>`;
+  e.querySelectorAll('button[data-d]').forEach(b => b.onclick = () => decide(b.dataset.d));
+}
+function decide(d) {
+  const r = byId[sel], err = document.getElementById('f_err'), ann = document.getElementById('annotator').value.trim();
+  if (d === 'proposed') { Object.assign(r, { decision: 'proposed', class: r.proposed_class, compound_id: r.proposed_compound_id,
+    attribution: r.proposed_attribution, mask_ok: '', annotator: '', note: '' }); return show(); }
+  if (!ann) { err.textContent = '작성자 이니셜을 먼저 입력하세요.'; return; }
+  const v = { class: document.getElementById('f_class').value, compound_id: r.kind === 'leaflet' ? document.getElementById('f_comp').value : 'none',
+    attribution: document.getElementById('f_attr').value, mask_ok: document.getElementById('f_mask').value, note: document.getElementById('f_note').value };
+  const changed = v.class !== r.proposed_class || v.compound_id !== r.proposed_compound_id || v.attribution !== r.proposed_attribution;
+  if (d === 'accept' && (changed || v.mask_ok === 'no')) { err.textContent = '값을 바꿨거나 마스크가 나쁘면 "수정"을 고르세요.'; return; }
+  if (d === 'fix' && !(changed || v.mask_ok === 'no')) { err.textContent = '바뀐 것이 없습니다. 값을 바꾸거나 마스크를 "no"로.'; return; }
+  if (d === 'accept' && !v.mask_ok) v.mask_ok = 'yes';
+  if (d === 'reject') { v.class = r.proposed_class; v.compound_id = r.proposed_compound_id; v.attribution = r.proposed_attribution; }
+  Object.assign(r, v, { decision: d, annotator: ann }); show();
+}
+function select(id) { sel = id; renderTable(); renderEdit(); draw(); }
+function show() {
+  const p = photo(); document.getElementById('ptitle').textContent = p.plant_id;
+  document.getElementById('pinfo').textContent = `${p.capture_id} · 원본 sha256 ${p.image_sha256.slice(0, 12)}… · ${p.size_px.join('×')}`;
+  renderList(); renderTable(); renderEdit(); loadImages(p, draw);
+}
+function csvCell(v) { v = String(v ?? ''); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+document.getElementById('save').onclick = () => {
+  const text = COLS.join(',') + '\n' + rows.map(r => COLS.map(c => csvCell(r[c])).join(',')).join('\n') + '\n';
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'text/csv' }));
+  a.download = 'confirmations.csv'; a.click(); msg('저장했습니다: confirmations.csv (build/ 아래에 두세요)');
+};
+function parseCsv(t) {
+  const out = []; let row = [], cell = '', q = false;
+  for (let i = 0; i < t.length; i++) { const ch = t[i];
+    if (q) { if (ch === '"') { if (t[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += ch; }
+    else if (ch === '"') q = true; else if (ch === ',') { row.push(cell); cell = ''; }
+    else if (ch === '\n' || ch === '\r') { if (ch === '\r' && t[i + 1] === '\n') i++; row.push(cell); cell = ''; if (row.length > 1 || row[0]) out.push(row); row = []; }
+    else cell += ch; }
+  if (cell || row.length) { row.push(cell); out.push(row); }
+  return out;
+}
+document.getElementById('load').onchange = e => { const f = e.target.files[0]; if (!f) return;
+  f.text().then(t => { const g = parseCsv(t); const h = g.shift();
+    if (h.join(',') !== COLS.join(',')) return msg('열 이름이 다릅니다 - 이 도구가 저장한 CSV가 아닙니다', true);
+    let n = 0, bad = 0; for (const v of g) { const o = Object.fromEntries(h.map((k, i) => [k, v[i] ?? ''])); const r = byId[o.instance_id];
+      if (!r || r.image_sha256 !== o.image_sha256) { bad++; continue; }
+      Object.assign(r, { decision: o.decision, class: o.class, compound_id: o.compound_id, attribution: o.attribution,
+        mask_ok: o.mask_ok, annotator: o.annotator, note: o.note }); n++; }
+    msg(`${n}행 불러옴` + (bad ? `, ${bad}행은 이 실행에 없음(무시)` : ''), bad > 0); show(); }); };
+window.addEventListener('resize', draw);
+show();
+</script>
+</body>
+</html>

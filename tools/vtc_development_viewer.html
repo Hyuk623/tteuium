@@ -1,0 +1,16 @@
+<!doctype html><meta charset="utf-8"><title>Native VTC development V3</title>
+<style>body{font:16px system-ui;margin:28px;background:#10231d;color:#eaf6ef}canvas{background:#19362c;border-radius:12px;width:min(100%,1100px)}input{width:350px}pre{white-space:pre-wrap;font-size:13px}.note{color:#d4dfb4}</style>
+<h1>GroIMP 전체 기관 발달 · 조건부 시뮬레이션</h1>
+<p class="note">실제 엔진 반환 상태 · 생물학적 검증 없음 · 가정한 종자 탄소·기관 생장계수·검은 평면 잎 · 열매/양분/잎 말림 제외</p>
+<p><button id="play">재생</button> 시작 상태 이후 <input id="day" type="range" min="0" value="0"><b id="label"></b>일 <label>회전 <input id="yaw" type="range" min="0" max="360" value="30"></label></p>
+<canvas id="view" width="1100" height="650"></canvas><pre id="info"></pre>
+<script>
+const data=__DATA__;const byDay=new Map();for(const s of data.states){let d=+s.day;if(!byDay.has(d))byDay.set(d,[]);byDay.get(d).push(s)}
+const meshDay=new Map();for(const v of data.meshes){let d=+v.state;if(!meshDay.has(d))meshDay.set(d,new Map());let m=meshDay.get(d);if(!m.has(v.organ_id))m.set(v.organ_id,[]);m.get(v.organ_id).push(v)}
+const day=document.getElementById('day'),yaw=document.getElementById('yaw'),canvas=document.getElementById('view'),ctx=canvas.getContext('2d');day.max=Math.max(...byDay.keys());
+function draw(){let d=+day.value,rs=byDay.get(d)||[],rot=+yaw.value*Math.PI/180;document.getElementById('label').textContent=(data.elapsed_days?data.elapsed_days[d]:d*(data.dt_days||1)).toFixed(4);
+ctx.clearRect(0,0,1100,650);let project=(x,y,z)=>[550+1700*(x*Math.cos(rot)-y*Math.sin(rot)),575-1700*z+350*(x*Math.sin(rot)+y*Math.cos(rot))];
+rs=rs.slice().sort((a,b)=>+a.y_m-+b.y_m);for(const s of rs){let vv=(meshDay.get(d)||new Map()).get(s.organ_id)||[];vv.sort((a,b)=>+a.vertex-+b.vertex);ctx.fillStyle=s.class==='Flower'?'#f5d266':s.provenance==='model_generated'?(s.plant_instance_id==='p1'?'#57b877':'#54a7be'):'#d6a57b';for(let i=0;i<vv.length;i+=3){ctx.beginPath();vv.slice(i,i+3).forEach((v,j)=>{let q=project(+v.x_m,+v.y_m,+v.z_m);j?ctx.lineTo(...q):ctx.moveTo(...q)});ctx.closePath();ctx.fill()}}
+let counts={};for(const s of rs)counts[s.class]=(counts[s.class]||0)+1;let events=data.events.filter(e=>+e.day===d),stops=data.events.filter(e=>+e.day<=d&&e.event==='determinate_stop');document.getElementById('info').textContent='기관 수: '+JSON.stringify(counts)+'\n총 건물중: '+rs.reduce((a,s)=>a+ +s.mass_gDM,0).toFixed(5)+' g\n정지 생장점: '+stops.map(e=>e.organ_id+' (day '+(data.elapsed_days?data.elapsed_days[+e.day]:(+e.day)*(data.dt_days||1)).toFixed(4)+')').join(', ')+'\n'+events.map(e=>e.organ_id+' | '+e.event+' | '+e.rule).join('\n')+'\n초록/파랑: 미래 생성 기관 · 갈색: 관측/시험 초기 기관 · 노랑: 꽃. 실제 반환된 삼각형 좌표를 표시합니다.';}
+let timer;document.getElementById('play').onclick=()=>{if(timer){clearInterval(timer);timer=null;return}timer=setInterval(()=>{day.value=(+day.value+1)%(+day.max+1);draw()},350)};day.oninput=draw;yaw.oninput=draw;draw();
+</script>

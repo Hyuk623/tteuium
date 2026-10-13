@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>식물 3D 구조</title>
+<style>
+:root{--ground:#f2f4f1;--panel:#fff;--ink:#1b2420;--muted:#65706a;--line:#d6ddd8;--stem:#c7861c;--hull:#9aa39e;
+  --c0:#e07a5f;--c1:#3d91dc;--c2:#9c6ed6;--c3:#46aa78;--c4:#d8b23a;--c5:#c85a9f;--sans:system-ui,"Malgun Gothic",sans-serif}
+@media (prefers-color-scheme:dark){:root{--ground:#0f1311;--panel:#171c19;--ink:#e3e9e5;--muted:#93a099;--line:#2b332f;--hull:#5d6862}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:14px/1.5 var(--sans);padding:16px}
+.wrap{max-width:1150px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:14px}
+@media (max-width:820px){.wrap{grid-template-columns:1fr}}
+h1{font-size:20px;margin:0 0 4px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+canvas{width:100%;aspect-ratio:4/3;display:block;border-radius:8px;background:var(--panel);border:1px solid var(--line);touch-action:none}
+label{display:flex;gap:8px;align-items:center;margin:4px 0}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+.muted{color:var(--muted);font-size:12.5px}
+</style>
+<div class="wrap">
+  <div>
+    <h1 id="title">식물 3D 구조</h1>
+    <p class="muted">드래그로 회전, 휠로 확대. 모든 값은 진단용이며(카메라 위치가 1 px 기준 미통과) 잎 표면이나 광량 계산 입력이 아닙니다.</p>
+    <canvas id="cv" width="1200" height="900" aria-label="식물 3D 구조"></canvas>
+  </div>
+  <div class="panel">
+    <b>레이어</b>
+    <label><input type="checkbox" id="L_hull" checked>식물 겉껍질 (복엽 영역별 색)</label>
+    <label><input type="checkbox" id="L_stem" checked><span class="sw" style="background:var(--stem)"></span>줄기 축</label>
+    <label><input type="checkbox" id="L_pet" checked>잎자루</label>
+    <label><input type="checkbox" id="L_leaf" checked>확인된 소엽</label>
+    <label><input type="checkbox" id="L_prop" checked>자동 제안 소엽 (사람 확인 전, 테두리만)</label>
+    <div id="legend" style="margin-top:10px"></div>
+    <p class="muted" id="summary"></p>
+  </div>
+</div>
+<script>
+'use strict';
+const D = __DATA__;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const regionColour = k => k >= 0 ? css('--c' + (k % 6)) : css('--hull');
+const LEAF = ['#e6194b','#3cb44b','#ffe119','#0082c8','#f58230','#911eb4','#46f0f0','#f032e6','#d2f53c','#fabebe','#008080','#aa6e28'];
+document.getElementById('title').textContent = `${D.plant} · 3D 구조`;
+const H = D.hull.points; const n = H.length / 3;
+let cx = 0, cy = 0, cz = 0; for (let i = 0; i < H.length; i += 3) { cx += H[i]; cy += H[i + 1]; cz += H[i + 2]; }
+cx /= n; cy /= n; cz /= n;
+let yaw = 0.6, pitch = 0.35, zoom = 1;
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+function P(x, y, z) {
+  x -= cx; y -= cy; z -= cz;
+  const c = Math.cos(yaw), s = Math.sin(yaw), x1 = c * x - s * y, y1 = s * x + c * y;
+  const cp = Math.cos(pitch), sp = Math.sin(pitch), y2 = cp * y1 - sp * z, z2 = sp * y1 + cp * z;
+  const k = 6 * zoom;
+  return [cv.width / 2 + x1 * k, cv.height / 2 - z2 * k, y2];
+}
+const on = id => document.getElementById(id).checked;
+function draw() {
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  const items = [];
+  if (on('L_hull')) for (let i = 0; i < H.length; i += 3) {
+    const q = P(H[i], H[i + 1], H[i + 2]), col = regionColour(D.hull.labels[i / 3]);
+    items.push([q[2], () => { ctx.globalAlpha = .35; ctx.fillStyle = col; ctx.fillRect(q[0] - 2, q[1] - 2, 4, 4); ctx.globalAlpha = 1; }]);
+  }
+  if (on('L_leaf')) D.leaflets.forEach((l, j) => { for (let i = 0; i < l.points.length; i += 3) {
+    const q = P(l.points[i], l.points[i + 1], l.points[i + 2]);
+    items.push([q[2] - .01, () => { ctx.fillStyle = LEAF[j % LEAF.length]; ctx.fillRect(q[0] - 3, q[1] - 3, 6, 6); }]);
+  }});
+  if (on('L_prop')) (D.proposed || []).forEach((l, j) => { for (let i = 0; i < l.points.length; i += 3) {
+    const q = P(l.points[i], l.points[i + 1], l.points[i + 2]);
+    items.push([q[2] - .01, () => { ctx.strokeStyle = LEAF[j % LEAF.length]; ctx.lineWidth = 1.5; ctx.strokeRect(q[0] - 2.5, q[1] - 2.5, 5, 5); }]);
+  }});
+  items.sort((a, b) => b[0] - a[0]).forEach(([, f]) => f());
+  const line = (pts, col, w) => { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.beginPath();
+    pts.forEach((p, i) => { const q = P(...p); i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }); ctx.stroke(); };
+  if (on('L_stem') && D.stem) line(D.stem, css('--stem'), 8);
+  if (on('L_pet')) D.petioles.forEach(p => line([p.a, p.b], regionColour(p.region), 5));
+}
+document.getElementById('legend').innerHTML = D.regions.map(r => `<div><span class="sw" style="background:${regionColour(r.region)}"></span> 영역 ${r.region}${r.name ? ' · ' + r.name + ' (제안)' : ''}</div>`).join('') +
+  D.leaflets.map((l, j) => `<div><span class="sw" style="background:${LEAF[j % LEAF.length]}"></span> ${l.key}</div>`).join('') +
+  (D.proposed || []).map((l, j) => `<div><span class="sw" style="border:2px solid ${LEAF[j % LEAF.length]}"></span> ${l.key} 제안${l.feature_pose ? ' · 특징점 포즈 포함' : ''}</div>`).join('');
+document.getElementById('summary').textContent = `확인된 소엽 ${D.summary.confirmed}장` + (D.summary.proposed ? ` · 자동 제안 ${D.summary.proposed}장` : '') + (D.summary.recorded ? ` · 생육 기록 ${D.summary.recorded}장` : '');
+['L_hull', 'L_stem', 'L_pet', 'L_leaf', 'L_prop'].forEach(id => document.getElementById(id).addEventListener('change', draw));
+let drag = null;
+cv.addEventListener('pointerdown', e => { drag = [e.clientX, e.clientY]; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener('pointermove', e => { if (!drag) return; yaw += (e.clientX - drag[0]) * .01; pitch = Math.max(-1.5, Math.min(1.5, pitch + (e.clientY - drag[1]) * .01)); drag = [e.clientX, e.clientY]; draw(); });
+cv.addEventListener('pointerup', () => { drag = null; });
+cv.addEventListener('wheel', e => { e.preventDefault(); zoom = Math.max(.3, Math.min(5, zoom * (e.deltaY < 0 ? 1.1 : .9))); draw(); }, {passive: false});
+draw();
+</script>
+</html>

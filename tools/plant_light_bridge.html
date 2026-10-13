@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Plant and light connection</title>
+<style>
+:root{font-family:system-ui,sans-serif;color:#17372d;background:#eef3ef}*{box-sizing:border-box}body{margin:0;padding:24px}main{max-width:1280px;margin:auto}h1{margin:0;font-size:28px}h2{font-size:18px}p{line-height:1.5}a{color:#126448}header,.panel{background:white;border:1px solid #cddbd1;border-radius:12px;padding:18px;margin-bottom:16px}.layout{display:grid;grid-template-columns:2fr 1fr;gap:16px}canvas{width:100%;height:480px;background:#f5f8f5;touch-action:none;border-radius:8px}label{margin-right:16px;font-size:14px}select,button{padding:8px;border:1px solid #b9cfc0;background:white;color:inherit;border-radius:6px}pre{font:12px/1.5 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:420px;overflow:auto}.pill{display:inline-block;background:#fff0d0;color:#77520c;padding:5px 10px;border-radius:12px;font-size:13px;margin-top:10px}.muted{color:#5a7467;font-size:13px}table{border-collapse:collapse;width:100%;font-size:13px}td,th{padding:8px;text-align:left;border-bottom:1px solid #dce6de}iframe{width:100%;height:780px;border:1px solid #cddbd1}details{margin:14px 0}summary{cursor:pointer}.scroll{overflow:auto}#blocked{overflow-wrap:anywhere}@media(max-width:800px){body{padding:12px}.layout{grid-template-columns:1fr}canvas{height:360px}}
+</style><main>
+<header><h1>Plant → light</h1><p id="identity"></p><span class="pill" id="status"></span>
+<p>Diagnostic connection. Physical accuracy is not validated. Missing leaves can change shadows on every retained surface.</p>
+<nav><a href="manifest.json">Provenance</a> · <a href="missing_inputs.csv">Missing inputs</a> · <a href="surfaces.csv">Surface inventory</a> · <a href="surface_light_links.csv">Surface light table</a> · <a href="sensor_light_links.csv">Sensor light table</a> · <a href="plant_light.csv">Plant summary</a></nav>
+<p class="muted">This is an immutable result snapshot. Check current dependencies with <code>python -m tools.plant_light_bridge stale --result &lt;result directory&gt;</code> before reuse.</p></header>
+<div class="layout"><section class="panel"><h2>Optical surfaces and sensor locations</h2>
+<p id="frame" class="muted"></p><p><label>Quantity <select id="quantity"><option value="geometry">Geometry only</option><option value="received_both_faces_per_one_sided_area_umol_m2_s">Received both faces / one-sided area (µmol/m²/s)</option><option value="absorbed_umol_s">Absorbed flux (µmol/s)</option></select></label></p>
+<p><label><input id="surfaces" type="checkbox" checked>Leaf triangles</label><label><input id="sensors" type="checkbox" checked>Sensors</label></p>
+<canvas id="canvas" tabindex="0" aria-label="Rotatable plant surfaces and sensor positions"></canvas>
+<p class="muted">Drag or arrow keys: rotate · wheel: zoom · select a triangle for its source identity. Grey means unavailable.</p><p id="legend"></p></section>
+<aside class="panel"><h2>Selected surface</h2><select id="surface"><option value="">Select a surface</option></select><pre id="detail">No surface selected.</pre><h2>Light summary</h2><pre id="summary"></pre></aside></div>
+<section class="panel"><h2>Input status</h2><ul id="blocked"></ul><p id="geometry"></p><details><summary>Unavailable inputs and blocked operations</summary><div class="scroll"><table><thead><tr><th>Input</th><th>Reason</th><th>Blocks</th></tr></thead><tbody id="missing"></tbody></table></div></details><details><summary>Pose, view grouping and movement evidence</summary><pre id="evidence"></pre></details></section>
+<section class="panel"><h2>Sensor incident PPFD</h2><p>Sensor-plane incident PPFD is separate from leaf received or absorbed flux. Comparisons use the existing frozen split.</p><div class="scroll"><table><thead><tr><th>Case / point</th><th>Simulated µmol/m²/s</th><th>Absolute prediction</th><th>Status</th></tr></thead><tbody id="readings"></tbody></table></div><a id="ppfd" hidden>Open PPFD report and measured comparisons</a></section>
+<section class="panel" id="original" hidden><h2>Source photos, masks and structural reconstruction</h2><p>Historical source viewer; its labels and grouping are retained as originally exported. The audited light status above is authoritative for this connection.</p><a id="source">Open original viewer</a><details id="sourceDetails"><summary>Show original reconstruction</summary><iframe id="sourceFrame" title="Original reconstruction viewer" sandbox="allow-scripts allow-same-origin allow-downloads"></iframe></details></section>
+</main><script>
+'use strict';
+const D = __DATA__;
+const el=id=>document.getElementById(id), text=(id,v)=>el(id).textContent=v;
+const A=D.audit, results=new Map(D.linked.map(r=>[r.surface_id,r]));
+text('identity',`${A.plant_id} / ${A.session_id} · capture date: ${A.capture_date||'unavailable'} · source run: ${A.run_id}`);
+text('status',`${D.status} · ${D.summary.data_kind||'observed_geometry'}`);text('summary',JSON.stringify(D.summary,null,2));
+text('geometry',`Optical triangles: ${A.optical_triangle_count}. Completeness: ${A.geometry_completeness}. Display-only structure: ${JSON.stringify(A.geometry_counts)}.`);
+text('evidence',JSON.stringify({source_coordinate_frame:A.source_coordinate_frame,quality:A.quality,mask_review:A.mask_review,view_grouping:A.view_grouping,views:A.views,movement:A.movement},null,2));
+for(const b of A.blockers.length?A.blockers:['No adapter blocker. Physical validation remains pending.']){const li=document.createElement('li');li.textContent=b;el('blocked').append(li)}
+function row(parent,values){const tr=document.createElement('tr');for(const v of values){const td=document.createElement('td');td.textContent=v??'unavailable';tr.append(td)}el(parent).append(tr)}
+for(const m of A.missing_inputs)row('missing',[m.input,m.reason,m.blocks]);
+for(const s of D.sensors)row('readings',[s.case_id+' / '+s.point_id,s.simulated_ppfd_declared_inputs_umol_m2_s,s.predicted_ppfd_umol_m2_s,s.status]);
+if(!D.sensors.length)row('readings',['No completed sensor prediction','unavailable','unavailable',D.status]);
+if(D.ppfd_report){el('ppfd').hidden=false;el('ppfd').href=D.ppfd_report}
+if(D.source_viewer){el('original').hidden=false;el('source').href=D.source_viewer;el('sourceDetails').addEventListener('toggle',()=>{if(el('sourceDetails').open&&!el('sourceFrame').getAttribute('src'))el('sourceFrame').src=D.source_viewer})}
+for(const s of A.surfaces){const o=document.createElement('option');o.value=s.surface_id;o.textContent=s.surface_id+' · '+s.organ_id+' / '+s.triangle_id;el('surface').append(o)}
+function select(id){el('surface').value=id||'';const s=A.surfaces.find(r=>r.surface_id===id);text('detail',s?JSON.stringify({...s,light:results.get(id)||'unavailable',identity_note:'Surface IDs do not establish cross-view physical leaflet identity.'},null,2):'No surface selected.');draw()}
+el('surface').onchange=()=>select(el('surface').value);
+const grow=!!D.vertices_grow_mm, vertices=D.vertices_grow_mm||A.vertices_board_mm;
+text('frame',grow?'Grow frame, mm. Placement applied once by the shared geometry helper.':'Board frame, mm. No available grow placement; sensors are not overlaid in this frame.');
+const sensors=grow?D.points.filter(p=>p.case_id===A.case?.case_id).map(p=>({id:p.point_id,xyz:['x','y','z'].map(a=>Number(p[a+'_mm'])),normal:['x','y','z'].map(a=>Number(p['normal_'+a]))})):[];
+const all=[...vertices.flat(),...sensors.map(s=>s.xyz)], centre=[0,1,2].map(k=>all.length?all.reduce((a,p)=>a+p[k],0)/all.length:0);
+const extent=Math.max(1,...all.map(p=>Math.hypot(...p.map((v,i)=>v-centre[i]))));
+let yaw=.5,pitch=.6,zoom=1,drag=null,hits=[];const canvas=el('canvas'),ctx=canvas.getContext('2d');
+function projection(v){let [x,y,z]=v.map((n,i)=>n-centre[i]);const u=x*Math.cos(yaw)-y*Math.sin(yaw),t=x*Math.sin(yaw)+y*Math.cos(yaw);const q=t*Math.cos(pitch)-z*Math.sin(pitch),depth=t*Math.sin(pitch)+z*Math.cos(pitch);const scale=Math.min(canvas.width,canvas.height)*.4/extent*zoom;return [canvas.width/2+u*scale,canvas.height/2-q*scale,depth]}
+function value(s){const r=results.get(s.surface_id),v=r?.[el('quantity').value];return v===undefined||v===null||v===''||v==='unavailable'?null:Number(v)}
+function draw(){canvas.width=canvas.clientWidth*devicePixelRatio;canvas.height=canvas.clientHeight*devicePixelRatio;ctx.clearRect(0,0,canvas.width,canvas.height);hits=[];const values=A.surfaces.map(value).filter(Number.isFinite),lo=values.length?Math.min(...values):0,hi=values.length?Math.max(...values):0;
+text('legend',el('quantity').value==='geometry'?'Green: eligible diagnostic geometry · grey: blocked geometry':values.length?`Range ${lo.toPrecision(4)} — ${hi.toPrecision(4)}; declared-input diagnostic values`:'Light result unavailable; no heatmap values fabricated.');
+if(el('surfaces').checked){const faces=vertices.map((v,i)=>({p:v.map(projection),s:A.surfaces[i]})).sort((a,b)=>a.p.reduce((x,p)=>x+p[2],0)-b.p.reduce((x,p)=>x+p[2],0));for(const {p,s} of faces){const v=value(s);ctx.beginPath();p.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.closePath();ctx.fillStyle=el('quantity').value==='geometry'?(s.optical_status==='blocked'?'#a1ada5':'#509572'):v===null?'#a1ada5':`hsl(${220-210*(hi===lo?.5:(v-lo)/(hi-lo))} 70% 52%)`;ctx.fill();ctx.strokeStyle=el('surface').value===s.surface_id?'#ffbf24':'#294b3b';ctx.lineWidth=(el('surface').value===s.surface_id?3:1)*devicePixelRatio;ctx.stroke();hits.push({p,s})}}
+if(el('sensors').checked){ctx.strokeStyle='#a44193';ctx.fillStyle='#a44193';for(const s of sensors){const p=projection(s.xyz),q=projection(s.xyz.map((v,i)=>v+s.normal[i]*extent*.08));ctx.beginPath();ctx.arc(p[0],p[1],4*devicePixelRatio,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1]);ctx.stroke()}}
+if(!vertices.length){ctx.fillStyle='#647b6d';ctx.font=`${16*devicePixelRatio}px system-ui`;ctx.textAlign='center';ctx.fillText('No optical leaf surfaces available',canvas.width/2,canvas.height/2)}}
+for(const id of ['quantity','surfaces','sensors'])el(id).onchange=draw;
+canvas.onpointerdown=e=>{drag={x:e.clientX,y:e.clientY,moved:false};canvas.setPointerCapture(e.pointerId)};
+canvas.onpointermove=e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.moved=drag.moved||Math.abs(dx)+Math.abs(dy)>2;yaw+=dx*.01;pitch+=dy*.01;drag.x=e.clientX;drag.y=e.clientY;draw()};
+canvas.onpointerup=e=>{if(drag&&!drag.moved){const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*devicePixelRatio,y=(e.clientY-r.top)*devicePixelRatio;for(const h of [...hits].reverse()){const [a,b,c]=h.p,edge=(u,v)=>(x-u[0])*(v[1]-u[1])-(y-u[1])*(v[0]-u[0]),s=[edge(a,b),edge(b,c),edge(c,a)];if(s.every(v=>v>=0)||s.every(v=>v<=0)){select(h.s.surface_id);break}}}drag=null};
+canvas.onwheel=e=>{e.preventDefault();zoom=Math.min(10,Math.max(.2,zoom*Math.exp(-e.deltaY*.001)));draw()};
+canvas.onkeydown=e=>{if(!e.key.startsWith('Arrow'))return;e.preventDefault();yaw+=(e.key==='ArrowRight'?.1:e.key==='ArrowLeft'?-.1:0);pitch+=(e.key==='ArrowDown'?.1:e.key==='ArrowUp'?-.1:0);draw()};new ResizeObserver(draw).observe(canvas);draw();
+</script></html>

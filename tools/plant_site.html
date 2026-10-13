@@ -1,0 +1,334 @@
+<title>드워프 토마토 3D 현황</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#f2f4f1; --panel:#ffffff; --ink:#1b2420; --muted:#65706a; --line:#d6ddd8;
+  --board:#9aa39e; --board-dark:#4d5550; --leaf:#2f8f5b; --cam:#b8741f; --cam-soft:#e9c9a0; --point:#b8336f;
+  --stem:#e0931c; --lfl:#d6337f; --cA:#d8694b; --cB:#2f7fc8; --cC:#8a5cc8; --cD:#3a9a6a; --cE:#b8962a; --cF:#c0508f; --cN:#9aa39e;
+  --warn-bg:#fbf1dc; --warn-ink:#7a5410; --bad-bg:#f9e4e4; --bad-ink:#8a2c2c; --ok-bg:#e1f1e7; --ok-ink:#1f6b42;
+  --sans:"IBM Plex Sans KR", system-ui, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0f1311; --panel:#171c19; --ink:#e3e9e5; --muted:#93a099; --line:#2b332f;
+    --board:#6c7570; --board-dark:#aab3ad; --leaf:#5fcf8e; --cam:#e0a456; --cam-soft:#5a4222; --point:#ec6fa6;
+    --stem:#f2b04a; --lfl:#f06aa8; --cA:#ee8a6e; --cB:#5aa6ec; --cC:#b08ae8; --cD:#5fcf8e; --cE:#e2c35a; --cF:#e889bd; --cN:#6c7570;
+    --warn-bg:#3a2f16; --warn-ink:#f1cf8a; --bad-bg:#3b1e1e; --bad-ink:#f3aaaa; --ok-bg:#16301f; --ok-ink:#8fdcb0;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0f1311; --panel:#171c19; --ink:#e3e9e5; --muted:#93a099; --line:#2b332f;
+  --board:#6c7570; --board-dark:#aab3ad; --leaf:#5fcf8e; --cam:#e0a456; --cam-soft:#5a4222; --point:#ec6fa6;
+  --stem:#f2b04a; --lfl:#f06aa8; --cA:#ee8a6e; --cB:#5aa6ec; --cC:#b08ae8; --cD:#5fcf8e; --cE:#e2c35a; --cF:#e889bd; --cN:#6c7570;
+  --warn-bg:#3a2f16; --warn-ink:#f1cf8a; --bad-bg:#3b1e1e; --bad-ink:#f3aaaa; --ok-bg:#16301f; --ok-ink:#8fdcb0;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font:15px/1.55 var(--sans);padding-inline:16px;padding-block:20px 40px}
+.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:end;justify-content:space-between}
+h1{font-size:24px;font-weight:600;margin:0;text-wrap:balance}
+.sub{color:var(--muted);font-size:13px;margin:4px 0 0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
+.seg button{font:500 14px var(--mono);color:var(--ink);background:transparent;border:0;padding:8px 16px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--leaf);color:var(--panel)}
+button:focus-visible,canvas:focus-visible,input:focus-visible{outline:2px solid var(--leaf);outline-offset:2px}
+.status{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:13px;padding:4px 10px;border-radius:999px;background:var(--panel);border:1px solid var(--line);font-variant-numeric:tabular-nums}
+.chip b{font-family:var(--mono);font-weight:500}
+.chip.bad{background:var(--bad-bg);color:var(--bad-ink);border-color:transparent}
+.chip.warn{background:var(--warn-bg);color:var(--warn-ink);border-color:transparent}
+.chip.ok{background:var(--ok-bg);color:var(--ok-ink);border-color:transparent}
+.tools{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.tools .lbl{font-size:12px;color:var(--muted);letter-spacing:.04em}
+.tools label{font-size:13.5px;display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;flex:none}
+.views{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.views button{font:500 13px var(--mono);color:var(--ink);background:var(--ground);border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer}
+.views button[aria-pressed="true"]{background:var(--cam);color:var(--panel);border-color:transparent}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:16px;align-items:start}
+@media (max-width:980px){.main{grid-template-columns:1fr}}
+.stage{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;aspect-ratio:4/3;max-width:100%}
+canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+canvas:active{cursor:grabbing}
+.hint{position:absolute;left:12px;bottom:10px;font-size:12px;color:var(--muted);pointer-events:none}
+.viewtag{position:absolute;left:12px;top:10px;font:500 12px var(--mono);color:var(--muted);pointer-events:none}
+aside{display:flex;flex-direction:column;gap:14px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.box h2{font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--muted);margin:0 0 10px}
+.box p{margin:0 0 8px;font-size:13.5px}
+.box p:last-child{margin-bottom:0}
+.box img{display:block;width:100%;height:auto;border-radius:6px}
+.legend{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px;font-size:13.5px}
+.legend li{display:flex;gap:9px;align-items:flex-start}
+.legend .sw{margin-top:4px}
+.tablewrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-weight:500;color:var(--muted);font-size:12px}
+td.num,th.num{text-align:right;font-family:var(--mono)}
+tr:last-child td{border-bottom:0}
+.pill{font-size:12px;padding:1px 8px;border-radius:999px}
+.pill.cam{background:var(--warn-bg);color:var(--warn-ink)}
+.pill.none{background:var(--bad-bg);color:var(--bad-ink)}
+.caption{font-size:12.5px;color:var(--muted);margin:6px 2px 0}
+h3{font-size:16px;margin:6px 0 8px;font-weight:600}
+.evid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.evid figure{margin:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px}
+.evid img{display:block;width:100%;height:auto;border-radius:6px}
+.evid figcaption{font-size:12.5px;margin-top:8px;display:flex;flex-direction:column;gap:3px;font-variant-numeric:tabular-nums}
+.k{color:var(--muted)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:middle}
+ul.caption{padding-left:18px}
+</style>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>드워프 토마토 3D 현황</h1>
+      <p class="sub" id="sub">기준판 좌표계 · 밀리미터 · 진단용 (정확도 미검증)</p>
+    </div>
+    <div class="seg" role="group" aria-label="개체 선택" id="plants"></div>
+  </header>
+
+  <div class="status" id="status"></div>
+
+  <div class="tools">
+    <span class="lbl">보이기</span>
+    <label><input type="checkbox" id="L_hull" checked><span class="sw" style="background:var(--cB)"></span>식물 겉껍질 (복엽별 색)</label>
+    <label><input type="checkbox" id="L_stem" checked><span class="sw" style="background:var(--stem)"></span>줄기</label>
+    <label><input type="checkbox" id="L_sub" checked><span class="sw" style="background:var(--cC)"></span>잎자루 (복엽별 색)</label>
+    <label><input type="checkbox" id="L_cv" checked><span class="sw" style="background:#3cb44b"></span>확인된 소엽</label>
+    <label><input type="checkbox" id="L_mv" checked><span class="sw" style="border:2px solid #e6194b"></span>자동 제안 소엽</label>
+    <label><input type="checkbox" id="L_board" checked><span class="sw" style="background:var(--board)"></span>판</label>
+    <label><input type="checkbox" id="L_cams"><span class="sw" style="background:var(--cam)"></span>카메라</label>
+  </div>
+  <div class="tools">
+    <span class="lbl">시점</span>
+    <div class="views" id="views"></div>
+  </div>
+
+  <div class="main">
+    <div class="stage">
+      <canvas id="scene" tabindex="0" aria-label="회전 가능한 3D 장면: 판, 식물 겉껍질, 줄기, 소엽"></canvas>
+      <div class="viewtag" id="viewtag"></div>
+      <div class="hint">드래그 회전 · 휠 확대 · 방향키 회전</div>
+    </div>
+    <aside id="aside"></aside>
+  </div>
+
+  <section>
+    <h3>복엽 · 생육 기록과 비교</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>색</th><th>이름</th><th>이름 근거</th><th class="num">높이 mm</th><th class="num">겉껍질 칸</th><th class="num">기록 소엽</th><th class="num">확인된 소엽</th><th class="num">자동 제안</th></tr></thead>
+      <tbody id="comps"></tbody></table></div>
+    <p class="caption" id="compNote"></p>
+  </section>
+
+  <section>
+    <h3>사진 · 포즈와 가져온 라벨</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>뷰</th><th>그룹</th><th>카메라 위치</th><th class="num">재투영 px</th><th class="num">검출 마커</th><th class="num">소엽</th><th class="num">복엽</th><th class="num">잎자루</th><th class="num">주줄기</th><th class="num">생장 순</th></tr></thead>
+      <tbody id="rows"></tbody></table></div>
+    <p class="caption">재투영 오차는 판 모서리 기준이며, 채택 기준은 1 px입니다. 라벨 수는 사진마다 센 개수라 실제 기관 수가 아닙니다. 특징점 포즈(사진 특징으로 푼 진단용 위치)는 3D 겉껍질에 쓰지 않고, 사진 간 소엽 대응에만 씁니다.</p>
+  </section>
+</div>
+
+<script>
+'use strict';
+const DOC = __DATA__;
+const DATA = DOC.plants, NAMES = Object.keys(DATA);
+const GROUP = {top: '상면', ring: '측면 링', oblique: '사선', side: '측면', unavailable: '시점 분류 미확정'};
+const LABEL_KEYS = ['leaflet', 'compoundleaves', 'sub-stem', 'main-stem', 'growth-shoot'];
+const SLOT = ['A', 'B', 'C', 'D', 'E', 'F'];
+const GCOL = ['#e6194b','#3cb44b','#ffe119','#0082c8','#f58230','#911eb4','#46f0f0','#f032e6','#d2f53c','#fabebe','#008080','#aa6e28'];
+const canvas = document.getElementById('scene'), ctx = canvas.getContext('2d');
+const $ = id => document.getElementById(id);
+let plant = NAMES.includes('dwt_02') ? 'dwt_02' : NAMES[0], yaw = -0.6, pitch = 0.55, zoom = 1, selected = null;
+const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const on = id => $(id).checked;
+const slotVar = k => k >= 0 ? `var(--c${SLOT[k % SLOT.length]})` : 'var(--cN)';
+const slotCss = k => k >= 0 ? css('--c' + SLOT[k % SLOT.length]) : css('--cN');
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'})[c]);
+
+function fitOf(d) {
+  const pts = [];
+  if (d.hull) { const e = d.hull.extent; pts.push([e.x[0], e.y[0], e.z[0]], [e.x[1], e.y[1], e.z[1]]); }
+  if (d.stem && d.stem.axis) pts.push(...d.stem.axis);
+  d.substems.forEach(s => pts.push(s.near_end, s.far_end));
+  if (!pts.length || on('L_cams')) pts.push(...d.board_rect_mm);
+  if (on('L_cams')) pts.push(...d.cameras.filter(c => c.centre_mm).map(c => c.centre_mm));
+  const lo = [0, 1, 2].map(i => Math.min(...pts.map(p => p[i]))), hi = [0, 1, 2].map(i => Math.max(...pts.map(p => p[i])));
+  return {c: lo.map((v, i) => (v + hi[i]) / 2), r: Math.max(20, Math.max(...hi.map((v, i) => v - lo[i])) / 2)};
+}
+function project(p, fit, w, h) {
+  const x = p[0] - fit.c[0], y = p[1] - fit.c[1], z = p[2] - fit.c[2];
+  const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+  const x1 = cy * x - sy * y, y1 = sy * x + cy * y;
+  const depth = y1 * cp - z * sp, up = y1 * sp + z * cp;
+  const s = Math.min(w, h) / (2.4 * fit.r) * zoom, persp = 1 / (1 + depth / (fit.r * 8));
+  return [w / 2 + x1 * s * persp, h / 2 - up * s * persp, depth, s * persp];
+}
+function cloud(items, pts, cs, depthBias, paint) {
+  for (let i = 0, n = 0; i < pts.length; i += 3, n++) {
+    const q = window.__P([pts[i] * cs, pts[i + 1] * cs, pts[i + 2] * cs]);
+    items.push({depth: q[2] + depthBias, draw: () => paint(q, n)});
+  }
+}
+function draw() {
+  const d = DATA[plant], dpr = window.devicePixelRatio || 1, rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr; canvas.height = rect.height * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const w = rect.width, h = rect.height, fit = fitOf(d), P = p => project(p, fit, w, h);
+  window.__P = P;
+  ctx.clearRect(0, 0, w, h);
+  const sans = css('--sans'), mono = css('--mono');
+  if (on('L_board')) {
+    const [a, b, c, e] = d.board_rect_mm, at = (u, v) => [0, 1, 2].map(i => a[i] + (b[i] - a[i]) * u + (e[i] - a[i]) * v);
+    for (let i = 0; i < 7; i++) for (let j = 0; j < 5; j++) {
+      const q = [at(i / 7, j / 5), at((i + 1) / 7, j / 5), at((i + 1) / 7, (j + 1) / 5), at(i / 7, (j + 1) / 5)].map(P);
+      ctx.beginPath(); q.forEach((p, k) => k ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath();
+      ctx.fillStyle = (i + j) % 2 ? css('--board') : css('--board-dark'); ctx.globalAlpha = .22; ctx.fill();
+    }
+    ctx.globalAlpha = 1; ctx.strokeStyle = css('--board-dark'); ctx.lineWidth = 1;
+    ctx.beginPath(); [a, b, c, e].map(P).forEach((p, k) => k ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); ctx.stroke();
+  }
+  const items = [];
+  if (d.hull && on('L_hull')) {
+    const cols = SLOT.map((_, k) => slotCss(k)), grey = css('--cN'), vm = d.hull.voxel_mm, lab = d.hull.labels;
+    cloud(items, d.hull.points, d.hull.coord_scale, 0, (q, n) => { const s = Math.max(1.8, vm * q[3]);
+      ctx.globalAlpha = .5; ctx.fillStyle = lab[n] >= 0 ? cols[lab[n] % cols.length] : grey; ctx.fillRect(q[0] - s / 2, q[1] - s / 2, s, s); ctx.globalAlpha = 1; });
+  }
+  const cs = d.hull ? d.hull.coord_scale : 1;
+  if (on('L_mv')) d.proposed.forEach((g, n) => { const col = GCOL[n % GCOL.length];
+    cloud(items, g.points.flat(), cs, -0.005, q => { const s = Math.max(3, 1.3 * q[3]); ctx.strokeStyle = col; ctx.lineWidth = 1.3; ctx.strokeRect(q[0] - s / 2, q[1] - s / 2, s, s); }); });
+  if (on('L_cv')) d.confirmed.forEach((g, n) => { const col = GCOL[n % GCOL.length];
+    cloud(items, g.points.flat(), cs, -0.006, q => { const s = Math.max(2.4, 1.3 * q[3]); ctx.fillStyle = col; ctx.fillRect(q[0] - s / 2, q[1] - s / 2, s, s); }); });
+  if (d.stem && d.stem.axis && on('L_stem')) {
+    const ax = d.stem.axis.map(P);
+    for (let i = 0; i < ax.length - 1; i++) { const a = ax[i], b = ax[i + 1];
+      items.push({depth: (a[2] + b[2]) / 2 - 0.01, draw: () => { ctx.strokeStyle = css('--stem'); ctx.lineCap = 'round';
+        ctx.lineWidth = Math.max(3, (d.stem.diameter_mm || 4) * a[3]); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); }}); }
+    const top = ax[ax.length - 1];
+    items.push({depth: -1e9, draw: () => { ctx.fillStyle = css('--ink'); ctx.font = '12px ' + sans; ctx.fillText(d.stem.diameter_mm ? '줄기 ≈' + d.stem.diameter_mm + ' mm' : '아래 줄기(헐 추적)', top[0] + 8, top[1] - 6); }});
+  }
+  if (on('L_sub')) for (const s of d.substems) {
+    const col = slotCss(s.slot), a = P(s.near_end), b = P(s.far_end), m = P(s.two_view_end);
+    items.push({depth: Math.min(a[2], b[2]) - 0.014, draw: () => {
+      ctx.strokeStyle = col; ctx.globalAlpha = .45; ctx.lineWidth = 1.4; ctx.setLineDash([3, 4]);
+      ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+      ctx.lineWidth = Math.max(2, 1.5 * a[3]); ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(m[0], m[1]); ctx.stroke();
+      ctx.fillStyle = css('--ink'); ctx.font = '12px ' + sans;
+      ctx.fillText(`잎자루 ${s.name || SLOT[s.slot]} · 2장 확인 ${s.length_two_view_mm} mm / 범위 ${s.extent_any_view_mm} mm`, b[0] + 8, b[1] - 6);
+    }});
+  }
+  if (on('L_cams')) for (const cam of d.cameras.filter(c => c.centre_mm)) {
+    const C = cam.centre_mm, f = cam.axis, u = cam.up, r = [f[1] * u[2] - f[2] * u[1], f[2] * u[0] - f[0] * u[2], f[0] * u[1] - f[1] * u[0]];
+    const tip = k => [0, 1, 2].map(i => C[i] + f[i] * 40 + (r[i] * k[0] + u[i] * k[1]) * 18);
+    const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(tip).map(P), pc = P(C), sel = cam.view === selected;
+    items.push({depth: pc[2], draw: () => {
+      ctx.strokeStyle = css('--cam'); ctx.lineWidth = sel ? 2.6 : 1.3;
+      corners.forEach(q => { ctx.beginPath(); ctx.moveTo(pc[0], pc[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); });
+      ctx.beginPath(); corners.forEach((q, k) => k ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath();
+      ctx.fillStyle = css('--cam-soft'); ctx.globalAlpha = .55; ctx.fill(); ctx.globalAlpha = 1; ctx.stroke();
+      ctx.fillStyle = css('--ink'); ctx.font = '500 12px ' + mono; ctx.fillText(cam.view, pc[0] + 6, pc[1] - 6);
+    }});
+  }
+  items.sort((a, b) => b.depth - a.depth).forEach(it => it.draw());
+  $('viewtag').textContent = selected ? `사진 ${selected} 방향에서 본 모습` : '자유 시점';
+}
+function lookFrom(view) {
+  const d = DATA[plant], cam = d.cameras.find(c => c.view === view && c.centre_mm);
+  selected = view;
+  if (cam) { const fit = fitOf(d), wv = [0, 1, 2].map(i => cam.centre_mm[i] - fit.c[i]), n = Math.hypot(...wv), u = wv.map(x => x / n);
+    yaw = Math.atan2(-u[0], -u[1]); pitch = Math.atan2(u[2], Math.hypot(u[0], u[1])); zoom = 1; }
+  renderViews(); renderAside(); draw();
+}
+function renderViews() {
+  const d = DATA[plant], box = $('views'); box.replaceChildren();
+  const mk = (label, v, title) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.title = title;
+    b.setAttribute('aria-pressed', String(selected === v));
+    b.addEventListener('click', () => v ? lookFrom(v) : (selected = null, yaw = -0.6, pitch = 0.55, zoom = 1, renderViews(), renderAside(), draw())); box.appendChild(b); };
+  mk('자유 시점', null, '기본 시점으로');
+  d.cameras.filter(c => c.centre_mm).forEach(c => mk(c.view, c.view, `사진 ${c.view} (${GROUP[c.group]}) 방향에서 보기`));
+  const n = d.cameras.filter(c => !c.centre_mm).length;
+  const note = document.createElement('span'); note.className = 'k'; note.style.fontSize = '12.5px';
+  note.textContent = `판 포즈 없는 ${n}장(측면 11–18 등)은 방향을 알 수 없어 시점을 만들 수 없습니다`; box.appendChild(note);
+}
+function renderAside() {
+  const d = DATA[plant], a = $('aside'), v = selected ? d.views[selected] : null;
+  let html = '';
+  if (v) html += `<div class="box"><h2>사진 ${selected} · 3D 결과를 다시 투영</h2><img src="${v.img}" alt="사진 ${selected}에 겉껍질·줄기·잎자루를 투영한 모습">` +
+    `<p class="k" style="margin-top:8px">점: 겉껍질(복엽별 색) · 주황: 줄기 축 · 색 선: 잎자루. 판 포즈 재투영 ${v.reproj} px (1 px 기준 미통과).</p></div>`;
+  else if (selected) html += `<div class="box"><h2>사진 ${selected}</h2><p>이 사진은 겉껍질에 쓰이지 않아 겹침 이미지가 없습니다.</p></div>`;
+  if (d.hull) {
+    const e = d.hull.extent, span = (p, q) => (q - p).toFixed(0), cp = d.hull.compounds.filter(c => !c.fragment);
+    html += `<div class="box"><h2>식물 전체 · 실루엣 교차</h2><ul class="legend">` +
+      cp.map(c => `<li><span class="sw" style="background:${slotVar(c.slot)}"></span><span>${c.name ? '<b>' + esc(c.name) + '</b>' : '이름 없음'}${c.unfolding ? ' (전개 중)' : ''} · ${c.voxels.toLocaleString()}칸 · 높이 ${c.z} mm` +
+        (c.truth != null ? ` · 기록 소엽 ${c.truth}장 중 확인 <b>${c.confirmed}</b>` + (c.proposed ? ` · 자동 제안 ${c.proposed}` : '') : '') + `</span></li>`).join('') +
+      `<li><span class="sw" style="background:var(--cN)"></span><span>어느 복엽인지 미정 · ${d.hull.unassigned.toLocaleString()}칸</span></li></ul>` +
+      `<p style="margin-top:10px"><b>${d.hull.volume_cm3} cm³</b> · 폭 ${span(e.x[0], e.x[1])} × ${span(e.y[0], e.y[1])} mm · 판 위 높이 ${e.z[0]}–${e.z[1]} mm</p>` +
+      `<p>판 포즈가 있는 사진 ${d.hull.views_used.length}장(${d.hull.views_used.join(', ')})의 식물 윤곽이 모두 겹치는 ${d.hull.voxel_mm} mm 칸입니다. 식물이 차지할 수 있는 최대 공간이며 잎 표면이 아닙니다. 복엽 영역은 사진마다 사람이 그린 복엽 박스를 칸끼리 대응시켜 나눈 것이고, 이름은 <b>아래에서 위로 L01, L02 …</b>(전개 중 잎은 맨 위) 규칙의 제안입니다.</p>` +
+      `<p class="k">윤곽 설명률 ${Object.entries(d.hull.explained).map(([k, x]) => k + ' ' + x + '%').join(' · ')}</p></div>`;
+  }
+  if (d.stem && d.stem.axis && d.stem.method === 'hull_trunk') html += `<div class="box"><h2>줄기</h2><p>사진 ${d.stem.views.join(', ')}의 주줄기 윤곽이 두 사진에서 겹치는 구간이 없어, 윤곽 아래에 투영되는 3D 외곽 복셀을 바닥부터 위로 따라가며 아래 줄기만 직선으로 맞췄습니다. 단면 중심과 직선의 거리 중앙값 <b>${d.stem.median_dist_mm} mm</b>, 기울기 ${d.stem.tilt_deg}°. 굵기는 외곽이 부풀려져 있어 계산하지 않았습니다.</p><p class="k">잎 속 위쪽 줄기는 추적하지 않았습니다.</p></div>`;
+  else if (d.stem && d.stem.axis) html += `<div class="box"><h2>줄기</h2><p>사진 ${d.stem.views.join(', ')}의 사람이 그린 주줄기 윤곽에서 중심선을 뽑아 3D 직선 하나로 맞췄습니다. 광선과의 거리 중앙값 <b>${d.stem.median_dist_mm} mm</b> (90%: ${d.stem.p90_dist_mm} mm), 기울기 ${d.stem.tilt_deg}°, 굵기 약 ${d.stem.diameter_mm} mm.</p><p class="k">잎에 가린 위쪽 줄기와 휘어짐은 알 수 없습니다.</p></div>`;
+  else if (d.stem) html += `<div class="box"><h2>줄기</h2><p>맞추지 못했습니다. 두 사진이 쓸 만한 각도로 같은 구간을 보지 못했습니다.</p></div>`;
+  if (d.confirmed.length) html += `<div class="box"><h2>확인된 소엽 (사진 간, 사람 검토)</h2><ul class="legend">` +
+    d.confirmed.map((g, n) => `<li><span class="sw" style="background:${GCOL[n % GCOL.length]}"></span><span>${esc(g.key)}${g.compound ? ' · ' + esc(g.compound) : ''} · 사진 ${g.photos.join('·')} · ${g.voxels}칸</span></li>`).join('') +
+    `</ul><p class="k">색 칸은 그 소엽의 모든 사진 마스크 안에 들고, 한 사진 이상에서 보이는 겉껍질 칸입니다. 잎 크기·면적이 아닙니다.</p></div>`;
+  if (d.proposed.length) html += `<div class="box"><h2>자동 제안 소엽 (사람 확인 전)</h2><p>사람이 수락한 마스크를 겉껍질에 비춰, 두 사진이 서로 가장 잘 맞고 겹침 0.45 이상인 짝을 이은 ${d.proposed.length}장입니다. 테두리 네모로 그렸습니다.</p><ul class="legend">` +
+    d.proposed.map((g, n) => `<li><span class="sw" style="border:2px solid ${GCOL[n % GCOL.length]}"></span><span>${esc(g.key)}${g.compound ? ' · ' + esc(g.compound) : ''} · 사진 ${g.photos.join('·')} · ${g.voxels}칸${g.feature_pose ? ' · 특징점 포즈 포함' : ''}</span></li>`).join('') +
+    `</ul><p class="k">확정하려면 사진 간 대응 검토(${d.questions}문항)가 필요합니다.${d.feature_pose_views.length ? ` 특징점 포즈 사진 ${d.feature_pose_views.join(', ')}은 위치 오차가 10–20 mm라 참고용입니다.` : ''}</p></div>`;
+  if (d.substems.length) html += `<div class="box"><h2>잎자루 (sub-stem)</h2>` + d.substems.map(s => `<p><b>${esc(s.name || SLOT[s.slot])}</b> · 사진 2장 이상이 본 구간 <b>${s.length_two_view_mm} mm</b>, 한 장이라도 본 범위 ${s.extent_any_view_mm} mm · ${s.elevation_deg}° 위로 · 줄기 쪽 끝 ↔ 줄기 축 ${s.near_end_to_stem_mm} mm · 사진 ${s.views.join(', ')}</p>`).join('') +
+    `<p class="k">실선은 두 장 이상이 본 구간, 점선은 한 장만 본 범위입니다. 휘어짐과 굵기는 측정하지 않았습니다.</p></div>`;
+  html += `<div class="box"><h2>잎 표면이 없는 이유</h2><p>라벨은 사진 안의 2D 박스·폴리곤이고, 3D 점은 같은 실제 지점을 포즈가 있는 사진 두 장에 찍어야 생깁니다. 측면 사진 11–18은 판이 안 보여 판 포즈가 없습니다.</p></div>`;
+  a.innerHTML = html;
+}
+function render() {
+  const d = DATA[plant], posed = d.cameras.filter(c => c.centre_mm), labels = d.cameras.reduce((n, c) => n + LABEL_KEYS.reduce((m, k) => m + c.labels[k], 0), 0);
+  document.querySelectorAll('#plants button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.p === plant)));
+  $('sub').textContent = `기준판 좌표계 · 밀리미터 · ${d.capture_date} 촬영 · ${DOC.run} · 진단용 (정확도 미검증)`;
+  const counts = d.growth.map(g => g.leaflets + (g.unfolding ? '*' : '')).join('/');
+  const conf = d.confirmed.length, prop = d.proposed.length;
+  $('status').innerHTML = `<span class="chip">가져온 2D 라벨 <b>${labels}</b></span>` +
+    `<span class="chip warn">판 포즈 <b>${posed.length}</b>/${d.cameras.length} · 1 px 통과 <b>${d.cameras.filter(c => c.gate).length}</b></span>` +
+    (d.hull ? `<span class="chip warn">식물 겉껍질 <b>${d.hull.volume_cm3} cm³</b></span>` : '') +
+    `<span class="chip ${conf ? 'ok' : ''}">확인된 소엽 <b>${conf}</b></span>` +
+    (prop ? `<span class="chip">자동 제안 소엽 <b>${prop}</b> · 확인 전</span>` : '') +
+    (d.stem && d.stem.axis ? `<span class="chip ok">줄기 축 · 오차 중앙값 <b>${d.stem.median_dist_mm} mm</b></span>` : '<span class="chip bad">줄기 축 없음</span>') +
+    (d.substems.length ? `<span class="chip ok">잎자루 <b>${d.substems.length}</b></span>` : '') +
+    `<span class="chip bad">잎 표면 <b>0</b></span><span class="chip">생육 기록 소엽 <b>${counts || '—'}</b>${counts.includes('*') ? ' (*전개 중)' : ''}</span>`;
+  const cp = d.hull ? d.hull.compounds : [];
+  $('comps').innerHTML = cp.length ? cp.map(c => `<tr><td><span class="sw" style="background:${slotVar(c.slot)}"></span></td><td>${c.name ? esc(c.name) : (c.fragment ? '조각' : '—')}${c.unfolding ? ' (전개 중)' : ''}</td>` +
+    `<td>${c.fragment ? '작은 조각이라 이름 없음' : c.name_source === 'human' ? '사람 확인' : '높이순 제안'}</td><td class="num">${c.z}</td><td class="num">${c.voxels.toLocaleString()}</td>` +
+    `<td class="num">${c.truth ?? '—'}</td><td class="num">${c.fragment ? '—' : c.confirmed}</td><td class="num">${c.fragment ? '—' : c.proposed}</td></tr>`).join('')
+    : '<tr><td colspan="8">이 개체는 겉껍질을 만들지 못했습니다.</td></tr>';
+  const missing = d.growth.filter(g => !cp.some(c => c.name === g.id)).map(g => g.id + (g.unfolding ? '(전개 중)' : ''));
+  $('compNote').textContent = (d.hull && d.hull.naming_note ? '이름 규칙 메모: ' + d.hull.naming_note + '. ' : '') + (missing.length ? `3D 영역이 없는 기록 복엽: ${missing.join(', ')}.` : '');
+  $('rows').innerHTML = d.cameras.map(c => `<tr><td class="num" style="text-align:left">${c.view}</td><td>${GROUP[c.group]}</td>` +
+    `<td>${c.centre_mm ? '<span class="pill cam">있음 · 기준 미통과</span>' : (d.feature_pose_views.includes(c.view) ? '<span class="pill cam">특징점 포즈 (진단용)</span>' : '<span class="pill none">없음</span>')}</td>` +
+    `<td class="num">${c.reproj_px != null ? c.reproj_px.toFixed(2) : '—'}</td><td class="num">${c.markers ?? '—'}</td>` +
+    LABEL_KEYS.map(k => `<td class="num">${c.labels[k] || '—'}</td>`).join('') + '</tr>').join('');
+  renderViews(); renderAside(); draw();
+}
+NAMES.forEach(n => { const b = document.createElement('button'); b.type = 'button'; b.textContent = n; b.dataset.p = n;
+  b.addEventListener('click', () => { plant = n; selected = null; render(); }); $('plants').appendChild(b); });
+['L_hull', 'L_mv', 'L_cv', 'L_stem', 'L_sub', 'L_board', 'L_cams'].forEach(id => $(id).addEventListener('change', draw));
+let drag = null;
+canvas.addEventListener('pointerdown', e => { drag = [e.clientX, e.clientY]; canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener('pointermove', e => {
+  if (!drag) return;
+  yaw += (e.clientX - drag[0]) * 0.008; pitch = Math.max(-0.2, Math.min(1.55, pitch + (e.clientY - drag[1]) * 0.008));
+  drag = [e.clientX, e.clientY]; if (selected) { selected = null; renderViews(); renderAside(); } draw();
+});
+canvas.addEventListener('pointerup', () => { drag = null; });
+canvas.addEventListener('wheel', e => { e.preventDefault(); zoom = Math.max(.4, Math.min(6, zoom * (e.deltaY < 0 ? 1.1 : 0.9))); draw(); }, {passive: false});
+canvas.addEventListener('keydown', e => {
+  const step = {ArrowLeft: [-.1, 0], ArrowRight: [.1, 0], ArrowUp: [0, .1], ArrowDown: [0, -.1]}[e.key];
+  if (step) { e.preventDefault(); yaw += step[0]; pitch = Math.max(-0.2, Math.min(1.55, pitch + step[1])); draw(); }
+});
+window.addEventListener('resize', draw);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
+new MutationObserver(draw).observe(document.documentElement, {attributes: true, attributeFilter: ['data-theme']});
+render();
+</script>

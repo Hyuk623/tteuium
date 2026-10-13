@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>잎자루 분할 민감도 조절</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#eef3ef;color:#183128;font:16px system-ui,'Malgun Gothic',sans-serif}header,main{max-width:1360px;margin:auto;padding:20px}h1{font-size:28px;margin:0 0 8px}p{line-height:1.6;margin:8px 0}.controls{display:flex;gap:20px;flex-wrap:wrap;padding:18px;background:white;border-radius:12px}.control{min-width:260px;flex:1}label{display:block;line-height:1.8}input[type=range]{width:100%;accent-color:#127457}select,button,input[type=number]{font:inherit;padding:7px;border:1px solid #92ada1;border-radius:5px}button{background:white;cursor:pointer}button.primary{background:#145d49;color:white}.limits{display:flex;justify-content:space-between;font-size:13px;color:#52685d}.views{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}figure{margin:0;padding:12px;background:white;border-radius:12px}figcaption{font-weight:600;margin-bottom:10px}canvas{width:100%;display:block;background:#cad4cb}#status{font-variant-numeric:tabular-nums}#warning{color:#a4420e;min-height:24px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}small{color:#52685d}details{margin-top:12px}a{color:#135f4b}@media(max-width:760px){.views{grid-template-columns:1fr}}
+</style>
+<header><h1>잎자루 분할 민감도 조절</h1><p>민감도를 낮추면 좁게, 높이면 애매한 경계까지 넓게 선택합니다. 시작값은 <b id="initialValue">50</b>이며, <b>50은 SAM 기준 결과</b>입니다.</p><small>저장된 SAM 예측으로 즉시 조절합니다. 새 클릭을 추가하거나 모델을 다시 실행하는 화면은 아닙니다.</small></header>
+<main>
+<section class="controls">
+ <div class="control"><label for="sensitivity">분할 민감도 <b id="sensitivityValue">50</b></label><input id="sensitivity" type="range" min="0" max="100" step="1" value="50"><div class="limits"><span>0 · 좁게 선택</span><span>100 · 넓게 선택</span></div></div>
+ <div class="control"><label for="minArea">떨어진 작은 영역 제거 기준 (픽셀 수)</label><input id="minArea" type="number" min="0" max="1000000" step="1" value="0"><small> 이 크기보다 작은 영역 제거 · 0은 끔</small><label><input id="seedOnly" type="checkbox"> 포함 점과 연결된 영역만 남기기</label></div>
+ <div class="control"><label for="candidate">SAM 후보</label><select id="candidate"></select><p id="score"></p><label><input id="focus" type="checkbox" checked> 잎자루 확대 보기</label></div>
+</section>
+<p id="status" role="status">예측 불러오는 중…</p><p id="warning" role="alert"></p>
+<div class="actions"><button id="reset">시작값으로 복원</button><button id="reference">SAM 기준 50 보기</button><button id="saveMask" class="primary" disabled>원본 크기 마스크 PNG 저장</button><button id="saveSettings" disabled>조절 설정 JSON 저장</button></div>
+<div class="views"><figure><figcaption>원본 · 초록 점은 포함 위치</figcaption><canvas id="source"></canvas></figure><figure><figcaption>조절 결과 · 청록색이 선택 영역</figcaption><canvas id="result"></canvas></figure></div>
+<p>가는 잎자루가 끊기면 민감도를 높이거나 영역 제거를 꺼 보세요. 붙어 있는 줄기·잎까지 선택되면 제외 클릭을 추가해 SAM을 다시 실행해야 할 수 있습니다.</p>
+<details><summary>저장 정보와 한계</summary><p>PNG는 원본 사진 크기와 좌표를 유지하며 촬영 영역 밖은 배경으로 저장합니다. JSON에는 민감도·후처리·후보·원본 및 예측 해시가 기록됩니다. 확대 보기는 저장 크기에 영향을 주지 않습니다.</p><p>모델 점수는 조절 전 후보의 점수이며 실제 정확도가 아닙니다. 빈 영역 또는 제외된 포함 점이 있으면 저장 전에 확인하세요. 이 화면은 잎자루 판별이나 마디·절간 측정을 자동으로 수행하지 않습니다.</p><a href="https://github.com/facebookresearch/sam2/blob/main/sam2/sam2_image_predictor.py">SAM 공식 구현</a></details>
+</main>
+<script id="payload" type="application/json">__PAYLOAD__</script>
+<script>__CORE__</script>
+<script>
+'use strict';
+const data=JSON.parse(document.getElementById('payload').textContent), el=id=>document.getElementById(id);
+const core=window.SamMaskCore, [x0,y0,x1,y1]=data.crop_xyxy_px, width=x1-x0,height=y1-y0;
+const positives=data.points.filter(p=>p.label===1).map(p=>[p.x_px-x0,p.y_px-y0]);
+const logits=data.candidates.map(c=>{
+ const binary=atob(c.logits_base64),bytes=new Uint8Array(binary.length);
+ for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+ const view=new DataView(bytes.buffer),result=new Float32Array(width*height);
+ for(let i=0;i<result.length;i++)result[i]=view.getFloat32(i*4,true);
+ return result;
+});
+for(const [index,candidate] of data.candidates.entries())el('candidate').add(new Option('후보 '+(candidate.index+1)+(index===data.top_candidate?' · 기본 선택':''),String(index)));
+el('candidate').value=String(data.top_candidate);
+el('sensitivity').value=String(data.initial_sensitivity);
+el('initialValue').textContent=data.initial_sensitivity;
+el('reset').textContent='시작값 '+data.initial_sensitivity+'으로 복원';
+const photo=new Image();let current=null,pending=false;
+function options(){return {sensitivity:Number(el('sensitivity').value),minAreaPx:Number(el('minArea').value),seedOnly:el('seedOnly').checked};}
+function region(){
+ if(!el('focus').checked||!data.box_xyxy_px)return [0,0,width,height];
+ const b=data.box_xyxy_px,margin=50;
+ const xx=Math.max(0,b[0]-x0-margin),yy=Math.max(0,b[1]-y0-margin);
+ return [xx,yy,Math.min(width,b[2]-x0+margin)-xx,Math.min(height,b[3]-y0+margin)-yy];
+}
+function draw(){
+ const candidate=Number(el('candidate').value),opts=options();
+ try {current=core.processMask(logits[candidate],width,height,opts,positives);}
+ catch(error){current=null;el('warning').textContent=error.message;el('saveMask').disabled=true;el('saveSettings').disabled=true;return;}
+ const layer=document.createElement('canvas');layer.width=width;layer.height=height;
+ const context=layer.getContext('2d');context.drawImage(photo,0,0);const pixels=context.getImageData(0,0,width,height);
+ for(let i=0;i<current.mask.length;i++)if(current.mask[i]){const k=i*4;pixels.data[k]=pixels.data[k]*.5+15;pixels.data[k+1]=pixels.data[k+1]*.5+115;pixels.data[k+2]=pixels.data[k+2]*.5+90;}
+ context.putImageData(pixels,0,0);
+ const r=region();
+ for(const id of ['source','result']){
+   const canvas=el(id);canvas.width=r[2];canvas.height=r[3];const ctx=canvas.getContext('2d');
+   ctx.drawImage(id==='source'?photo:layer,...r,0,0,r[2],r[3]);
+   for(const p of data.points){ctx.beginPath();ctx.arc(p.x_px-x0-r[0],p.y_px-y0-r[1],3,0,Math.PI*2);ctx.fillStyle=p.label?'#5dff66':'#ff4666';ctx.fill();ctx.strokeStyle='#11251c';ctx.stroke();}
+ }
+ el('sensitivityValue').textContent=opts.sensitivity;
+ el('score').textContent='조절 전 모델 점수 '+data.candidates[candidate].score.toFixed(3)+' · 정확도 아님';
+ el('status').textContent='선택 '+current.areaPx.toLocaleString()+' px · 후처리로 제거 '+current.removedAreaPx.toLocaleString()+' px · SAM 50 대비 '+(current.areaPx-data.candidates[candidate].baseline_area_px).toLocaleString()+' px';
+ el('warning').textContent=current.areaPx===0?'선택 영역이 비었습니다. 민감도와 제거 설정을 확인하세요.':current.missedSeeds?`포함 점 ${current.missedSeeds}곳이 선택 영역에서 빠졌습니다. 가는 부분이 끊겼는지 확인하세요.`:'';
+ el('saveMask').disabled=false;el('saveSettings').disabled=false;
+}
+function schedule(){if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;if(photo.complete&&photo.naturalWidth)draw();});}
+for(const id of ['sensitivity','minArea','seedOnly','candidate','focus'])el(id).addEventListener('input',schedule);
+function restore(value){el('sensitivity').value=String(value);el('minArea').value='0';el('seedOnly').checked=false;el('candidate').value=String(data.top_candidate);schedule();}
+el('reset').onclick=()=>restore(data.initial_sensitivity);
+el('reference').onclick=()=>restore(50);
+function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+function metadata(){return core.selectionMetadata(data,Number(el('candidate').value),options(),current);}
+el('saveSettings').onclick=()=>{draw();if(current)download(new Blob([JSON.stringify(metadata(),null,2)+'\n'],{type:'application/json'}),data.case_id+'_selection.json');};
+el('saveMask').onclick=()=>{
+ draw();if(!current)return;
+ const mask=core.restoreFullMask(current.mask,data.crop_xyxy_px,data.image_size_px),canvas=document.createElement('canvas');
+ [canvas.width,canvas.height]=data.image_size_px;const ctx=canvas.getContext('2d'),pixels=ctx.createImageData(canvas.width,canvas.height);
+ for(let i=0;i<mask.length;i++){const k=i*4;pixels.data[k]=pixels.data[k+1]=pixels.data[k+2]=mask[i];pixels.data[k+3]=255;}
+ ctx.putImageData(pixels,0,0);canvas.toBlob(blob=>{if(blob)download(blob,data.case_id+'_mask.png');},'image/png');
+};
+photo.onload=draw;photo.onerror=()=>{el('warning').textContent='원본 영역 이미지를 읽지 못했습니다.';};photo.src=data.image_data_url;
+</script></html>

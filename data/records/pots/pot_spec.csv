@@ -1,0 +1,2 @@
+pot_type,shape,plant_ids,pot_rim_outer_edge_mm,pot_rim_inner_diameter_mm,pot_depth_mm,source_kind,pot_rim_inner_edge_mm,pot_rim_inner_edge_source_kind,medium_surface_depth_below_rim_mm,medium_surface_depth_source_kind,wall_taper,wall_taper_source_kind,method,measured_date,note
+square_cell,square,dwt_1*,60,,70,measured,59,measured,10,measured,none,measured,caliper,2026-10-13,user caliper 2026-10-12/13: outer top edge 60 mm and inner top edge 59 mm across the flats; medium surface 10 mm below the rim; straight walls

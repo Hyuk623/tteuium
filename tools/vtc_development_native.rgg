@@ -1,0 +1,368 @@
+// Conditional replacement of VTC Apex/rewrites/GrowingOrgan; see V3 contract.
+// Original NRH: K. Smolenova / WUR, adapted from Jochem Evers FSPM_BASIC.
+import java.io.*;
+import java.nio.file.*;
+import java.security.MessageDigest;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import de.grogra.graph.impl.Node;
+import de.grogra.xl.util.FloatList;
+@PARAMETERS@
+@NRH@
+
+module Organ(int idx) extends Node {
+    int segment=-1, owner, controller, parent=-1, axis=-1, kind, rank, pair, side, born, emerged=-1;
+    String id, origin="model_generated";
+    double thermal=0, mass=0, maxMass, reserve=0, x=0,y=0,z=0,tx=0,ty=0,tz=0;
+    double len=0,wid=0,area=0,az=0,elev=0,alpha=0,share=1;
+    double photons=0,gross=0,maint=0,demand=0,alloc=0,delta=0;
+    boolean attached=false, stopped=false;
+    boolean imported=false;
+    double initialMass=0,initialLength=0,initialWidth=0,initialArea=0,initialAz=0,initialElev=0;
+    double offsetX=0,offsetY=0,offsetZ=0,bendAmplitude=Double.NaN;
+    float[] shape=null;
+}
+module NativeSurface(int oi) extends MeshNode;
+module Lamp(int li) extends LightNode;
+module World extends Node;
+module Sensor(int sid) extends Parallelogram;
+ArrayList organs = new ArrayList();
+Organ org(int index) { return (Organ)organs.get(index); }
+String[] plantIds=@PLANT_IDS@;
+String[] sourceIds=@SOURCE_IDS@;
+double[] plantX=@PX@,plantY=@PY@,plantZ=@PZ@;
+double[] initialReserve=@RESERVES@;
+double[] hours=@HOURS@,tday=@TDAY@,tnight=@TNIGHT@;
+double[] clocks=new double[@NA@];
+int[] produced=new int[@NA@],leafOrders=new int[@NA@],trussCounts=new int[@NA@],axisLeafCounts=new int[@NA@];
+int[] activeApex=new int[@NA@],plantRoots=new int[@NP@],activeAxis=new int[@NA@],lastStem=new int[@NA@];
+double[] reserves=@RESERVES@;
+int n=@N@,seed=@SEED@,step=0;
+double dtDays=@DT_DAYS@;
+int freezeAt=@FREEZE_AT@;
+int receiverIndex=@RECEIVER_INDEX@,receiverDay=@RECEIVER_DAY@;
+boolean observationMode=@OBS_MODE@;
+boolean integrationMode=@INTEGRATION_MODE@;
+boolean lightOnly=@LIGHT_ONLY@;
+double[][] placements=@PLACEMENTS@;
+boolean ran=false;
+String runId=@RUN@,inputHash=@INPUT_HASH@,engineHash=@ENGINE_HASH@;
+LightModel lm=new LightModel(@RAYS@,@MAX_DEPTH@);
+PrintWriter events,states,flux,ledger,meshes,consumed,apices,edges;
+PrintWriter proposals;
+PrintWriter axisFlux;
+@AXIS_CODE@
+String[] kinds={"Plant","Axis","Apex","Attachment","CompoundLeaf","Root","Internode","Petiole","RachisSegment","Leaflet","TrussAxis","Flower"};
+@EXTENSION_CODE@
+@BOUNDARY_CODE@
+
+Organ add(int p,int parent,int axis,int kind,int rank,int day,String suffix) {
+    Organ o=new Organ(organs.size()); o.owner=p; o.parent=parent; o.axis=axis; o.kind=kind; o.rank=rank; o.born=day;
+    o.controller=parent>=0?org(parent).controller:p;
+    o.segment=currentSegments[o.controller];
+    o.id=plantIds[p]+"/"+suffix; o.maxMass=MAX_MASS[kind];
+    organs.add(o);
+    if(events!=null) event(o,day,"initiation","thermal_program",0);
+    return o;
+}
+void event(Organ o,int day,String type,String rule,double carbon) {
+    events.println(day+","+o.id+","+(o.parent<0?"":org(o.parent).id)+","+type+","+rule+","+carbon+","+axisLabel(o)+","+parentRanks[o.controller]+","+segmentLabel(o));
+}
+String segmentLabel(Organ o) {return o.segment<1?"unavailable":""+o.segment;}
+String axisLabel(Organ o) {return axesEnabled?logicalAxisIds[o.controller]:(o.axis<0?"":org(o.axis).id);}
+String axisPrefix(int controller) {return axesEnabled && !logicalAxisIds[controller].equals("M")?logicalAxisIds[controller]+"/":"";}
+String[] axisFiles(String[] files) {if(!axesEnabled)return files;String[] out=new String[files.length+1];System.arraycopy(files,0,out,0,files.length);out[files.length]="axis_flux.csv";return out;}
+void allocatePlant(int p,double funded,double demand) {
+    if(!axesEnabled){for(int j=0;j<organs.size();j++){Organ o=org(j);if(o.owner==p)o.alloc=demand>0?funded*o.demand/demand:0;}return;}
+    // Capped weighted water filling. Each tissue demand is charged at most once.
+    boolean[] saturated=new boolean[organs.size()];double remaining=funded;
+    for(int j=0;j<organs.size();j++)if(org(j).owner==p)org(j).alloc=0;
+    for(int pass=0;pass<=organs.size();pass++) {
+        double weight=0;for(int j=0;j<organs.size();j++){Organ o=org(j);if(o.owner==p && !saturated[j])weight+=o.demand*sinkScales[o.controller];}
+        if(weight<=0 || remaining<=0)break;
+        double scale=remaining/weight;boolean capped=false;
+        for(int j=0;j<organs.size();j++){Organ o=org(j);if(o.owner==p && !saturated[j] && scale*o.demand*sinkScales[o.controller]>=o.demand){o.alloc=o.demand;remaining-=o.alloc;saturated[j]=true;capped=true;}}
+        if(!capped){for(int j=0;j<organs.size();j++){Organ o=org(j);if(o.owner==p && !saturated[j])o.alloc=scale*o.demand*sinkScales[o.controller];}break;}
+    }
+}
+void exportAxisFlux(int p) {
+    if(!axesEnabled)return;
+    for(int c=0;c<controllerOwners.length;c++)if(controllerOwners[c]==p){
+        double photons=0,gross=0,maint=0,demand=0,alloc=0,structure=0,resp=0;
+        for(int j=0;j<organs.size();j++){Organ o=org(j);if(o.owner==p && o.controller==c){photons+=o.photons;gross+=o.gross;if(!lightOnly){maint+=o.maint;demand+=o.demand;alloc+=o.alloc;structure+=o.delta;resp+=o.alloc*(1-EFFICIENCY);}}}
+        axisFlux.println(step+","+plantIds[p]+","+logicalAxisIds[c]+","+parentRanks[c]+","+photons+","+gross+","+maint+","+demand+","+alloc+","+structure+","+resp);
+    }
+}
+@INITIALIZERS@
+void initialize() {
+    if(!observationMode) for(int p=0;p<plantIds.length;p++) {
+        Organ plant=add(p,-1,-1,0,0,0,"Plant"); plantRoots[p]=plant.idx;
+        Organ axis=add(p,plant.idx,-1,1,0,0,"A0"); axis.axis=axis.idx; activeAxis[p]=axis.idx;
+        Organ apex=add(p,axis.idx,axis.idx,2,0,0,"A0/apex"); activeApex[p]=apex.idx;lastStem[p]=axis.idx;
+        add(p,plant.idx,axis.idx,5,0,0,"Root");
+    }
+    @OBSERVATION@
+}
+protected void init() {
+    initialize();
+    [ Axiom ==> World @LAMPS@; ]
+    println("VTCDEV_READY "+runId);
+}
+void attachGraph() {
+    [ w:World ==> w for(int j=0;j<organs.size();j++)
+        if(org(j).parent<0 && !org(j).attached)
+        ( [ org(j) {org(j).attached=true;} ] ); ]
+    derive();
+    // Topological insertion: parents are older or created earlier in the same boundary.
+    boolean pending=true;
+    while(pending) {
+        pending=false;
+        for(int j=0;j<organs.size();j++) if(!org(j).attached) pending=true;
+        if(pending) {
+            [ o:Organ ==> o for(int j=0;j<organs.size();j++)
+                if(org(j).parent==o.idx && !org(j).attached)
+                ( [ org(j) {org(j).attached=true;} ] ); ]
+            derive();
+        }
+    }
+}
+int pairs(int rank) { return PAIRS[Math.min(rank-1,PAIRS.length-1)]; }
+void compound(int p,Organ node,int rank,int day) {
+    String serial=""+rank;while(serial.length()<4)serial="0"+serial;
+    String key=axisPrefix(node.controller)+"C"+serial;
+    Organ c=add(p,node.idx,node.axis,4,rank,day,key);
+    c.bendAmplitude=mixtureAmplitude(c.id);
+    int m=pairs(rank);
+    Organ pet=add(p,c.idx,node.axis,7,rank,day,key+"/P");
+    int previous=pet.idx;
+    double total=1;
+    for(int i=1;i<=m;i++) total+=2*pairWeight(i,m);
+    for(int i=1;i<=m;i++) {
+        for(int side=-1;side<=1;side+=2) {
+            Organ l=add(p,previous,node.axis,9,rank,day,key+"/P"+i+(side<0?"L":"R"));
+            l.pair=i;l.side=side;l.share=pairWeight(i,m)/total;l.maxMass=MAX_MASS[9]*l.share;
+        }
+        Organ r=add(p,previous,node.axis,8,rank,day,key+"/R"+i);r.pair=i;r.maxMass=MAX_MASS[8]/m;
+        previous=r.idx;
+    }
+    Organ terminal=add(p,previous,node.axis,9,rank,day,key+"/T");terminal.pair=m+1;terminal.share=1/total;terminal.maxMass=MAX_MASS[9]/total;
+}
+double pairWeight(int i,int m) { return m==1?1:1+MIDDLE_RAMP*(1-Math.abs(2.0*(i-1)/(m-1)-1)); }
+void develop(int controller,int day) {
+    int p=controllerOwners[controller];
+    Organ apex=org(activeApex[controller]);
+    if(!axisPrograms[controller] || !trussHistoryKnown[controller])return;
+    if(apex.stopped)return;
+    if(clocks[controller]<GERMINATION_DD)return;
+    int due=(int)Math.floor((clocks[controller]-GERMINATION_DD)/PHYLLOCHRON_DD);
+    while(produced[controller]<due && !org(activeApex[controller]).stopped) {
+        produced[controller]++;
+        int target=trussCounts[controller]==0?FIRST_LEAVES:CADENCE[Math.min(trussCounts[controller]-1,CADENCE.length-1)];
+        int axis=activeAxis[controller];String prefix=axisPrefix(controller);
+        if(axisLeafCounts[controller]<target) {
+            int rank=++leafOrders[controller];
+            Organ stem=add(p,lastStem[controller],axis,6,rank,day,prefix+"I"+rank);lastStem[controller]=stem.idx;
+            Organ node=add(p,stem.idx,axis,3,rank,day,prefix+"N"+rank);
+            compound(p,node,rank,day);axisLeafCounts[controller]++;
+        } else {
+            int count=++trussCounts[controller];
+            Organ truss=add(p,lastStem[controller],axis,10,leafOrders[controller],day,prefix+"Truss"+count);
+            for(int f=1;f<=FLOWERS;f++) { Organ flower=add(p,truss.idx,axis,11,leafOrders[controller],day,prefix+"Truss"+count+"/F"+f);flower.pair=f; }
+            apex=org(activeApex[controller]);apex.stopped=true;event(apex,day,"axis_terminated","terminal_inflorescence",0);
+            currentSegments[controller]++;
+            if(count>1 && target==0) { event(apex,day,"determinate_stop",SP_STOP_RULE,0); }
+            else {
+                Organ next=add(p,lastStem[controller],-1,1,leafOrders[controller],day,prefix+"A"+count);next.axis=next.idx;
+                activeAxis[controller]=next.idx;lastStem[controller]=next.idx;axisLeafCounts[controller]=0;
+                Organ successor=add(p,next.idx,next.idx,2,leafOrders[controller],day,prefix+"A"+count+"/apex");activeApex[controller]=successor.idx;
+                event(successor,day,"sympodial_continuation","one_declared_successor",0);
+            }
+        }
+    }
+}
+double targetMass(Organ o) {
+    if(o.maxMass<=0)return 0;
+    double s0=1/(1+Math.exp(K[o.kind]*MID_DD[o.kind]));
+    double s=1/(1+Math.exp(-K[o.kind]*(o.thermal-MID_DD[o.kind])));
+    return o.maxMass*Math.max(0,Math.min(1,(s-s0)/(1-s0)));
+}
+void updateGeometry() {
+    for(int j=0;j<organs.size();j++) {
+        Organ o=org(j);
+        if(o.owner==receiverIndex && step>=receiverDay && receiverDay>=0)continue;
+        o.x=plantX[o.owner];o.y=plantY[o.owner];o.z=plantZ[o.owner];o.az=0;o.elev=90;
+        if(o.parent>=0) { Organ par=org(o.parent);o.x=par.tx;o.y=par.ty;o.z=par.tz;o.az=par.az;o.elev=par.elev; }
+        if(o.imported) {
+            o.x+=o.offsetX;o.y+=o.offsetY;o.z+=o.offsetZ;o.az=o.initialAz;o.elev=o.initialElev;
+            double scale=o.initialMass>0?(o.kind==9?Math.sqrt(o.mass/o.initialMass):Math.cbrt(o.mass/o.initialMass)):1;
+            o.len=o.initialLength*scale;o.wid=o.initialWidth*scale;o.area=o.initialArea*scale*scale;
+            double a=Math.toRadians(o.az),e=Math.toRadians(o.elev);
+            o.tx=o.x+o.len*Math.cos(e)*Math.cos(a);o.ty=o.y+o.len*Math.cos(e)*Math.sin(a);o.tz=o.z+o.len*Math.sin(e);
+            continue;
+        }
+        o.len=0;o.wid=0;o.area=0;o.alpha=0;
+        double fraction=o.maxMass>0?Math.cbrt(o.mass/o.maxMass):0;
+        if(o.kind==6) {o.len=INTERNODE_CAP_M*fraction;o.wid=STEM_WIDTH_M*fraction;o.elev=90;}
+        if(o.kind==4) {o.az=((o.rank-1)*DIVERGENCE_DEG)%360;o.elev=90-COMPOUND_INSERTION_DEG;}
+        if(o.kind==7 || o.kind==8) {
+            int m=pairs(o.rank);o.len=(o.kind==7?PETIOLE_M:RACHIS_M/m)*fraction;o.wid=RACHIS_WIDTH_M*fraction;
+            if(o.kind==8) {o.alpha=segmentBend(o,m);o.elev-=o.alpha;}
+        }
+        if(o.kind==9 && o.emerged>=0) {
+            o.area=o.mass*SLA_M2_G;o.len=Math.sqrt(2*o.area*LEAF_LW);o.wid=o.len/LEAF_LW;
+            int m=pairs(o.rank);double beta=Math.toRadians(o.side*BASAL_LEAFLET_ANGLE_DEG*(m+1-o.pair)/m);
+            double pa=Math.toRadians(o.az),pe=Math.toRadians(o.elev);
+            double dx=Math.cos(beta)*Math.cos(pe)*Math.cos(pa)-Math.sin(beta)*Math.sin(pa);
+            double dy=Math.cos(beta)*Math.cos(pe)*Math.sin(pa)+Math.sin(beta)*Math.cos(pa);
+            double dz=Math.cos(beta)*Math.sin(pe);
+            o.az=(Math.toDegrees(Math.atan2(dy,dx))+360)%360;o.elev=Math.toDegrees(Math.asin(dz));
+        }
+        if(o.kind==10) {o.len=TRUSS_M*fraction;o.wid=RACHIS_WIDTH_M*fraction;o.az=90;o.elev=30;}
+        if(o.kind==11) {o.len=FLOWER_M*fraction;o.wid=o.len;o.az+=o.pair*360.0/FLOWERS;o.elev=0;}
+        double az=Math.toRadians(o.az),el=Math.toRadians(o.elev);
+        o.tx=o.x+o.len*Math.cos(el)*Math.cos(az);o.ty=o.y+o.len*Math.cos(el)*Math.sin(az);o.tz=o.z+o.len*Math.sin(el);
+    }
+}
+FloatList vertices(Organ o) {
+    if(o.shape!=null) {
+        float[] result=new float[o.shape.length];double scale=Math.sqrt(o.mass/o.initialMass);
+        for(int i=0;i<result.length;i+=3){result[i]=(float)(o.x+o.shape[i]*scale);result[i+1]=(float)(o.y+o.shape[i+1]*scale);result[i+2]=(float)(o.z+o.shape[i+2]*scale);}
+        return placed(result,o.owner);
+    }
+    double az=Math.toRadians(o.az),el=Math.toRadians(o.elev);
+    float x=(float)o.x,y=(float)o.y,z=(float)o.z;
+    float ux=(float)(o.len*Math.cos(el)*Math.cos(az)),uy=(float)(o.len*Math.cos(el)*Math.sin(az)),uz=(float)(o.len*Math.sin(el));
+    float vx=(float)(-o.wid*Math.sin(az)/2),vy=(float)(o.wid*Math.cos(az)/2),vz=0;
+    if(o.kind==9) {
+        Organ par=org(o.parent);double pa=Math.toRadians(par.az),pe=Math.toRadians(par.elev);
+        int m=pairs(o.rank);double beta=Math.toRadians(o.side*BASAL_LEAFLET_ANGLE_DEG*(m+1-o.pair)/m);
+        vx=(float)(o.wid/2*(-Math.sin(beta)*Math.cos(pe)*Math.cos(pa)-Math.cos(beta)*Math.sin(pa)));
+        vy=(float)(o.wid/2*(-Math.sin(beta)*Math.cos(pe)*Math.sin(pa)+Math.cos(beta)*Math.cos(pa)));
+        vz=(float)(o.wid/2*(-Math.sin(beta)*Math.sin(pe)));
+    }
+    // Full-outline diamond for blades; slender funded diamonds for other above-ground tissues.
+    return placed(new float[]{x,y,z,x+ux/2+vx,y+uy/2+vy,z+uz/2+vz,x+ux,y+uy,z+uz,x,y,z,x+ux,y+uy,z+uz,x+ux/2-vx,y+uy/2-vy,z+uz/2-vz},o.owner);
+}
+FloatList placed(float[] v,int owner) {
+    if(integrationMode){double[] r=placements[owner];for(int i=0;i<v.length;i+=3){double x=v[i],y=v[i+1],z=v[i+2];v[i]=(float)(r[0]*x+r[1]*y+r[2]*z+r[9]);v[i+1]=(float)(r[3]*x+r[4]*y+r[5]*z+r[10]);v[i+2]=(float)(r[6]*x+r[7]*y+r[8]*z+r[11]);}}
+    return new FloatList(v);
+}
+void commitGeometry() {
+    [ s:NativeSurface ==> ; ] derive();
+    [ o:Organ, (o.len>0 && o.wid>0 && o.kind!=5) ==> o
+        [NativeSurface(o.idx).(setPolygons(getMesh(vertices(o)).getPolygons()),setShader(organShader(o)))]; ]
+    derive();
+}
+void exportMeshes(PrintWriter writer,int state) {
+    for(NativeSurface s:(* NativeSurface *)) {
+        float[] v=((de.grogra.imp3d.objects.PolygonMesh)s.getPolygons()).getVertexData();
+        for(int i=0;i<v.length;i+=3) writer.println(state+","+org(s.oi).id+","+(i/3)+","+v[i]+","+v[i+1]+","+v[i+2]+","+axisLabel(org(s.oi))+","+parentRanks[org(s.oi).controller]+","+segmentLabel(org(s.oi)));
+    }
+}
+void exportState(int day) {
+    [ p:Organ -branch-> c:Organ ::> { edges.println(day+","+p.id+","+c.id); } ]
+    for(Organ o:(* Organ *)) {
+        String parent=o.parent<0?"":org(o.parent).id;
+        states.println(day+","+plantIds[o.owner]+","+sourceIds[o.owner]+","+o.id+","+parent+","+axisLabel(o)+","+kinds[o.kind]+","+o.rank+","+o.born+","+o.emerged+","+o.thermal+","+o.mass+","+o.maxMass+","+o.x+","+o.y+","+o.z+","+o.tx+","+o.ty+","+o.tz+","+o.len+","+o.wid+","+o.area+","+o.alpha+","+o.az+","+o.elev+","+o.pair+","+o.side+","+o.origin+","+parentRanks[o.controller]+","+(o.axis<0?"":org(o.axis).id)+","+segmentLabel(o));
+        if(o.kind==2)apices.println(day+","+o.id+","+o.stopped+","+clocks[o.controller]+","+produced[o.controller]+","+axisLabel(o)+","+segmentLabel(o)+","+(trussHistoryKnown[o.controller]?"available":"unavailable")+","+(currentSegments[o.controller]<1?"unavailable":""+currentSegments[o.controller]));
+    }
+    exportMeshes(meshes,day);
+}
+String hash(String name) {
+    String h=new BigInteger(1,MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(Paths.get(name)))).toString(16);
+    while(h.length()<64)h="0"+h;return h;
+}
+void checkpoint(int boundary) {
+    if(!integrationMode)return;
+    events.flush();states.flush();flux.flush();ledger.flush();meshes.flush();consumed.flush();apices.flush();edges.flush();proposals.flush();
+    String directory="checkpoints/step_"+boundary;Files.createDirectories(Paths.get(directory));
+    String[] names={"states.csv","events.csv","flux.csv","ledger.csv","meshes.csv","consumed.csv","apices.csv","edges.csv","proposals.csv"};
+    if(extensionEnabled){opticalOutput.flush();photonBudget.flush();names=extensionFiles(names);}
+    if(axesEnabled){axisFlux.flush();names=axisFiles(names);}
+    names=boundaryFiles(names,boundary);
+    for(int i=0;i<names.length;i++)Files.copy(Paths.get(names[i]),Paths.get(directory+"/"+names[i]));
+    PrintWriter c=new PrintWriter(new FileWriter(directory+"/completion.json"));
+    c.print("{\"mode\":\"vtc_development_v3\",\"checkpoint\":true,\"run_id\":\""+runId+"\",\"intervals\":"+boundary+",\"input_hash\":\""+inputHash+"\",\"engine_hash\":\""+engineHash+"\",\"files\":{");
+    for(int i=0;i<names.length;i++){if(i>0)c.print(",");c.print("\""+names[i]+"\":\""+hash(directory+"/"+names[i])+"\"");}
+    c.println("}}");c.close();
+}
+public void simulate() {
+    if(ran)throw new IllegalStateException("fresh native process required");ran=true;
+    events=new PrintWriter(new FileWriter("events.csv"));states=new PrintWriter(new FileWriter("states.csv"));
+    flux=new PrintWriter(new FileWriter("flux.csv"));ledger=new PrintWriter(new FileWriter("ledger.csv"));
+    meshes=new PrintWriter(new FileWriter("meshes.csv"));consumed=new PrintWriter(new FileWriter("consumed.csv"));apices=new PrintWriter(new FileWriter("apices.csv"));edges=new PrintWriter(new FileWriter("edges.csv"));
+    edges.println("day,parent_id,child_id");
+    if(integrationMode){proposals=new PrintWriter(new FileWriter("proposals.csv"));proposals.println("interval,plant_instance_id,organ_id,mass_before_gDM,demand_gC,available_gC,allocated_gC,provisional");}
+    events.println("day,organ_id,parent_id,event,rule,structural_gC,axis_id,parent_rank,segment_index");
+    states.println("day,plant_instance_id,source_plant_id,organ_id,parent_id,axis_id,class,true_leaf_order,birth_day,emergence_day,thermal_age_dd,mass_gDM,max_mass_gDM,x_m,y_m,z_m,tip_x_m,tip_y_m,tip_z_m,length_m,width_m,area_m2,rachis_bend_alpha_deg,azimuth_deg,elevation_deg,pair_index,side,provenance,parent_rank,developmental_axis_id,segment_index");
+    flux.println("interval,plant_instance_id,organ_id,absorbed_umol_s,gross_gC,maintenance_gC,target_gDM,demand_gC,allocated_gC,structural_gC,growth_resp_gC,axis_id,parent_rank,segment_index");
+    ledger.println("interval,plant_instance_id,reserve_start_gC,gross_gC,maintenance_gC,structural_gC,growth_resp_gC,reserve_end_gC,deficit_gC,residual_gC");
+    meshes.println("state,organ_id,vertex,x_m,y_m,z_m,axis_id,parent_rank,segment_index");consumed.println("state,organ_id,vertex,x_m,y_m,z_m,axis_id,parent_rank,segment_index");apices.println("day,organ_id,stopped,plant_thermal_dd,produced_events,axis_id,segment_index,truss_rule_status,axis_segment_index");
+    if(axesEnabled){axisFlux=new PrintWriter(new FileWriter("axis_flux.csv"));axisFlux.println("interval,plant_instance_id,axis_id,parent_rank,absorbed_umol_s,gross_gC,maintenance_gC,demand_gC,allocated_gC,structural_gC,growth_resp_gC");}
+    attachGraph();if(!observationMode)updateGeometry();commitGeometry();extensionStart();boundaryStart();exportState(0);
+    for(apply(n)) {
+        extensionInterval();
+        exportMeshes(consumed,step);
+        for(int j=0;j<organs.size();j++){Organ o=org(j);o.photons=0;o.gross=0;o.maint=o.mass*MAINT[o.kind]*dtDays;}
+        if(boundaryEnabled)incomingLight();
+        else {lm.setSeed(seed);lm.compute();extensionLight();
+        for(NativeSurface s:(* NativeSurface *)) {
+            Organ o=org(s.oi);
+            if(o.kind==9 && o.area>0) {o.photons=lm.getAbsorbedPower(s).integrate()*photonPerJoule;if(extensionEnabled)o.photons=Math.max(0,o.photons);o.gross=calculatePS_Thornley(o.photons/o.area,AMAX,ALPHA,THETA)*o.area*hours[step]*3600*12.011e-6;}
+        }
+        }
+        for(int p=0;p<plantIds.length;p++) {
+            if(lightOnly){for(int j=0;j<organs.size();j++){Organ o=org(j);if(o.owner==p)flux.println(step+","+plantIds[p]+","+o.id+","+o.photons+","+o.gross+",0,0,0,0,0,0,"+axisLabel(o)+","+parentRanks[o.controller]+","+segmentLabel(o));}ledger.println(step+","+plantIds[p]+","+reserves[p]+",0,0,0,0,"+reserves[p]+",0,0");exportAxisFlux(p);continue;}
+            double dd=Math.max(0,(tday[step]*hours[step]+tnight[step]*(24*dtDays-hours[step]))/(24*dtDays)-BASE_C)*dtDays;
+            for(int c=0;c<controllerOwners.length;c++)if(controllerOwners[c]==p)clocks[c]+=dd;
+            for(int j=0;j<organs.size();j++)if(org(j).owner==p)org(j).thermal+=dd;
+            if((freezeAt<0 || step<freezeAt) && !(p==receiverIndex && receiverDay>=0 && step>=receiverDay))for(int c=0;c<controllerOwners.length;c++)if(controllerOwners[c]==p)develop(c,step+1);
+            double gross=0,maintenance=0,demand=0;
+            for(int j=0;j<organs.size();j++) {Organ o=org(j);if(o.owner==p){
+                // First-boundary initiation has zero age; first funded growth starts next day.
+                o.demand=Math.max(0,targetMass(o)-o.mass)*CARBON_FRACTION/EFFICIENCY;
+                gross+=o.gross;maintenance+=o.maint;demand+=o.demand;
+            }}
+            double start=reserves[p],budget=start+gross-maintenance,funded=Math.min(Math.max(0,budget),demand),structural=0,gr=0;
+            allocatePlant(p,funded,demand);
+            for(int j=0;j<organs.size();j++) {Organ o=org(j);if(o.owner==p){
+                o.delta=o.alloc*EFFICIENCY;
+                if(integrationMode)proposals.println(step+","+plantIds[p]+","+o.id+","+o.mass+","+o.demand+","+budget+","+o.alloc+",true");
+                if(o.mass==0 && o.delta>0)event(o,step+1,"funded_birth","first_positive_allocation",o.delta);
+                o.mass+=o.delta/CARBON_FRACTION;structural+=o.delta;gr+=o.alloc*(1-EFFICIENCY);
+                if(o.mass>0 && o.emerged<0 && elapsedDays[step+1]-(o.born>=0?elapsedDays[o.born]:o.born*dtDays)>=EMERGENCE_DAYS) {o.emerged=step+1;event(o,step+1,"emergence","funded_mass_and_age",o.delta);}
+                flux.println(step+","+plantIds[p]+","+o.id+","+o.photons+","+o.gross+","+o.maint+","+targetMass(o)+","+o.demand+","+o.alloc+","+o.delta+","+(o.alloc*(1-EFFICIENCY))+","+axisLabel(o)+","+parentRanks[o.controller]+","+segmentLabel(o));
+            }}
+            reserves[p]=Math.max(0,budget-funded);
+            ledger.println(step+","+plantIds[p]+","+start+","+gross+","+maintenance+","+structural+","+gr+","+reserves[p]+","+Math.max(0,-budget)+","+(budget-reserves[p]-structural-gr));
+            exportAxisFlux(p);
+        }
+        attachGraph();
+        if(!lightOnly && (freezeAt<0 || step<freezeAt)){updateGeometry();commitGeometry();}
+        exportState(step+1);checkpoint(step+1);println("VTCDEV_INTERVAL "+(++step));
+    }
+    events.close();states.close();flux.close();ledger.close();meshes.close();consumed.close();apices.close();edges.close();
+    if(integrationMode)proposals.close();
+    if(axesEnabled)axisFlux.close();
+    if(extensionEnabled){opticalOutput.close();photonBudget.close();[s:SceneObject ==> ;] derive();}
+    if(!boundaryEnabled) {
+    // Separate empty-scene comparison, never photons supplied to growing organs.
+    [ s:NativeSurface ==> ; ] derive();
+    [ w:World ==> w for(int j=0;j<16;j++)
+        ([Translate((float)(GRID_X+(j%4)*GRID_SPACING),(float)(GRID_Y+(j/4)*GRID_SPACING),(float)GRID_Z) RL(-90)
+          Sensor(j).(setLength(0.02f),setAxis(new javax.vecmath.Vector3f(0.02f,0,0)),setShader(BLACK))]); ] derive();
+    lm.setSeed(seed);lm.compute();
+    PrintWriter sensors=new PrintWriter(new FileWriter("sensors.csv"));sensors.println("grid_row,grid_col,absorbed_umol_s,area_m2");
+    for(Sensor s:(* Sensor *))sensors.println((s.sid/4+1)+","+(s.sid%4+1)+","+lm.getAbsorbedPower(s).integrate()*photonPerJoule+",0.0004");
+    sensors.close();
+    } else {PrintWriter sensors=new PrintWriter(new FileWriter("sensors.csv"));sensors.println("grid_row,grid_col,absorbed_umol_s,area_m2");sensors.close();}
+    String[] names={"states.csv","events.csv","flux.csv","ledger.csv","meshes.csv","consumed.csv","apices.csv","edges.csv","sensors.csv"};
+    if(integrationMode)names=new String[]{"states.csv","events.csv","flux.csv","ledger.csv","meshes.csv","consumed.csv","apices.csv","edges.csv","sensors.csv","proposals.csv"};
+    names=extensionFiles(names);
+    names=axisFiles(names);
+    names=boundaryFiles(names,n);
+    PrintWriter done=new PrintWriter(new FileWriter("completion.json"));
+    done.print("{\"mode\":\"vtc_development_v3\",\"run_id\":\""+runId+"\",\"intervals\":"+n+",\"input_hash\":\""+inputHash+"\",\"engine_hash\":\""+engineHash+"\",\"files\":{");
+    for(int i=0;i<names.length;i++){if(i>0)done.print(",");done.print("\""+names[i]+"\":\""+hash(names[i])+"\"");}
+    done.println("}}");done.close();println("VTCDEV_DONE "+runId);System.exit(0);
+}

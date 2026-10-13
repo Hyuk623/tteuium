@@ -1,0 +1,10 @@
+example_id,bend_type,subtype,source,theta_deg_measured,note
+FLAT-1,flat,straight,contact_sheet_20261010,,rachis near horizontal and straight
+FLAT-2,flat,tip_droop,contact_sheet_20261010,,only the last-leaflet region droops (allowed in flat)
+FLAT-3,flat,tip_droop,contact_sheet_20261010,,tip droop; strong leaflet-blade curl ignored (separate criterion)
+CURV-1,bent,kinked,contact_sheet_20261010,,bends from mid-rachis
+CURV-2,bent,hook,contact_sheet_20261010,,distal half hangs/returns toward stem
+CURV-3,bent,hook,contact_sheet_20261010,,distal half hangs/returns toward stem
+CURV-4,bent,arch,contact_sheet_20261010,,rises from base then arches over (user: add to bent)
+DISS-1,reference_dissection,before,contact_sheet_20261010,,caliper total length 50.71 mm (only measured value); pre-removal type unrecorded
+DISS-2,reference_dissection,layout,contact_sheet_20261010,,dissected layout on 15x10 cm mat with 1 cm grid

@@ -1,0 +1,6 @@
+order,stage,program,path,owner,status,note
+2,P2 light,Empirical measured field,tools/empirical_light_field.py,Codex,implemented,46 measured points; bounded interpolation; configuration binding; physical accuracy unvalidated
+2,P2 light,Empirical canopy direction scenarios,tools/empirical_canopy.py,Codex,partial,50/60/70 percent diffuse scenarios implemented and fixture tested; real optical surfaces and lamp pose unavailable
+2,P2 light,Empirical reference DLI,tools/reference_dli_empirical.py,Codex,implemented,Versioned derived per-position duration dose; independent consumer; no whole-plant promotion
+2,P2 light,Empirical field tests,tools/tests/test_empirical_light_field.py,Codex,executed,29 focused tests passed
+2,P2 light,Empirical field execution,handoff/P2_EMPIRICAL_LIGHT_FIELD_EXECUTION_2026-10-13.md,Codex,executed,Four declared coordinate variants and independent consumer outputs; no real leaf forecast

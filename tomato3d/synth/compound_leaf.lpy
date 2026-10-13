@@ -1,0 +1,45 @@
+# Compound-leaf interior grammar (tomato3d.synth, Stage 1).
+#
+# All random draws are made by the Python wrapper (compound_leaf.py) from seeded streams and
+# passed in as variables, so a derivation is a pure function of its inputs.
+#
+# Modules
+#   A(k)                       rachis apex before internode k
+#   I(length_mm, droop_deg)    rachis internode; pitches the turtle down by droop_deg, then moves
+#   LP(tag, side, length_mm, petiolule_mm, angle_deg)   lateral leaflet (pair or intercalary)
+#   T(length_mm)               terminal leaflet at the rachis tip
+#
+# Variables (from the wrapper)
+#   SEGMENTS       number of rachis internodes
+#   SEG_MM         internode length (rachis without the terminal leaflet / SEGMENTS)
+#   DROOP_DEG      droop per internode
+#   EVENTS         list of (segment_index, tag, side, length_mm, petiolule_mm, angle_deg)
+#   TERMINAL_MM    terminal leaflet length
+
+extern(SEGMENTS = 1)
+extern(SEG_MM = 1.0)
+extern(DROOP_DEG = 0.0)
+extern(EVENTS = [])
+extern(TERMINAL_MM = 1.0)
+
+module A(k)
+module I(length_mm, droop_deg)
+module LP(tag, side, length_mm, petiolule_mm, angle_deg)
+module T(length_mm)
+
+Axiom: A(0)
+
+derivation length: SEGMENTS
+production:
+
+A(k):
+    nproduce I(SEG_MM, DROOP_DEG)
+    for (index, tag, side, length_mm, petiolule_mm, angle_deg) in EVENTS:
+        if index == k:
+            nproduce LP(tag, side, length_mm, petiolule_mm, angle_deg)
+    if k + 1 < SEGMENTS:
+        nproduce A(k + 1)
+    else:
+        nproduce T(TERMINAL_MM)
+
+endlsystem

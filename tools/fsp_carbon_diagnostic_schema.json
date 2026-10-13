@@ -1,0 +1,920 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "P4 isolated carbon diagnostic request",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "p3_interval",
+    "carbon_state",
+    "light_series",
+    "environment",
+    "parameter_pack"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "p4-carbon-diagnostic-2"
+    },
+    "p3_interval": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "area_evidence_start": {
+          "type": "object",
+          "description": "Organ-keyed evidence kept outside hashed organ states to avoid a self-referential geometry hash.",
+          "additionalProperties": {
+            "$ref": "#/$defs/area_evidence"
+          }
+        },
+        "area_evidence_end": {
+          "type": "object",
+          "description": "Organ-keyed evidence kept outside hashed organ states to avoid a self-referential geometry hash.",
+          "additionalProperties": {
+            "$ref": "#/$defs/area_evidence"
+          }
+        }
+      }
+    },
+    "carbon_state": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "reserve_evidence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/reserve_evidence"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "light_series": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "patches": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/face_evidence"
+          }
+        },
+        "samples": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/face_evidence"
+          }
+        },
+        "light_scope": {
+          "enum": [
+            "plant",
+            "canopy"
+          ]
+        },
+        "canopy_provenance": {
+          "type": [
+            "object",
+            "null"
+          ]
+        }
+      }
+    },
+    "environment": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "parameter_pack": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "payload": {
+          "type": "object",
+          "properties": {
+            "source_family": {
+              "$ref": "#/$defs/source_family"
+            },
+            "parameters": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/$defs/parameter_record"
+              }
+            },
+            "photosynthesis": {
+              "type": "object",
+              "properties": {
+                "alpha": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "Pmax": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "P_sat": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "theta": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "Rd_day": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "Rd_night": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "result": {
+      "title": "P4 independent-interval carbon diagnostic result",
+      "type": "object",
+      "required": [
+        "run_id",
+        "scenario_id",
+        "plant_instance_id",
+        "source_plant_id",
+        "trajectory_id",
+        "t_start",
+        "t_end",
+        "frame_id",
+        "geometry_hash_start",
+        "geometry_hash_end",
+        "area_basis_id",
+        "trajectory_weight",
+        "available_growth_carbon_gC",
+        "required_growth_carbon_gC",
+        "sufficiency_ratio",
+        "maintenance_deficit_gC",
+        "growth_deficit_gC",
+        "schema_version",
+        "diagnostic_scope",
+        "light_basis",
+        "status",
+        "evidence_status",
+        "feedback_action",
+        "accepted_for_domain",
+        "coupling_audit_status",
+        "d9_compatibility",
+        "p4_parameter_draw_id",
+        "numerical_tolerance_applied",
+        "component_status",
+        "limiting_inputs",
+        "assumptions",
+        "source_hashes",
+        "reserve_propagation",
+        "interval_independence",
+        "reserve_reuse_assumption",
+        "pack_id",
+        "maintenance_activity_zero",
+        "source_buffer_feedback",
+        "nonfoliar_assimilation",
+        "maintenance_temperature_integration",
+        "diagnostic_interpretation",
+        "nrh_fit_preprocessing",
+        "two_sided_exchange",
+        "sympodial_continuation",
+        "light_to_orientation_response",
+        "fvcb",
+        "respiration_accounting",
+        "rgr5_scope",
+        "rgr5_mass_basis_deviation_from_source",
+        "total_dm_substitute_caveat",
+        "nrh_interpretation_note",
+        "reserve_provenance_chain_id",
+        "reserve_evidence_hash",
+        "reserve_source_ref",
+        "reserve_provenance_status",
+        "disclosure_reasons",
+        "issue_codes",
+        "calibration_basis_issues_json",
+        "area_evidence_contract",
+        "area_evidence_status",
+        "area_support_json",
+        "canopy_provenance_json",
+        "physical_area_validated"
+      ],
+      "properties": {
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scenario_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "plant_instance_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_plant_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "trajectory_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "t_start": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "t_end": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "frame_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geometry_hash_start": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "geometry_hash_end": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "area_basis_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "trajectory_weight": {
+          "type": "number",
+          "minimum": 0
+        },
+        "available_growth_carbon_gC": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "required_growth_carbon_gC": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "sufficiency_ratio": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "maintenance_deficit_gC": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "growth_deficit_gC": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "schema_version": {
+          "const": "p4-carbon-diagnostic-2"
+        },
+        "diagnostic_scope": {
+          "enum": [
+            "whole_plant",
+            "supported_leaf_subset"
+          ]
+        },
+        "light_basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "unavailable",
+            "maintenance_deficit",
+            "no_growth_demand",
+            "sufficient",
+            "growth_deficit"
+          ]
+        },
+        "evidence_status": {
+          "enum": [
+            "hypothetical",
+            "conditional_reviewed"
+          ]
+        },
+        "feedback_action": {
+          "const": "none"
+        },
+        "accepted_for_domain": {
+          "const": false
+        },
+        "coupling_audit_status": {
+          "enum": [
+            "complete",
+            "unavailable",
+            "incompatible"
+          ]
+        },
+        "d9_compatibility": {
+          "enum": [
+            "compatible",
+            "incompatible",
+            "unavailable"
+          ]
+        },
+        "p4_parameter_draw_id": {
+          "type": "string"
+        },
+        "numerical_tolerance_applied": {
+          "type": "boolean"
+        },
+        "component_status": {
+          "type": "object",
+          "required": [
+            "supply",
+            "maintenance",
+            "demand",
+            "budget"
+          ],
+          "additionalProperties": {
+            "enum": [
+              "available",
+              "unavailable",
+              "not_applicable"
+            ]
+          }
+        },
+        "limiting_inputs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "component",
+              "code",
+              "reason",
+              "plant_instance_id",
+              "trajectory_id",
+              "t_start",
+              "t_end",
+              "source_ref"
+            ],
+            "properties": {
+              "component": {
+                "type": "string",
+                "minLength": 1
+              },
+              "code": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              },
+              "plant_instance_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "trajectory_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "t_start": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "t_end": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "source_ref": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "assumptions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "source_hashes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "reserve_propagation": {
+          "const": "none"
+        },
+        "interval_independence": {
+          "const": "independent_single_interval"
+        },
+        "reserve_reuse_assumption": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "pack_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "maintenance_activity_zero": {
+          "type": "boolean"
+        },
+        "source_buffer_feedback": {
+          "const": "not_modelled"
+        },
+        "nonfoliar_assimilation": {
+          "const": "not_modelled"
+        },
+        "maintenance_temperature_integration": {
+          "const": "sub_daily"
+        },
+        "diagnostic_interpretation": {
+          "const": "cross_cultivar_consistency_check"
+        },
+        "nrh_fit_preprocessing": {
+          "const": "unresolved"
+        },
+        "two_sided_exchange": {
+          "const": "not_modelled"
+        },
+        "sympodial_continuation": {
+          "const": "not_modelled"
+        },
+        "light_to_orientation_response": {
+          "const": "not_modelled"
+        },
+        "fvcb": {
+          "const": "not_modelled"
+        },
+        "respiration_accounting": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rgr5_scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rgr5_mass_basis_deviation_from_source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "total_dm_substitute_caveat": {
+          "type": "string",
+          "minLength": 1
+        },
+        "nrh_interpretation_note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reserve_provenance_chain_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reserve_evidence_hash": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reserve_source_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reserve_provenance_status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "disclosure_reasons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "field",
+              "status",
+              "reason"
+            ]
+          }
+        },
+        "issue_codes": {
+          "type": "string"
+        },
+        "calibration_basis_issues_json": {
+          "type": "string"
+        },
+        "area_evidence_contract": {
+          "type": "string"
+        },
+        "area_evidence_status": {
+          "type": "string"
+        },
+        "area_support_json": {
+          "type": "string"
+        },
+        "canopy_provenance_json": {
+          "type": "string"
+        },
+        "physical_area_validated": {
+          "const": false
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "unavailable"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sufficiency_ratio": {
+                "type": "null"
+              },
+              "limiting_inputs": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "maintenance_deficit"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sufficiency_ratio": {
+                "type": "null"
+              },
+              "available_growth_carbon_gC": {
+                "type": "null"
+              },
+              "required_growth_carbon_gC": {
+                "type": "number",
+                "minimum": 0
+              },
+              "maintenance_deficit_gC": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "growth_deficit_gC": {
+                "type": "null"
+              },
+              "limiting_inputs": {
+                "minItems": 1,
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "const": "maintenance_budget_negative"
+                    }
+                  },
+                  "required": [
+                    "code"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "no_growth_demand"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sufficiency_ratio": {
+                "type": "null"
+              },
+              "available_growth_carbon_gC": {
+                "type": "number",
+                "minimum": 0
+              },
+              "required_growth_carbon_gC": {
+                "const": 0
+              },
+              "maintenance_deficit_gC": {
+                "const": 0
+              },
+              "growth_deficit_gC": {
+                "const": 0
+              },
+              "limiting_inputs": {
+                "minItems": 1,
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "const": "zero_growth_demand"
+                    }
+                  },
+                  "required": [
+                    "code"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "sufficient"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "required_growth_carbon_gC": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "sufficiency_ratio": {
+                "type": "number",
+                "minimum": 0
+              },
+              "available_growth_carbon_gC": {
+                "type": "number",
+                "minimum": 0
+              },
+              "maintenance_deficit_gC": {
+                "const": 0
+              },
+              "growth_deficit_gC": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "growth_deficit"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "required_growth_carbon_gC": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "sufficiency_ratio": {
+                "type": "number",
+                "minimum": 0
+              },
+              "available_growth_carbon_gC": {
+                "type": "number",
+                "minimum": 0
+              },
+              "maintenance_deficit_gC": {
+                "const": 0
+              },
+              "growth_deficit_gC": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            }
+          }
+        }
+      ],
+      "x-semantic-checks": [
+        "interval positive with timezone",
+        "identity/hash/source consistency",
+        "raw ratio and deficit match budget within declared numerical policy",
+        "partial scope requires scoped budget",
+        "no P3 mutation",
+        "unavailable components remain in denominators"
+      ]
+    },
+    "envelope": {
+      "type": "object",
+      "required": [
+        "payload",
+        "sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "payload": {
+          "type": "object"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "source_family": {
+      "enum": [
+        "butturini_dwarf",
+        "non_dwarf",
+        "hypothetical",
+        null
+      ],
+      "description": "Required scientific provenance for the relevant runtime path; missing is structured unavailable, never inferred from names."
+    },
+    "parameter_record": {
+      "type": "object",
+      "properties": {
+        "source_family": {
+          "$ref": "#/$defs/source_family"
+        },
+        "measured_light_basis": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "incident",
+            "absorbed",
+            null
+          ]
+        }
+      },
+      "description": "alpha/Pmax (P_sat alias)/theta require non-null measured_light_basis at runtime. Null or omitted is unavailable; unit/evidence checks remain runtime."
+    },
+    "reserve_evidence": {
+      "type": "object",
+      "properties": {
+        "source_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "lineage_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "description": "source_ref and lineage_id required by runtime for reserve budget; absence remains structured unavailable."
+    },
+    "face_evidence": {
+      "type": "object",
+      "properties": {
+        "illuminated_faces": {
+          "enum": [
+            "adaxial_only",
+            "abaxial_only",
+            "both",
+            null
+          ]
+        },
+        "face_source_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "area_evidence": {
+          "$ref": "#/$defs/area_evidence"
+        },
+        "biological_face_evidence": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "area_weight_m2": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    "area_evidence": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Missing scientific fields yield runtime unavailable; source declarations do not certify accuracy.",
+      "properties": {
+        "schema_version": {
+          "const": "p4-area-evidence-1"
+        },
+        "quantity": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "value": {
+          "type": "number"
+        },
+        "source_ref": {
+          "type": "string"
+        },
+        "source_row_id": {
+          "type": "string"
+        },
+        "support_source_ref": {
+          "type": "string"
+        },
+        "source_sha256": {
+          "type": "string"
+        },
+        "tissue_partition_id": {
+          "type": "string"
+        },
+        "partition_source_ref": {
+          "type": "string"
+        },
+        "partition_sha256": {
+          "type": "string"
+        },
+        "plant_instance_id": {
+          "type": "string"
+        },
+        "organ_id": {
+          "type": "string"
+        },
+        "patch_id": {
+          "type": "string"
+        },
+        "geometry_hash": {
+          "type": "string"
+        },
+        "area_basis_id": {
+          "type": "string"
+        },
+        "spatial_support": {
+          "type": "string"
+        },
+        "area_method": {
+          "type": "string"
+        },
+        "estimator_status": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "x-runtime-validation": "See FSP_CARBON_DIAGNOSTIC.md and pure-function checks for hash, scope, interval, evidence, dimension and accounting invariants",
+  "x-safety-revision": "2026-10-04-V2-D15-D20; model-input enums distinct from output undeclared/not_applicable/unavailable statuses; missing scientific fields handled by runtime",
+  "x-area-evidence-revision": "p4-area-evidence-1"
+}

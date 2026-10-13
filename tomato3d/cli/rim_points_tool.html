@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>화분 테두리 점 찍기</title>
+<style>
+:root {
+  --bg: #f6f6f4; --panel: #ffffff; --ink: #1d1d1b; --muted: #6b6b66; --line: #d9d9d4;
+  --accent: #1f6feb; --warn: #b54708; --ok: #1a7f37; --bad: #c62828;
+  --s1: #e6194b; --s2: #3cb44b; --s3: #4363d8; --s4: #f58231; --ruler: #911eb4;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #161616; --panel: #202020; --ink: #ededea; --muted: #a3a39d; --line: #3a3a37;
+    --accent: #58a6ff; --warn: #f0a050; --ok: #4ac26b; --bad: #ff6b6b; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, "Malgun Gothic", sans-serif;
+  display: grid; grid-template-columns: 300px 1fr; height: 100vh; overflow: hidden; }
+aside { background: var(--panel); border-right: 1px solid var(--line); padding: 12px; overflow-y: auto; }
+h1 { font-size: 16px; margin: 0 0 6px; }
+.small { font-size: 12px; color: var(--muted); }
+label { display: block; margin-top: 8px; font-size: 12px; color: var(--muted); }
+input[type=text], input[type=number] { width: 100%; padding: 5px 7px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--bg); color: var(--ink); font: inherit; }
+.modes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 8px; }
+.modes button { padding: 6px 0; font-weight: 600; }
+button { border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 6px; padding: 5px 8px;
+  cursor: pointer; font: inherit; }
+button.on { outline: 2px solid var(--accent); }
+.row { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+ul { list-style: none; padding: 0; margin: 10px 0 0; }
+li { padding: 6px 8px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; }
+li.cur { border-color: var(--accent); }
+li .st { font-size: 11px; color: var(--muted); }
+li.done .name::after { content: " ✓"; color: var(--ok); }
+main { position: relative; overflow: hidden; }
+canvas { display: block; width: 100%; height: 100%; cursor: crosshair; background: #000; }
+#hud { position: absolute; left: 10px; top: 10px; background: color-mix(in srgb, var(--panel) 88%, transparent);
+  border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; max-width: 460px; font-size: 13px; }
+#hud .bad { color: var(--bad); } #hud .warn { color: var(--warn); } #hud .ok { color: var(--ok); }
+#edges .er { display: grid; grid-template-columns: 34px 1fr auto; gap: 4px; align-items: center; margin-top: 4px; }
+#edges select { width: 100%; font: inherit; font-size: 12px; background: var(--bg); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 6px; padding: 2px; }
+#edges label { margin: 0; font-size: 11px; }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 3px; vertical-align: -1px; }
+</style>
+</head>
+<body>
+<aside>
+  <h1 id="title">화분 테두리 점 찍기 (T6)</h1>
+  <div class="small" id="help">위 사진마다 테두리의 <b>평평한 네 변</b>에 점을 찍습니다(깎인 모서리는 피함). 기본은 <b>바깥 윗선</b>(종이 배경과의 윤곽). 다른 선을 찍었다면 왼쪽 '변별 선'에서 바꿉니다. 변 번호 1→2→3→4는 테두리를 따라 <b>차례로</b>. 자 눈금은 선택(교차 확인용).</div>
+  <label>작성자 이니셜<input id="annotator" type="text" placeholder="예: SH"></label>
+  <label>클릭 오차(px, 필수 — 내 클릭이 얼마나 빗나갈 수 있는지)<input id="sigma" type="number" min="0.1" step="0.1" placeholder="예: 3"></label>
+  <label>바깥 윗선 한 변(mm, 미리보기용 — 기록 값은 pot_spec.csv)<input id="edge" type="number" value="60" step="0.1"></label>
+  <label>안쪽 윗선 한 변(mm, 미리보기용)<input id="inner" type="number" value="59" step="0.1"></label>
+  <div class="small" style="margin-top:8px"><b>이 사진의 변별 선</b> — 각 변의 점이 어느 선 위에 있는지(한 변 = 한 선). 흙 경계는 테두리보다 10 mm 아래 평면입니다.</div>
+  <div id="edges"></div>
+  <div class="modes" id="modes">
+    <button data-m="1" style="color:var(--s1)">1</button><button data-m="2" style="color:var(--s2)">2</button>
+    <button data-m="3" style="color:var(--s3)">3</button><button data-m="4" style="color:var(--s4)">4</button>
+    <button data-m="R" style="color:var(--ruler)">자</button>
+  </div>
+  <label>자 눈금 값(mm) — '자' 모드에서 클릭할 눈금<input id="tick" type="number" step="1" placeholder="예: 50 (5 cm 눈금)"></label>
+  <div class="row">
+    <button id="undo">되돌리기 (Backspace)</button><button id="clear">이 사진 지우기</button>
+  </div>
+  <div class="row">
+    <button id="export">rim_points.csv 저장</button>
+    <label style="margin:0"><input id="import" type="file" accept=".csv" hidden><span class="small" style="cursor:pointer;text-decoration:underline" onclick="document.getElementById('import').click()">CSV 불러오기</span></label>
+  </div>
+  <div class="small" style="margin-top:8px">조작: 왼쪽 클릭 = 점, Alt+클릭 = 가까운 점 삭제, 휠 = 확대/축소, 오른쪽(가운데) 드래그 = 이동, 1–4·R = 모드, F = 전체 보기.<br>
+  저장한 파일은 <code>data/records/pots/rim_points.csv</code>로 복사합니다. 좌표는 원본 3024×3024 화소 기준.</div>
+  <ul id="list"></ul>
+  <div class="small" id="prov" style="margin-top:10px"></div>
+</aside>
+<main>
+  <canvas id="cv"></canvas>
+  <div id="hud"></div>
+</main>
+<script src="rim_core.js"></script>
+<script>
+"use strict";
+const MANIFEST = __MANIFEST__;
+const SIDE = MANIFEST.view === "side";
+// one autosave slot per page (per output file), so the per-azimuth side pages never overwrite each other;
+// the top page keeps its original slot so earlier autosaved work is still found
+// v3 for side pages (2026-10-13): pages now record the line of each side (edge column); the v2 slot of the void
+// rim_click_side_20261012_03 pages held mislabelled proposals and is not read. The top page keeps its v1 slot.
+const KEY = SIDE ? "rim_points_tool_v3_" + MANIFEST.output_name : "rim_points_tool_v1";
+const COLORS = { 1: "--s1", 2: "--s2", 3: "--s3", 4: "--s4", R: "--ruler" };
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const EDGE_LABEL = { outer_top: "바깥 윗선 (테두리 평면)", inner_top: "안쪽 윗선 (테두리 평면)",
+  medium_junction: "흙 경계 (10 mm 아래 평면)" };
+const blankEdges = () => ({ 1: "outer_top", 2: "outer_top", 3: "outer_top", 4: "outer_top" });
+const state = { cur: 0, mode: "1", view: null,
+  photos: MANIFEST.photos.map(p => ({ ...p, points: [], edges: blankEdges(), occluded: [] })) };
+const imgs = {};
+const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+const $ = id => document.getElementById(id);
+
+function save() {
+  try {
+    localStorage.setItem(KEY, JSON.stringify({ photos: state.photos.map(p => ({ sha: p.image_sha256, points: p.points,
+      edges: p.edges, occluded: p.occluded })),
+      sigma: $("sigma").value, annotator: $("annotator").value }));
+  } catch (e) { /* storage may be unavailable; the CSV export is the record */ }
+}
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (d) {
+      for (const s of d.photos) {
+        const p = state.photos.find(x => x.image_sha256 === s.sha);
+        if (p) { p.points = s.points; p.edges = s.edges || blankEdges(); p.occluded = s.occluded || []; }
+      }
+      $("sigma").value = d.sigma || ""; $("annotator").value = d.annotator || "";
+    }
+  } catch (e) { /* ignore */ }
+  // automatic OUTER-edge proposals (tomato3d.state.rim_auto) for photos with nothing saved yet; hollow squares
+  for (const p of state.photos) {
+    if (!p.points.length && p.prefill && p.prefill.length) {
+      p.points = p.prefill.filter(q => q.kind === "rim_edge").map(q => ({ ...q, auto: true }));
+      for (const q of p.prefill) if (q.kind === "rim_edge" && q.edge) p.edges[q.side] = q.edge;
+      p.occluded = (p.prefill_occluded || []).slice();
+    }
+  }
+}
+
+function photo() { return state.photos[state.cur]; }
+function image(p) {
+  if (!imgs[p.image_sha256]) {
+    const im = new Image(); im.onload = () => { fit(); draw(); }; im.src = p.jpg; imgs[p.image_sha256] = im;
+  }
+  return imgs[p.image_sha256];
+}
+function resize() { const r = cv.getBoundingClientRect(); cv.width = r.width * devicePixelRatio; cv.height = r.height * devicePixelRatio; }
+function fit() {
+  const im = image(photo()); if (!im.naturalWidth) return;
+  const s = Math.min(cv.width / im.naturalWidth, cv.height / im.naturalHeight);
+  state.view = { s, ox: (cv.width - im.naturalWidth * s) / 2, oy: (cv.height - im.naturalHeight * s) / 2 };
+}
+const toImg = (cx, cy) => [(cx - state.view.ox) / state.view.s, (cy - state.view.oy) / state.view.s];
+const toCv = (x, y) => [x * state.view.s + state.view.ox, y * state.view.s + state.view.oy];
+
+function analysis(p) {
+  const sides = { 1: [], 2: [], 3: [], 4: [] }, ticks = [];
+  for (const q of p.points) {
+    if (q.kind === "rim_edge") sides[q.side].push([q.x, q.y]); else ticks.push({ xy: [q.x, q.y], mm: q.mm });
+  }
+  const outer = parseFloat($("edge").value) || 60, inner = parseFloat($("inner").value) || 59;
+  const used = [1, 2, 3, 4].filter(k => !p.occluded.includes(k));
+  const planes = new Set(used.map(k => RimCore.PLANE[p.edges[k]]));
+  const halves = {};
+  for (const k of [1, 2, 3, 4]) halves[k] = (p.edges[k] === "outer_top" ? outer : inner) / 2;
+  const plane = planes.size === 1 ? [...planes][0] : null;
+  let res = RimCore.derive(sides, outer, ticks, halves);
+  if (p.occluded.length) res = { ...res, ok: false, problems: [
+    `변 ${p.occluded.join(", ")} 가려짐 — 세 변으로는 미리보기 없음(P1 실행이 초점거리를 고정해 근사 자세만 계산)`] };
+  else if (!plane) res = { ...res, ok: false, problems: ["변들이 서로 다른 평면의 선입니다(흙 경계와 윗선을 섞을 수 없음)"] };
+  return { sides, ticks, res, plane };
+}
+
+function draw() {
+  resize(); if (!state.view) fit();
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  const p = photo(), im = image(p);
+  if (!im.naturalWidth || !state.view) return;
+  const v = state.view;
+  ctx.drawImage(im, v.ox, v.oy, im.naturalWidth * v.s, im.naturalHeight * v.s);
+  const { res, plane } = analysis(p);
+  const dpr = devicePixelRatio;
+  for (const k of [1, 2, 3, 4]) {
+    const L = res.lines[k]; if (!L) continue;
+    const [mx, my] = L.mean, [dx, dy] = L.dir, far = 4000;
+    const a = toCv(mx - dx * far, my - dy * far), b = toCv(mx + dx * far, my + dy * far);
+    ctx.strokeStyle = css(COLORS[k]); ctx.lineWidth = 1 * dpr; ctx.setLineDash([6 * dpr, 4 * dpr]);
+    ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  if (res.corners) {
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5 * dpr; ctx.beginPath();
+    res.corners.forEach((c, i) => { const q = toCv(...c); i ? ctx.lineTo(...q) : ctx.moveTo(...q); });
+    ctx.closePath(); ctx.stroke();
+  }
+  for (const q of p.points) {
+    const [x, y] = toCv(q.x, q.y), r = 6 * dpr;
+    ctx.strokeStyle = css(COLORS[q.kind === "rim_edge" ? q.side : "R"]); ctx.lineWidth = 2 * dpr;
+    if (q.auto) { ctx.strokeRect(x - r, y - r, 2 * r, 2 * r); continue; }  // auto proposal: hollow square
+    ctx.beginPath(); ctx.moveTo(x - r, y); ctx.lineTo(x + r, y); ctx.moveTo(x, y - r); ctx.lineTo(x, y + r); ctx.stroke();
+    if (q.kind === "ruler_tick") { ctx.fillStyle = css("--ruler"); ctx.font = `${12 * dpr}px system-ui`; ctx.fillText(`${q.mm} mm`, x + r, y - r); }
+  }
+  hud(res, p, plane);
+  list();
+  edgesPanel(p);
+}
+
+function edgesPanel(p) {
+  const box = $("edges"); box.innerHTML = "";
+  for (const k of [1, 2, 3, 4]) {
+    const row = document.createElement("div"); row.className = "er";
+    const occ = p.occluded.includes(k);
+    row.innerHTML = `<span><span class="sw" style="background:var(${COLORS[k]})"></span>${k}</span>` +
+      `<select ${occ ? "disabled" : ""}>${RimCore.EDGES.map(e => `<option value="${e}" ${p.edges[k] === e ? "selected" : ""}>${EDGE_LABEL[e]}</option>`).join("")}</select>` +
+      `<label><input type="checkbox" ${occ ? "checked" : ""}> 가려짐</label>`;
+    row.querySelector("select").onchange = e => { p.edges[k] = e.target.value; save(); draw(); };
+    row.querySelector("input").onchange = e => {
+      if (e.target.checked) {
+        if (p.points.some(q => q.kind === "rim_edge" && q.side === k) && !confirm(`변 ${k}의 점을 지우고 '가려짐'으로 기록할까요?`)) { e.target.checked = false; return; }
+        p.points = p.points.filter(q => !(q.kind === "rim_edge" && q.side === k));
+        p.occluded = [...new Set([...p.occluded, k])].sort();
+      } else p.occluded = p.occluded.filter(x => x !== k);
+      save(); draw();
+    };
+    box.appendChild(row);
+  }
+}
+
+function hud(res, p, plane) {
+  const n = k => p.points.filter(q => q.kind === "rim_edge" && q.side === k).length;
+  const ticks = p.points.filter(q => q.kind === "ruler_tick").length;
+  let h = `<b>${p.label || p.plant_id}</b> · 모드 <b>${state.mode === "R" ? "자 눈금" : "변 " + state.mode}</b><br>`;
+  h += [1, 2, 3, 4].map(k => `<span class="sw" style="background:var(${COLORS[k]})"></span>${k}: ${n(k)}점`).join(" &nbsp;") + ` &nbsp;· 자 ${ticks}점<br>`;
+  if (!$("sigma").value) h += `<span class="bad">클릭 오차(px)를 입력하세요 — 없으면 mm 값이 나오지 않습니다</span><br>`;
+  const nAuto = p.points.filter(q => q.auto).length;
+  if (nAuto) h += `<span class="warn">□ 자동 제안 ${nAuto}점 — 왼쪽 '변별 선'에 적힌 선 위에 있는지 확인(틀리면 Alt+클릭으로 지우고 다시 찍기). + = 직접 찍은 점</span><br>`;
+  if (res.ok) {
+    h += `<span class="ok">미리보기: 화분 중심 ${(res.mmPerPx * 1000).toFixed(2)} µm/px (${(1 / res.mmPerPx).toFixed(2)} px/mm) — ` +
+      `${plane === "medium_surface" ? "흙 표면 평면(테두리 10 mm 아래) 기준" : "테두리 평면 기준"}</span>`;
+    if (SIDE) {
+      if (ticks) h += `<br><span class="small">세로 자 눈금 ${ticks}점은 기록만 됩니다 — 사진 한 장으로는 세로 스케일을 검증할 수 없어(깊이-길이 모호성) 기준점 결정 후 사용</span>`;
+      h += `<br><span class="small">옆 사진의 µm/px는 테두리 평면 기준 미리보기입니다. 세로 스케일과 카메라 위치는 P1 실행이 계산합니다.</span>`;
+    } else if (res.rulerDisagreement !== null) {
+      const d = res.rulerDisagreement * 100, cls = Math.abs(d) <= 2 ? "ok" : Math.abs(d) > 5 ? "bad" : "warn";
+      h += `<br><span class="${cls}">자와 차이 ${d >= 0 ? "+" : ""}${d.toFixed(2)}% (${Math.abs(d) <= 2 ? "2% 이내" : Math.abs(d) > 5 ? "5% 초과 — 점을 다시 확인" : "2–5% 사이"})</span>`;
+    }
+    const resid = [1, 2, 3, 4].map(k => res.lines[k].rms).filter(x => x !== null);
+    if (resid.length) h += `<br><span class="small">변별 맞춤 잔차 ${resid.map(x => x.toFixed(1)).join(", ")} px</span>`;
+  } else {
+    h += `<span class="warn">${res.problems.join("<br>")}</span>`;
+  }
+  h += `<br><span class="small">미리보기일 뿐입니다. 기록 값과 불확도는 P1 실행(potscale.py)이 계산합니다.</span>`;
+  $("hud").innerHTML = h;
+}
+
+function list() {
+  const ul = $("list"); ul.innerHTML = "";
+  state.photos.forEach((p, i) => {
+    const counts = [1, 2, 3, 4].map(k => p.points.filter(q => q.kind === "rim_edge" && q.side === k).length);
+    const t = p.points.filter(q => q.kind === "ruler_tick").length;
+    const li = document.createElement("li");
+    li.className = (i === state.cur ? "cur " : "") + (counts.every((c, j) => c >= 2 || p.occluded.includes(j + 1)) ? "done" : "");
+    li.innerHTML = `<div class="name">${p.label || p.plant_id}</div><div class="st">변 ${counts.map((c, j) => p.occluded.includes(j + 1) ? "가림" : c).join("/")} · 자 ${t}</div>`;
+    li.onclick = () => { state.cur = i; state.view = null; draw(); };
+    ul.appendChild(li);
+  });
+}
+
+function setMode(m) { state.mode = m; document.querySelectorAll("#modes button").forEach(b => b.classList.toggle("on", b.dataset.m === m)); draw(); }
+
+cv.addEventListener("contextmenu", e => e.preventDefault());
+let drag = null;
+// canvas pixel of a mouse event; fractional (offsetX is a whole CSS pixel = several photo pixels at full view)
+function evCv(e) { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * devicePixelRatio, (e.clientY - r.top) * devicePixelRatio]; }
+cv.addEventListener("mousedown", e => {
+  const [cx, cy] = evCv(e);
+  if (e.button === 1 || e.button === 2) { drag = { x: cx, y: cy, ox: state.view.ox, oy: state.view.oy }; return; }
+  if (e.button !== 0 || !state.view) return;
+  const [x, y] = toImg(cx, cy), p = photo();
+  if (e.altKey) {
+    let best = -1, bd = Infinity;
+    p.points.forEach((q, i) => { const d = Math.hypot(q.x - x, q.y - y); if (d < bd) { bd = d; best = i; } });
+    if (best >= 0 && bd * state.view.s < 20 * devicePixelRatio) p.points.splice(best, 1);
+  } else if (state.mode === "R") {
+    const mm = parseFloat($("tick").value);
+    if (!Number.isFinite(mm)) { alert("자 눈금 값(mm)을 먼저 입력하세요"); return; }
+    p.points.push({ kind: "ruler_tick", side: null, x, y, mm });
+  } else {
+    p.points.push({ kind: "rim_edge", side: Number(state.mode), x, y });
+  }
+  save(); draw();
+});
+window.addEventListener("mousemove", e => {
+  if (!drag) return;
+  const r = cv.getBoundingClientRect();
+  state.view.ox = drag.ox + (e.clientX - r.left) * devicePixelRatio - drag.x;
+  state.view.oy = drag.oy + (e.clientY - r.top) * devicePixelRatio - drag.y; draw();
+});
+window.addEventListener("mouseup", () => { drag = null; });
+cv.addEventListener("wheel", e => {
+  e.preventDefault(); if (!state.view) return;
+  const [cx, cy] = evCv(e), f = Math.exp(-e.deltaY * 0.0015);
+  const [x, y] = toImg(cx, cy); state.view.s *= f; state.view.ox = cx - x * state.view.s; state.view.oy = cy - y * state.view.s; draw();
+}, { passive: false });
+window.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return;
+  if (["1", "2", "3", "4"].includes(e.key)) setMode(e.key);
+  else if (e.key === "r" || e.key === "R") setMode("R");
+  else if (e.key === "f" || e.key === "F") { state.view = null; draw(); }
+  else if (e.key === "Backspace") { photo().points.pop(); save(); draw(); e.preventDefault(); }
+});
+document.querySelectorAll("#modes button").forEach(b => b.onclick = () => setMode(b.dataset.m));
+$("undo").onclick = () => { photo().points.pop(); save(); draw(); };
+$("clear").onclick = () => { if (confirm(`${photo().plant_id}의 점을 모두 지울까요?`)) { photo().points = []; save(); draw(); } };
+["sigma", "annotator", "edge", "inner"].forEach(id => $(id).addEventListener("input", () => { save(); draw(); }));
+$("export").onclick = () => {
+  const sigma = parseFloat($("sigma").value);
+  if (!(sigma > 0)) { alert("클릭 오차(px)를 입력하세요 (0보다 큰 값)"); return; }
+  if (!$("annotator").value.trim()) { alert("작성자 이니셜을 입력하세요"); return; }
+  const blob = new Blob([RimCore.toCSV(state.photos.filter(p => p.points.length), sigma, $("annotator").value.trim())],
+    { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = MANIFEST.output_name || "rim_points.csv"; a.click();
+};
+$("import").onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const rows = RimCore.parseCSV(await f.text());
+    for (const p of state.photos) { p.points = []; p.edges = blankEdges(); p.occluded = []; }
+    for (const r of rows) {
+      const p = state.photos.find(x => x.image_sha256 === r.image_sha256 && x.plant_id === r.plant_id);
+      if (!p) continue;
+      if (r.kind === "side_occluded") { p.occluded.push(Number(r.side)); continue; }
+      if (r.kind === "rim_edge") p.edges[Number(r.side)] = r.edge || "outer_top";
+      p.points.push(r.kind === "rim_edge" ? { kind: "rim_edge", side: Number(r.side), x: +r.x_px, y: +r.y_px }
+        : { kind: "ruler_tick", side: null, x: +r.x_px, y: +r.y_px, mm: +r.ruler_reading_mm });
+    }
+    if (rows[0]) { $("sigma").value = rows[0].click_uncertainty_px; $("annotator").value = rows[0].annotator; }
+    save(); draw();
+  } catch (err) { alert(err.message); }
+};
+window.addEventListener("resize", () => { state.view = null; draw(); });
+$("prov").innerHTML = MANIFEST.provenance;
+$("export").textContent = `${MANIFEST.output_name || "rim_points.csv"} 저장`;
+if (SIDE) {
+  $("title").textContent = "화분 테두리 점 찍기 — 옆 사진 (약 25°)";
+  $("help").innerHTML = "옆 사진마다 납작하게 보이는 테두리의 <b>평평한 네 변</b>에 점을 찍고, 왼쪽 '변별 선'에 각 변이 어느 선인지 고릅니다. " +
+    "<b>앞쪽 변</b>의 또렷한 테두리/흙 경계는 <b>안쪽 윗선</b>입니다(앞벽이 흙 경계를 가림). 왼쪽·오른쪽·뒤쪽의 바깥 윤곽은 <b>바깥 윗선</b>. " +
+    "뒤쪽 변이 잎에 가려 안 보이면 '가려짐'에 체크. 변 번호 1→2→3→4는 테두리를 따라 차례로. 세로 자 눈금은 선택(기록만).";
+}
+load(); setMode("1");
+</script>
+</body>
+</html>

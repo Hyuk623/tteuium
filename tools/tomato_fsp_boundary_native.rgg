@@ -1,0 +1,56 @@
+// Default-off file handshake. The native process remains the only state authority.
+boolean boundaryEnabled=@B_ENABLED@;
+long boundaryTimeout=@B_TIMEOUT@L;
+String boundaryConfig="@B_CONFIG@";
+String[] boundaryStarts=new String[]{@B_STARTS@},boundaryEnds=new String[]{@B_ENDS@};
+PrintWriter boundaryAudit;
+void boundaryStart() {
+    if(!boundaryEnabled)return;
+    boundaryAudit=new PrintWriter(new FileWriter("boundary_audit.csv"));
+    boundaryAudit.println("interval,request_sha256,response_sha256,light_sha256,transport_authority,native_growth_authority");
+}
+String[] boundaryFiles(String[] names,int count) {
+    if(!boundaryEnabled)return names;
+    String[] suffix={"geometry.csv","leaves.csv","request.json","response.json","light.csv","ready.csv"};
+    String[] result=new String[names.length+1+6*count];
+    for(int i=0;i<names.length;i++)result[i]=names[i];result[names.length]="boundary_audit.csv";
+    for(int i=0;i<count;i++)for(int j=0;j<6;j++)result[names.length+1+i*6+j]="boundary_"+i+"_"+suffix[j];
+    boundaryAudit.flush();return result;
+}
+void incomingLight() {
+    String prefix="boundary_"+step+"_";
+    PrintWriter geo=new PrintWriter(new FileWriter(prefix+"geometry.csv"));
+    geo.println("state,organ_id,vertex,x_m,y_m,z_m,axis_id,parent_rank,segment_index");exportMeshes(geo,step);geo.close();
+    PrintWriter leaf=new PrintWriter(new FileWriter(prefix+"leaves.csv"));leaf.println("organ_id,plant_instance_id,area_m2");
+    boolean[] expected=new boolean[organs.size()];int count=0;
+    for(NativeSurface surface:(* NativeSurface *)) {
+        Organ o=org(surface.oi);if(o.kind==9 && o.area>0){expected[o.idx]=true;count++;leaf.println(o.id+","+plantIds[o.owner]+","+o.area);}
+    }
+    leaf.close();
+    long deadline=System.currentTimeMillis()+boundaryTimeout;
+    String predecessor=step==0?inputHash:hash("checkpoints/step_"+step+"/completion.json");
+    PrintWriter request=new PrintWriter(new FileWriter(prefix+"request.partial"));
+    request.println("{\"schema_version\":\"fsp-native-boundary-1\",\"run_id\":\""+runId+"\",\"interval\":"+step+",\"interval_start\":\""+boundaryStarts[step]+"\",\"interval_end\":\""+boundaryEnds[step]+"\",\"coordinate_frame\":\"canopy_m\",\"geometry_sha256\":\""+hash(prefix+"geometry.csv")+"\",\"leaves_sha256\":\""+hash(prefix+"leaves.csv")+"\",\"configuration_sha256\":\""+boundaryConfig+"\",\"input_hash\":\""+inputHash+"\",\"engine_hash\":\""+engineHash+"\",\"predecessor_sha256\":\""+predecessor+"\",\"deadline_epoch_ms\":"+deadline+"}");request.close();
+    Files.move(Paths.get(prefix+"request.partial"),Paths.get(prefix+"request.json"));
+    String requestHash=hash(prefix+"request.json");
+    while(!Files.exists(Paths.get(prefix+"ready.csv"))) {
+        if(System.currentTimeMillis()>=deadline)throw new IllegalStateException("native_boundary_timeout_before_growth");
+        Thread.sleep(50);
+    }
+    BufferedReader ready=new BufferedReader(new FileReader(prefix+"ready.csv"));ready.readLine();String[] binding=ready.readLine().split(",");ready.close();
+    if(binding.length!=4 || !requestHash.equals(binding[0]) || !requestHash.equals(hash(prefix+"request.json")) || !hash(prefix+"response.json").equals(binding[1]) || !hash(prefix+"light.csv").equals(binding[2]))throw new IllegalStateException("native_boundary_response_binding_mismatch");
+    long expiry=Long.parseLong(binding[3]);
+    if(System.currentTimeMillis()>=expiry || expiry>deadline)throw new IllegalStateException("native_boundary_expired_before_growth");
+    BufferedReader input=new BufferedReader(new FileReader(prefix+"light.csv"));input.readLine();String line;int seen=0;
+    while((line=input.readLine())!=null) {
+        String[] v=line.split(",");if(v.length!=4)throw new IllegalStateException("native_boundary_row_fields");
+        int found=-1;for(int j=0;j<organs.size();j++)if(org(j).id.equals(v[0]))found=j;
+        if(found<0 || !expected[found])throw new IllegalStateException("native_boundary_leaf_identity");
+        Organ o=org(found);double area=Double.parseDouble(v[2]),photons=Double.parseDouble(v[3]);
+        if(!plantIds[o.owner].equals(v[1]) || !Double.isFinite(area) || Math.abs(area-o.area)>1e-12+1e-10*o.area || !Double.isFinite(photons) || photons<0)throw new IllegalStateException("native_boundary_leaf_value");
+        expected[found]=false;seen++;o.photons=photons;
+        o.gross=lightOnly?0:calculatePS_Thornley(o.photons/o.area,AMAX,ALPHA,THETA)*o.area*hours[step]*3600*12.011e-6;
+    }
+    input.close();if(seen!=count)throw new IllegalStateException("native_boundary_leaf_coverage");
+    boundaryAudit.println(step+","+requestHash+","+binding[1]+","+binding[2]+",external_once,native_once");boundaryAudit.flush();
+}

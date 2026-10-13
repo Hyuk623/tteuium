@@ -1,0 +1,16 @@
+{
+ "schema": "p1-tracking-config-1",
+ "_note": "Fixture-declared association parameters for synthetic engineering runs and tests only. They were chosen by the implementer, NOT fitted from human decisions, so every link a run makes with them stays 'proposed' (phynotype2 5.3). Never use this file for a real-photo run.",
+ "pot_rim_inner_diameter_mm": {"value": null, "unit": "mm", "source_kind": "unset", "source_ref": "fixtures use their declared synthetic camera scale instead"},
+ "association": {
+  "weights": {"value": {"d_azimuth": 1.0, "d_radial": 1.0, "shape_compound": 0.5, "mask_iou_prev": 1.0}, "unit": "per cue", "source_kind": "fixture_declared", "source_ref": "implementer choice for fixtures"},
+  "no_match_cost": {"value": 0.4, "unit": "cost", "source_kind": "fixture_declared", "source_ref": "implementer choice for fixtures"},
+  "ambiguity_margin": {"value": 0.15, "unit": "cost", "source_kind": "fixture_declared", "source_ref": "implementer choice for fixtures"},
+  "split_merge_containment_min": {"value": 0.5, "unit": "fraction", "source_kind": "fixture_declared", "source_ref": "implementer choice for fixtures - fraction of one plant-aligned mask lying inside the other"},
+  "max_gap_captures": {"value": null, "unit": "captures", "source_kind": "unset", "source_ref": "null = never drop a live track"},
+  "min_decisions_per_class_for_auto_confirm": {"value": null, "unit": "count", "source_kind": "unset", "source_ref": "no fitted rule exists"}
+ },
+ "attribution": {
+  "neighbor_rule": {"value": null, "unit": "rule", "source_kind": "unset", "source_ref": "phynotype2 4.1"}
+ }
+}

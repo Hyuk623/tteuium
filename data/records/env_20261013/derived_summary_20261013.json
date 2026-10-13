@@ -1,0 +1,58 @@
+{
+  "rim_plane": {
+    "n": 30,
+    "mean": 181.358,
+    "min": 119.811,
+    "max": 256.56,
+    "uo_min_over_mean": 0.6606,
+    "cv_percent": 19.3,
+    "dli_14h": 9.14
+  },
+  "canopy_plane": {
+    "n": 16,
+    "mean": 295.889,
+    "min": 203.528,
+    "max": 367.416,
+    "uo_min_over_mean": 0.6879,
+    "cv_percent": 12.7,
+    "dli_14h": 14.91
+  },
+  "plane_ratio": {
+    "canopy_over_rim_same_4x4": 1.481,
+    "distance_ratio": 1.533,
+    "effective_exponent": 0.92,
+    "caveat": "the two grids cover different areas; canopy measured 20 min earlier (7 min after lights-on vs 27) so LED warm-up may inflate it"
+  },
+  "shading_point": {
+    "exposed": 153.5,
+    "under_leaf": 31.8,
+    "transmitted_fraction": 0.207
+  },
+  "spectrum_fraction": {
+    "red": 0.419,
+    "green": 0.416,
+    "blue": 0.165
+  },
+  "lamp_model_fit": {
+    "method": "3 parallel bars (5 cm apart) as finite line sources at 23 cm, least squares on the 30 rim points",
+    "lamp_only_rms_percent": 16.5,
+    "lamp_plus_uniform_diffuse_rms_percent": 5.7,
+    "fitted_diffuse_umol": 112.0,
+    "diffuse_fraction_of_mean": 0.62,
+    "conclusion": "a compact source alone cannot reproduce the field; ~60% of the light at the rim plane is diffuse/reflected (white enclosure). Lamp position is NOT identified by this data (fit runs to the search bounds)."
+  },
+  "nutrient": {
+    "supply_ec_us_cm": 1520,
+    "pool_ec_us_cm": [
+      1649,
+      1675,
+      1691
+    ],
+    "pool_over_supply_percent": [
+      9.2,
+      10.9,
+      11.2
+    ],
+    "interpretation": "20 min is far too short for evaporation to concentrate the solution ~10%. The rise is salt released from the medium (previously accumulated + vermiculite cation exchange). The medium is a SOURCE here, not only a sink."
+  }
+}

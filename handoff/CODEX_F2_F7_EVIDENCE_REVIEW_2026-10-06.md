@@ -1,0 +1,15 @@
+# F2/F7 continuation: evidence review
+
+The user requested continuation after the separate F2/F7 report. Continue the existing analysis scope, preserving the first run and the generator. No new F3 authorization is inferred.
+
+Inspect the texture-source images/masks behind the 115 bank entries, especially two interjected candidates and 30 uncertain ones. Compare native-mask contours against saved 64-point contours at multiple sampling resolutions. Fit each resolution only on the existing reference photos and disclose the same small-n limitation. Do not turn a more complex boundary into anatomical ground truth or use C6 to tune thresholds. Export a source-linked review gallery and an explicit machine-proposal / human-review boundary, with blank review fields. Preserve existing outputs under run _01 and write new evidence to build/compound_structure_f2_f7_20261006_02. Verify source hashes and meaningful invariants; do not rerun training, rendering, detector inference or rewrite accepted masks.
+
+## Outcome
+
+User steering explicitly named data/raw/leaf_library/leaf_lib_20261006 as the reference. Decoded all 46 HEIC and 5 PNG originals using the existing tomato_synth runtime (no installation). Reproduced all 236 eligible component crops pixel-for-pixel, including all 55 library-bank sources; leaf_17 is source-labelled stem/no_leaf and excluded from leaf segmentation. Source capture rows explicitly describe leaf_03 and leaf_04 as senescent compound fragments, so they cannot establish whole-compound counts. Originals and old run outputs are preserved.
+
+Created tools/f2_f7_evidence.py and tools/f2_f7_raw_library.py. Native contours at 64/128/256 points produce main/interjected/unknown counts 89/2/24, 91/3/21, 96/3/16, respectively. The seven reference blades are reused per resolution, with the same small-n/one-interjected-photo limitation. Require agreement with the prior proposal and every resolution; never promote prior unknowns automatically. Final conservative candidates remain 83 main / 2 interjected / 30 unknown. No anatomical class is confirmed by this exercise.
+
+REVIEW_KO.html contains 115 source/mask/texture cards, filters selecting 32 priority items, blank human-review fields and a separate CSV download. Sixty rig image associations match accepted-export photo hashes; 55 library entries link to marked locations on full HEIC-derived photos. RAW_PHOTOS_KO.html covers all 51 source photos. Browser field storage is local, never a write to accepted data. No human labels have been entered by the agent.
+
+Validation: 10 analytical unit tests, both new CLI help commands, both actual audit commands, JavaScript syntax check, 115-card/55-context-link/51-photo checks, 236 exact crop matches, empty human-review fields and 235 output hashes passed. Evidence audit protects 676 input paths; raw-source checks also pass. Candidate tex_079 source/overlay and tex_038 full-photo location were visually inspected. F2 anatomical counts/rachis fractions still require identifiable attachments; F1 remains unconfirmed and F3 was not run. Generated HTML functionality was syntax/structure checked; no browser interaction test is claimed.

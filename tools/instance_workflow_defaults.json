@@ -1,0 +1,47 @@
+{
+  "schema_version": "instance-workflow-settings-1",
+  "sensitivity_values": [
+    0,
+    5,
+    10,
+    15,
+    20,
+    25,
+    30,
+    35,
+    40,
+    45,
+    50,
+    55,
+    60,
+    65,
+    70,
+    75,
+    80,
+    85,
+    90,
+    95,
+    100
+  ],
+  "instance_iou_min": 0.5,
+  "merge_split_reference_fraction": 0.2,
+  "voxel_spacing_mm": 2.0,
+  "chunk_size": 8192,
+  "max_candidate_voxels": 500000,
+  "minimum_support_views": 2,
+  "display_point_limit": 20000,
+  "pilot_views": {
+    "dwt_01": [
+      "11",
+      "24",
+      "25"
+    ],
+    "dwt_02": [
+      "11",
+      "27",
+      "28"
+    ]
+  },
+  "development_plant": "dwt_01",
+  "evaluation_plant": "dwt_02"
+}

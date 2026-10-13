@@ -1,0 +1,6 @@
+sample_id,tray_id,measured_time,measured_time__status,sample_kind,minutes_after_feeding,tds_ppm,ec_us_cm,ph,solution_temp_c,source_kind,note
+supply_stock,n/a,2026-10-13T11:2x:00+09:00,approximate,supply_solution,n/a,765,1520,unavailable,23.4,measured,the stock as fed; ppm x 1.987 = uS/cm (NaCl 0.5 scale) - meter internally consistent
+supply_stock_ph,n/a,2026-10-13T11:2x:00+09:00,approximate,supply_solution,n/a,unavailable,unavailable,6.04,23.3,measured,same stock
+pool_1,unavailable,2026-10-13T11:3x:00+09:00,approximate,standing_pool,20,830,1649,6.1,23.3,measured,20 min after feeding; TRAY IDENTITY UNKNOWN and the ppm<->pH pairing is assumed by photo order - confirm before use
+pool_2,unavailable,2026-10-13T11:3x:00+09:00,approximate,standing_pool,20,843,1675,6.03,23.3,measured,20 min after feeding; TRAY IDENTITY UNKNOWN and the ppm<->pH pairing is assumed by photo order - confirm before use
+pool_3,unavailable,2026-10-13T11:3x:00+09:00,approximate,standing_pool,20,851,1691,6.07,23.3,measured,20 min after feeding; TRAY IDENTITY UNKNOWN and the ppm<->pH pairing is assumed by photo order - confirm before use

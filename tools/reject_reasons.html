@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>거절 이유 정리</title>
+<style>
+:root{--ground:#f2f4f1;--panel:#fff;--ink:#1b2420;--muted:#65706a;--line:#d6ddd8;--accent:#24613d;--warn:#8a5a00;--sans:system-ui,"Malgun Gothic",sans-serif}
+@media (prefers-color-scheme:dark){:root{--ground:#0f1311;--panel:#171c19;--ink:#e3e9e5;--muted:#93a099;--line:#2b332f;--accent:#5fcf8e;--warn:#f1cf8a}}
+*{box-sizing:border-box} body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.5 var(--sans);padding:16px}
+.wrap{max-width:1200px;margin:0 auto;display:grid;gap:14px}
+h1{margin:0;font-size:22px} .muted{color:var(--muted);font-size:13px}
+.bar{position:sticky;top:0;z-index:2;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;display:grid;gap:8px}
+.card.done{border-color:var(--accent)} .card img{width:100%;border-radius:6px;display:block}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+button{font:inherit;font-size:13.5px;padding:6px 8px;border-radius:6px;border:1px solid var(--line);background:var(--ground);color:var(--ink);cursor:pointer}
+button[aria-pressed="true"]{background:var(--accent);color:var(--panel);border-color:var(--accent)}
+button.save{background:var(--accent);color:var(--panel);font-weight:600;padding:8px 16px}
+.tag{font-size:12px;color:var(--warn)} select{font:inherit}
+</style>
+<div class="wrap">
+  <h1>거절한 소엽 마스크 · 이유 정리</h1>
+  <p class="muted">노란 상자 = 원래 라벨 박스, 분홍 = 거절 당시 마스크. 네 가지 중 하나를 고르세요. <b>가려짐</b>은 보이는 부분이 맞는 마스크일 때만 고르세요 → "일부 가려짐"으로 다시 수락됩니다. 나머지 셋은 거절 그대로 두고 이유만 붙습니다. 끝나면 <b>결정 파일 저장</b> → 다운로드 폴더에 그대로 두면 다음 파이프라인 실행이 반영합니다.</p>
+  <div class="bar"><label>개체 <select id="plant"><option value="">전체</option></select></label>
+    <label><input type="checkbox" id="onlyOpen" checked> 아직 안 고른 것만</label>
+    <span id="count" class="muted"></span><span style="flex:1"></span>
+    <button class="save" id="save" type="button">결정 파일 저장</button></div>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+'use strict';
+const D = __DATA__;
+const KEY = 'reject-reasons-v1';
+let ans = {};
+try { ans = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
+D.items.forEach(i => { if (!(i.id in ans) && i.reason) ans[i.id] = i.reason; });
+const plants = [...new Set(D.items.map(i => i.plant))];
+plants.forEach(p => { const o = document.createElement('option'); o.value = p; o.textContent = p; document.getElementById('plant').appendChild(o); });
+function persist() { try { localStorage.setItem(KEY, JSON.stringify(ans)); } catch (e) {} }
+function render() {
+  const pl = document.getElementById('plant').value, open = document.getElementById('onlyOpen').checked;
+  const list = D.items.filter(i => (!pl || i.plant === pl) && (!open || !ans[i.id]));
+  document.getElementById('count').textContent = `고른 것 ${D.items.filter(i => ans[i.id]).length} / ${D.items.length} · 표시 ${list.length}`;
+  const g = document.getElementById('grid'); g.replaceChildren();
+  for (const i of list) {
+    const c = document.createElement('div'); c.className = 'card' + (ans[i.id] ? ' done' : '');
+    c.innerHTML = `<img src="${i.img}" alt="${i.id}"><div><b>${i.id.slice(4)}</b> <span class="muted">사진 ${i.photo}</span>${i.suggested ? ' <span class="tag">수락 박스 안에 70%↑ → 복수 박스 제안</span>' : ''}</div>`;
+    const b = document.createElement('div'); b.className = 'btns';
+    for (const [k, label] of Object.entries(D.reasons)) {
+      const x = document.createElement('button'); x.type = 'button'; x.textContent = label; x.setAttribute('aria-pressed', String(ans[i.id] === k));
+      x.addEventListener('click', () => { ans[i.id] = ans[i.id] === k ? undefined : k; if (!ans[i.id]) delete ans[i.id]; persist(); render(); });
+      b.appendChild(x);
+    }
+    c.appendChild(b); g.appendChild(c);
+  }
+}
+document.getElementById('plant').addEventListener('change', render);
+document.getElementById('onlyOpen').addEventListener('change', render);
+document.getElementById('save').addEventListener('click', () => {
+  const z = n => String(n).padStart(2, '0'), d = new Date();
+  const name = `reject_reasons_${d.getFullYear()}${z(d.getMonth() + 1)}${z(d.getDate())}_${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}.json`;
+  const blob = new Blob([JSON.stringify({schema: 'reject-reasons-1', saved_at: d.toISOString(), answers: ans}, null, 1)], {type: 'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+});
+render();
+</script>
+</html>

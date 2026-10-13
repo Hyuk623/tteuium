@@ -1,0 +1,391 @@
+# L-system / XL을 이용한 식물 3D 구현
+
+## 1. 목적
+
+Multi-view RGB 영상에서 추출한 식물의 구조 정보를
+L-system의 파라미터로 변환하고,
+XL/GroIMP에서 3차원 식물 구조를 재구성한다.
+
+핵심 흐름:
+
+Multi-view RGB
+→ Instance Segmentation
+→ 구조 파라미터 추출
+→ L-system 구조화
+→ XL 구현
+→ 3D 식물 생성
+
+
+# 2. 영상에서 필요한 정보
+
+각 소엽을 Instance Segmentation한 뒤 다음 정보를 추출한다.
+
+Leaflet {
+    id
+    position
+    length
+    width
+    orientation
+    attachment_point
+}
+
+복엽 단위에서는:
+
+CompoundLeaf {
+    rachis_length
+    leaflet_count
+    orientation
+    leaflet_list
+}
+
+엽병:
+
+Petiole {
+    length
+    orientation
+    attachment_point
+}
+
+
+# 3. 3D 구현에 필요한 핵심 좌표
+
+각 기관을 3D 공간에 배치하려면 최소한
+
+x
+y
+z
+
+좌표가 필요하다.
+
+Multi-view 영상을 이용하여 동일 소엽의 위치를 대응시키고
+Camera Calibration 정보를 이용해 3차원 위치를 계산한다.
+
+결과:
+
+Leaflet_01.position = (x1, y1, z1)
+Leaflet_02.position = (x2, y2, z2)
+Leaflet_03.position = (x3, y3, z3)
+
+
+# 4. 방향 표현
+
+소엽과 엽병의 방향은 두 각도로 표현할 수 있다.
+
+Azimuth
+= 수평 방향
+
+Elevation
+= 위/아래 방향
+
+예:
+
+Leaflet(
+    azimuth = 42°,
+    elevation = 31°
+)
+
+XL에서는 이 값을 이용하여
+3D 공간에서 기관의 방향을 결정한다.
+
+
+# 5. L-system의 역할
+
+L-system은 개별 좌표를 단순히 표시하는 것이 아니라
+식물 기관 사이의 구조적 관계를 표현한다.
+
+예:
+
+Plant
+└── Stem
+    └── Petiole
+        └── CompoundLeaf
+            ├── Leaflet01
+            ├── Leaflet02
+            ├── Leaflet03
+            └── Leaflet04
+
+즉,
+
+"어떤 소엽이 어느 복엽에 속하는가"
+
+"복엽이 어느 엽병에 연결되는가"
+
+"엽병이 어느 줄기 node에 연결되는가"
+
+를 구조적으로 표현한다.
+
+
+# 6. Parameterized L-system
+
+단순한 Leaf 기호가 아니라
+실제 측정값을 가진 기관으로 정의한다.
+
+예:
+
+Leaflet(
+    length,
+    width,
+    azimuth,
+    elevation
+)
+
+Petiole(
+    length,
+    azimuth,
+    elevation
+)
+
+CompoundLeaf(
+    rachis_length,
+    leaflet_count
+)
+
+
+# 7. Instance Segmentation과 연결
+
+현재 영상처리 Pipeline:
+
+RGB
+↓
+Roboflow BBox
+↓
+복엽 ROI
+↓
+SAM / Instance Segmentation
+↓
+소엽별 Mask
+
+예:
+
+CompoundLeaf_01
+
+├── Leaflet_01 Mask
+├── Leaflet_02 Mask
+├── Leaflet_03 Mask
+└── Leaflet_04 Mask
+
+이 정보를 L-system의 기관 구조와 대응시킨다.
+
+
+# 8. Multi-view 대응
+
+동일 소엽을 여러 View에서 추적한다.
+
+View 01 Leaflet_03
+View 02 Leaflet_05
+View 03 Leaflet_04
+
+↓
+
+Cross-view Matching
+
+↓
+
+실제 동일 기관
+
+↓
+
+Leaflet_ID = 003
+
+이후 각 View의 위치 정보를 이용하여
+3D 위치를 계산한다.
+
+
+# 9. 3D Geometry 계산
+
+Camera Pose와 Camera Calibration을 이용한다.
+
+각 View의 동일 소엽 위치:
+
+View A → (u1, v1)
+View B → (u2, v2)
+View C → (u3, v3)
+
+↓
+
+Triangulation
+
+↓
+
+3D position
+
+(x, y, z)
+
+
+# 10. 소엽 형태 생성
+
+3D 위치만으로는 잎 형태가 만들어지지 않는다.
+
+Instance Mask에서 다음 특징을 추출한다.
+
+- length
+- width
+- area
+- aspect ratio
+- contour
+- orientation
+
+이를 이용하여 기본적인 3D 소엽 geometry를 생성한다.
+
+예:
+
+2D Mask
+↓
+Leaf Contour
+↓
+Scale 계산
+↓
+3D Leaf Surface 생성
+
+
+# 11. 소엽 곡률
+
+완전히 평평한 polygon보다
+곡률 parameter를 추가할 수 있다.
+
+Leaflet {
+    length
+    width
+    curvature
+    azimuth
+    elevation
+}
+
+curvature를 이용하여
+잎의 휘어짐을 표현한다.
+
+
+# 12. XL / GroIMP 구현
+
+최종적으로 XL에서 다음과 같은 계층 구조를 생성한다.
+
+Plant
+↓
+Stem
+↓
+Node
+↓
+Petiole
+↓
+Rachis
+↓
+Petiolule
+↓
+Leaflet
+
+각 기관에는 영상에서 추출한
+실측 parameter를 입력한다.
+
+
+# 13. 전체 3D 구현 Flow
+
+Multi-view RGB
+        ↓
+Roboflow BBox
+        ↓
+Instance Segmentation
+        ↓
+소엽별 Mask
+        ↓
+Cross-view Matching
+        ↓
+Camera Geometry
+        ↓
+3D Position 계산
+        ↓
+소엽 Parameter 추출
+        │
+        ├─ XYZ
+        ├─ Length
+        ├─ Width
+        ├─ Area
+        ├─ Azimuth
+        ├─ Elevation
+        └─ Curvature
+        ↓
+식물 기관 계층 구성
+        ↓
+L-system
+        ↓
+XL
+        ↓
+GroIMP
+        ↓
+3D 식물 모델
+
+
+# 14. 기존 3D Reconstruction과 차이
+
+일반적인 방식:
+
+사진
+→ Point Cloud
+→ Mesh
+→ 3D 모델
+
+L-system 방식:
+
+사진
+→ 식물 기관 인식
+→ 기관별 위치/형태 Parameter
+→ 식물 구조 정의
+→ 3D 모델 생성
+
+따라서 L-system 방식은
+단순히 표면을 복원하는 것이 아니라
+
+"이 geometry가 어떤 식물 기관인가"
+
+라는 의미를 유지한다.
+
+
+# 15. 가장 큰 장점
+
+최종 3D 모델이 다음처럼 구성된다.
+
+Plant
+ ├── CompoundLeaf_01
+ │    ├── Leaflet_001
+ │    ├── Leaflet_002
+ │    └── Leaflet_003
+ │
+ └── CompoundLeaf_02
+      ├── Leaflet_004
+      └── Leaflet_005
+
+따라서 각 소엽이 독립된 객체로 존재한다.
+
+이후 특정 소엽의
+
+- 위치 변경
+- 각도 변경
+- 크기 변경
+- 제거
+- 성장
+
+등을 개별적으로 처리할 수 있다.
+
+
+# 16. 이후 생장 모델로 확장
+
+3D 구현이 완성되면 같은 구조에 시간 변수를 추가할 수 있다.
+
+Observed Structure
+→ L-system 3D
+
+이후:
+
+L-system 3D(t)
+→ Growth Rule
+→ L-system 3D(t+1)
+
+형태로 확장한다.
+
+따라서 1차 목표는
+
+"실제 식물을 기관 단위의 L-system 3D 구조로 재현"
+
+하는 것으로 설정하고,
+
+생장예측과 재식밀도 시뮬레이션은
+그 이후 단계로 분리한다.

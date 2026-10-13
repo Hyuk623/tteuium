@@ -1,0 +1,52 @@
+{
+ "schema": "topview-config-1",
+ "note": "Package constants for tomato3d.topview (same role as tomato3d/state/p1_config.json). Every value names its source; provisional values say so.",
+ "leaflet_true_aspect_range": {
+  "min": 1.4,
+  "max": 1.7,
+  "unit": "length/width",
+  "source_kind": "measured",
+  "source_ref": "docs/정의집_토마토_2026-10-11.md, 소엽 길이·폭: 장폭비 = 길이/폭 (실측 범위 1.4-1.7)"
+ },
+ "leaflet_classes": [
+  "leaf",
+  "terminal_leaf",
+  "leaf2"
+ ],
+ "compound_class": "compond_leaf",
+ "compound_threshold_note": "compound boxes use the same measure_min_confidence, which was derived for leaflets only; no compound-specific threshold has been derived (every compound row is proposed, a person decides)",
+ "membership": {
+  "box_majority_frac": {
+   "value": 0.5,
+   "source_kind": "definition",
+   "source_ref": "majority: more than half of the leaflet's box (or mask) lies in the compound"
+  },
+  "rule": "candidate compounds = boxes holding the majority of the leaflet's box; one -> member; several -> the one holding the majority of the leaflet's mask if exactly one does, else ambiguous; none -> unassigned"
+ },
+ "detector": {
+  "model": "tomato_top_nonboard/4",
+  "endpoint": "https://serverless.roboflow.com/tomato_top_nonboard/4",
+  "query_confidence_percent": 1,
+  "query_overlap_percent": 60,
+  "measure_min_confidence": 0.25,
+  "measure_min_confidence_source_kind": "derived_provisional",
+  "measure_min_confidence_source_ref": "F1-best leaflet threshold (IoU 0.5, leaf+terminal_leaf+leaf2 merged) on the 4 real v4 valid/test photos, 2026-10-12: F1 0.798 at 0.25, flat 0.78-0.80 over 0.25-0.65; valid images were used for model selection, so in-sample-ish. Re-derive on the C6-top reference set when it exists. ADDENDUM 2026-10-12 (real link): 2 of those 4 photos are ALSO in v4 train as 'top_heic' copies (IMG_8328 = dwt_104, IMG_8338 = dwt_105; identical 64 px thumbnails) - the threshold and the real reference APs are partly in-sample."
+ },
+ "sam": {
+  "mask_choice": "highest_predicted_score_of_the_box_prompt_multimask_output",
+  "config_note": "SAM 2.1 hiera tiny from build/sam_trial_20260919 via tools.leaflet_segmenter.Sam2Segmenter (read-only import); config JSON with checkpoint sha256 is passed on the command line"
+ },
+ "records": {
+  "leaf_bend": "records/leaf_bend/leaf_bend_records.csv",
+  "bend_examples_illustrative": "records/compound_bend_types_20261010/compound_bend_examples_20261010.csv",
+  "paths_relative_to": "tomato3d.config.get_settings().data_root"
+ },
+ "generator_audit_reference": {
+  "compounds_per_plant_real": {
+   "min": 4,
+   "max": 5,
+   "source_kind": "user_stated",
+   "source_ref": "handoff/R_DECISIONS_2026-10-10.md (real plants ~4-5 compounds)"
+  }
+ }
+}

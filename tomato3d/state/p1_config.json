@@ -1,0 +1,166 @@
+{
+ "schema": "p1-config-1",
+ "_note": "P1 constants. Every entry: value (null = inactive), unit, source_kind, source_ref. fixture_declared values parameterise synthetic fixtures only and never touch real data. assumed_unmeasured values are placeholders the human has not measured; every output that uses one says so. config/ is the human's, so this file lives with the code that reads it.",
+ "fixture": {
+  "ortho_image_size_px": {
+   "value": 512,
+   "unit": "px",
+   "source_kind": "fixture_declared",
+   "source_ref": "same canvas size as the O-mature renders (512 px)"
+  },
+  "ortho_mm_per_px": {
+   "value": 0.4,
+   "unit": "mm/px",
+   "source_kind": "fixture_declared",
+   "source_ref": "205 mm field of view; O-mature plant spread fits with margin"
+  },
+  "min_visible_px": {
+   "value": 150,
+   "unit": "px",
+   "source_kind": "fixture_declared",
+   "source_ref": "same visibility floor as the R.1 side-view labels (labels.json min_visible_px 150)"
+  },
+  "capture_interval_h": {
+   "value": 12,
+   "unit": "h",
+   "source_kind": "fixture_declared",
+   "source_ref": "two captures per day (phynotype2 spec section 1)"
+  },
+  "fixture_time_since_lights_on_min": {
+   "value": {
+    "am": 60,
+    "pm": 540
+   },
+   "unit": "min",
+   "source_kind": "fixture_declared",
+   "source_ref": "declared fixture clock; real lights-on time is unrecorded"
+  }
+ },
+ "canopy_assumed": {
+  "tray_pitch_mm": {
+   "value": 300.0,
+   "unit": "mm",
+   "source_kind": "assumed_unmeasured",
+   "source_ref": "tray-to-tray spacing never measured (env_light_20261010.json grid.cell_spacing_cm = null)"
+  },
+  "pot_pitch_mm": {
+   "value": 110.0,
+   "unit": "mm",
+   "source_kind": "assumed_unmeasured",
+   "source_ref": "pot-to-pot spacing within a tray row never measured"
+  },
+  "row_pitch_mm": {
+   "value": 110.0,
+   "unit": "mm",
+   "source_kind": "assumed_unmeasured",
+   "source_ref": "pot-row spacing never measured"
+  },
+  "soil_level_z_mm": {
+   "value": 0.0,
+   "unit": "mm",
+   "source_kind": "assumed_unmeasured",
+   "source_ref": "all pots assumed at one soil height; pot heights per slot unrecorded"
+  }
+ },
+ "canopy_frame": {
+  "definition": "canopy_mm: origin at the centre of grid cell row 1 / col 1 (tray1, wall-side pot row) at soil level; +X from grid col 1 toward col 4 (right end by the post -> left end, seen from the front); +Y from row 1 (wall) toward row 4 (front); +Z up. Right-handed. Layout source: data/records/env_light_20261010/env_light_20261010.json (rule v3, user_stated/user_confirmed).",
+  "side_from_front_offset_sign": {
+   "L": 1,
+   "R": -1,
+   "_note": "L pot of a row sits toward +X (the viewer's left = toward col 4) by half a pot pitch; R toward -X"
+  }
+ },
+ "completion": {
+  "candidate_pool_max_per_track": {
+   "value": 24,
+   "unit": "count",
+   "source_kind": "fixture_declared",
+   "source_ref": "generator compounds drawn from other fixture scenes (fixed seeds)"
+  },
+  "coverage_tolerance": {
+   "value": 0.98,
+   "unit": "fraction",
+   "source_kind": "fixture_declared",
+   "source_ref": "a kept candidate must cover this fraction of the observed visible pixels (rasterisation tolerance)"
+  },
+  "max_kept": {
+   "value": 5,
+   "unit": "count",
+   "source_kind": "fixture_declared",
+   "source_ref": "phynotype2 completion.max_kept (null there); fixture value"
+  },
+  "generator_n_samples": {
+   "value": 48,
+   "unit": "count",
+   "source_kind": "fixture_declared",
+   "source_ref": "P1 fix A4: build_compound (numpy backend) samples per observed compound, seeds 0..n-1"
+  },
+  "extent_slack_rel": {
+   "value": 0.5,
+   "unit": "fraction",
+   "source_kind": "fixture_declared",
+   "source_ref": "phynotype2 completion.extent_slack_rel (null there): observed lateral reach widened for the generator extent contract (flat outline is wider than its projection)"
+  },
+  "refine_top": {
+   "value": 8,
+   "unit": "count",
+   "source_kind": "fixture_declared",
+   "source_ref": "P1 fix A4: best samples given the local rotation/scale fit"
+  },
+  "refine_yaw_deg": {
+   "value": [
+    -10,
+    -5,
+    0,
+    5,
+    10
+   ],
+   "unit": "deg",
+   "source_kind": "fixture_declared",
+   "source_ref": "P1 fix A4: rigid rotation offsets about the stem"
+  },
+  "refine_scale": {
+   "value": [
+    0.95,
+    1.0,
+    1.05,
+    1.1
+   ],
+   "unit": "factor",
+   "source_kind": "fixture_declared",
+   "source_ref": "P1 fix A4: uniform scale factors after distal alignment (bounded so a candidate cannot inflate to cover)"
+  }
+ },
+ "pot_scale": {
+  "monte_carlo_draws": {
+   "value": 400,
+   "unit": "count",
+   "source_kind": "computational_choice",
+   "source_ref": "P1 T6: number of seeded draws propagating click uncertainty to mm_per_px; not a physical value"
+  },
+  "monte_carlo_seed": {
+   "value": 20261012,
+   "unit": "seed",
+   "source_kind": "computational_choice",
+   "source_ref": "fixed for replay"
+  },
+  "cross_check_accept_rel": {
+   "value": 0.02,
+   "unit": "fraction",
+   "source_kind": "user_stated",
+   "source_ref": "handoff/CLAUDE_CODE_CLI_PROMPT_P1_SEGMENT_TRUSS_2026-10-12.md T6.4 (STAGE1 rule: agree within 2 % -> accept)"
+  },
+  "cross_check_stop_rel": {
+   "value": 0.05,
+   "unit": "fraction",
+   "source_kind": "user_stated",
+   "source_ref": "same T6.4 (differ by more than 5 % -> stop and report)"
+  },
+  "pose_self_check_k_sigma": {
+   "value": 2.0,
+   "unit": "sigma",
+   "source_kind": "computational_choice",
+   "source_ref": "P1 side rim pose Y2: a pose is 'validated' when both two-axis self-check residuals lie within this many Monte-Carlo standard deviations of the stated click uncertainty (statistical band, not a physical threshold)"
+  }
+ }
+}

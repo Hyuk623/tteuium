@@ -1,0 +1,69 @@
+// Optional helper code emitted into the same authoritative V3 native model.
+// Twilight received power counts first hits per object; it is NOT total multi-hit incidence.
+boolean extensionEnabled=@ENABLED@;
+double[] intervalDays=@DT@,elapsedDays=@ELAPSED@;
+double photonPerJoule=@FACTOR@;
+double[][] intervalPowers=@POWERS@,curveWeights=@CURVES@;
+double bentFraction=@FRACTION@,flatAmplitude=@FLAT@,bentAmplitude=@BENT@;
+String[] objectIds=@OBJECT_IDS@,objectRoles=@OBJECT_ROLES@;
+int[] objectMaterials=@OBJECT_MATERIALS@,objectSizes=@OBJECT_SIZES@;
+double[] materialR=@MAT_R@,materialT=@MAT_T@;
+float[][] objectCoordinates=new float[objectIds.length][];
+module SceneObject(int oi) extends MeshNode;
+PrintWriter opticalOutput,photonBudget;
+double mixtureAmplitude(String id) {
+    if(bentFraction<0)return TOTAL_BEND_DEG;
+    double draw=new BigInteger(1,MessageDigest.getInstance("SHA-256").digest((id+"|"+seed).getBytes("UTF-8"))).mod(new BigInteger("1000000000")).doubleValue()/1000000000;
+    return draw<bentFraction?bentAmplitude:flatAmplitude;
+}
+double segmentBend(Organ o,int count) {
+    Organ ancestor=o;
+    while(ancestor.kind!=4 && ancestor.parent>=0)ancestor=org(ancestor.parent);
+    double amplitude=Double.isNaN(ancestor.bendAmplitude)?TOTAL_BEND_DEG:ancestor.bendAmplitude;
+    double[] weights=curveWeights[count];
+    return amplitude*(weights==null?(o.pair==1?1.0:2.0)/(2*count-1):weights[o.pair-1]);
+}
+de.grogra.imp3d.shading.Shader extensionShader(int index) {
+    Phong p=new Phong();p.setDiffuse(new Graytone((float)materialR[index]));
+    p.setTransparency(new Graytone((float)materialT[index]));p.setInterpolatedTransparency(false);
+    p.setDiffuseTransparency(new Graytone(0));return p;
+}
+de.grogra.imp3d.shading.Shader organShader(Organ o) {
+    return extensionEnabled?extensionShader(o.kind==9?@LEAF_MAT@:@STEM_MAT@):BLACK;
+}
+void extensionStart() {
+    if(!extensionEnabled)return;
+    for(int i=0;i<objectIds.length;i++)objectCoordinates[i]=new float[objectSizes[i]];
+    BufferedReader reader=new BufferedReader(new FileReader("extension_scene.csv"));reader.readLine();String line;
+    while((line=reader.readLine())!=null){String[] v=line.split(",");objectCoordinates[Integer.parseInt(v[0])][Integer.parseInt(v[1])]=Float.parseFloat(v[2]);}reader.close();
+    [ w:World ==> w for(int i=0;i<objectIds.length;i++)
+       ([SceneObject(i).(setPolygons(getMesh(new FloatList(objectCoordinates[i])).getPolygons()),setShader(extensionShader(objectMaterials[i]))) ]); ] derive();
+    opticalOutput=new PrintWriter(new FileWriter("optical_flux.csv"));
+    opticalOutput.println("interval,surface_id,role,received_first_hit_W,absorbed_W,reflected_W,transmitted_W,hit_count");
+    photonBudget=new PrintWriter(new FileWriter("scene_photon_budget.csv"));
+    photonBudget.println("interval,emitted_W,leaf_absorbed_W,nonleaf_absorbed_W,escape_W,termination_W,estimator_residual_W,closure_status");
+}
+void extensionInterval() {
+    dtDays=intervalDays[step];
+    if(extensionEnabled)for(Lamp lamp:(* Lamp *))((PointLight)lamp.getLight()).setPower((float)intervalPowers[step][lamp.li]);
+}
+void extensionLight() {
+    if(!extensionEnabled)return;
+    double leaves=0,nonleaf=0,emitted=0;
+    for(int i=0;i<intervalPowers[step].length;i++)emitted+=intervalPowers[step][i];
+    for(NativeSurface s:(* NativeSurface *)) {
+        Organ o=org(s.oi);double absorbed=lm.getAbsorbedPower(s).integrate();
+        opticalOutput.println(step+","+o.id+","+(o.kind==9?"leaf":"target_structure")+","+lm.getReceivedPower(s).integrate()+","+absorbed+","+lm.getReflectedPower(s).integrate()+","+lm.getTransmittedPower(s).integrate()+","+lm.getHitCount(s));
+        if(o.kind==9)leaves+=absorbed;else nonleaf+=absorbed;
+    }
+    for(SceneObject s:(* SceneObject *)) {
+        double absorbed=lm.getAbsorbedPower(s).integrate();nonleaf+=absorbed;
+        opticalOutput.println(step+","+objectIds[s.oi]+","+objectRoles[s.oi]+","+lm.getReceivedPower(s).integrate()+","+absorbed+","+lm.getReflectedPower(s).integrate()+","+lm.getTransmittedPower(s).integrate()+","+lm.getHitCount(s));
+    }
+    photonBudget.println(step+","+emitted+","+leaves+","+nonleaf+",unavailable,unavailable,unavailable,unavailable_terminal_paths_not_instrumented");
+}
+String[] extensionFiles(String[] names) {
+    if(!extensionEnabled)return names;
+    String[] all=new String[names.length+2];for(int i=0;i<names.length;i++)all[i]=names[i];
+    all[names.length]="optical_flux.csv";all[names.length+1]="scene_photon_budget.csv";return all;
+}

@@ -1,0 +1,6 @@
+order,stage,program,path,owner,status,note
+3,P2 광,Native lamp calibration,tools/p2_lamp_calibration.py,Codex,executed,Frozen native coarse/final fitting and conditional controls; synthetic transport tested; real rig inputs incomplete; grey reflectance interval unidentified
+3,P2 광,Independent native transport controls,tools/p2_lamp_controls.py,Codex,executed,Native raw power to prediction and existing direct solver comparison; reflection estimate retains seed uncertainty
+3,P2 광,Frozen predicted reference DLI,tools/reference_dli_frozen.py,Codex,executed,Exact position/time/hash binding; conditional numeric daily audit; single-plant association; unequal fixture schedules refused
+3,P2 광,Reference DLI,tools/reference_dli.py,Codex,implemented,Measured routes unchanged; simulated can consume frozen fitted predictions; raw scene-only simulation remains deferred
+3,P2 광,Lamp calibration contract,tools/P2_LAMP_CALIBRATION.md,Codex,implemented,Units bounds resource limits conditional provenance and physical-input blockers

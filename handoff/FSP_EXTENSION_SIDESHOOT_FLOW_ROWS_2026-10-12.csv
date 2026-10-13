@@ -1,0 +1,8 @@
+order,stage,program,path,owner,status,note
+1,P1 사진·형상,Explicit observation intake,tools/fsp_observation_intake.py,Codex,partial,"Observed/conditional/observation-only routes; current real audit has 117 scale gaps and 13 optical-surface gaps; no truth substitution"
+3,P2 광,Native optical materials and objects,tools/fsp_extensions.py,Codex,partial,"Actual reflection/transmission and static objects; independent first-hit received tally; terminal photon closure unavailable; conditional 550 nm conversion"
+4,P4 생리·배분,Declared M and side-axis resources,tools/fsp_axes.py,Codex,executed,"fsp-axes-1; independent apices and capped weighted allocation from one plant pool; 9 native runs/29 intervals; synthetic only"
+4,P4 생리·배분,Nutrient transaction protocol fixture,tools/fsp_nutrient_transaction.py,Codex,demo_only,"Identity/timeout/retry/unused-resource checks only; no native causal handshake or nutrient-growth law"
+5,P3 생장·방향,Piecewise schedules and H1-H3,tools/fsp_extensions_native.rgg,Codex,executed,"Midnight and staggered lamps; elapsed-time maintenance/development; stable posture hooks; area correction reporting-only; no imported deformation law"
+6,광 재계산,Declared-axis native acceptance,tools/fsp_axes_acceptance.py,Codex,executed,"4.8M two-seed main-leaf shading effect 0.08025 vs seed variation 0.009 umol/s; shared carbon residual 4.16e-17 gC"
+6,광 재계산,Optional extension native acceptance,tools/fsp_extensions_acceptance.py,Codex,executed,"Optical limits/reflector/planes; midnight schedules; three 30-day hook runs; explicit unavailability for E2 closure/E6/E7"
