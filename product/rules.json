@@ -1,0 +1,7 @@
+{
+  "temperature_high_c": null,
+  "water_low_pct": null,
+  "stale_after_seconds": 300,
+  "future_tolerance_seconds": 60,
+  "demo_only": false
+}

@@ -1,0 +1,3 @@
+# Tteuium symbol and realistic demo traces — 2026-10-18
+
+Request: replace letter logo with a refined symbol and make mock observations resemble incoming device readings. Use an original code-native sprout SVG, including favicon. Model a hypothetical indoor plant setup: local daylight plus scheduled lamp, temperature/humidity diurnal variation, reservoir consumption/refill, gradual growth. These are illustrative engineering fixtures, not crop targets or validated biological predictions. Preserve mock provenance and user action records. Back up active SQLite before replacing only old generator-owned mock rows. Add optional live samples and verify deterministic histories, bounds, refill and nighttime behavior.
