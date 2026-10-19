@@ -51,7 +51,7 @@ def build(output: Path) -> None:
     for source in FRONTEND.iterdir():
         if source.is_file() and source.suffix in ('.html','.js','.css','.svg'):
             shutil.copyfile(source,output/source.name)
-    html=(output/'index.html').read_text(encoding='utf-8').replace('/static/','./')
+    html=(output/'index.html').read_text(encoding='utf-8').replace('/static/','./').replace('로컬 MVP','공개 체험 데모')
     html=html.replace('<script src="./app.js">','<script src="./pages-adapter.js"></script><script src="./app.js">')
     html=html.replace('<p id="notice"', '<p class="notice" id="pages-mode">공개 체험 데모 · 모의 데이터 로딩 중</p><p id="notice"')
     html=html.replace('<a href="/docs">API 문서</a>','<a href="https://github.com/Hyuk623/tteuium">소스 코드</a>')
