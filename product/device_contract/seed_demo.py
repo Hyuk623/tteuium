@@ -1,0 +1,89 @@
+"""Seed 14 days through the public HTTP contract. No hardware or inference required."""
+import argparse
+import hashlib
+import math
+import time
+from datetime import datetime, timedelta, timezone
+from product.device_contract.mock_sensor import post, register
+
+
+KST = timezone(timedelta(hours=9))
+
+
+def sensor_values(at: datetime) -> dict:
+    """Hypothetical indoor fixture, not a recommended growing environment."""
+    local = at.astimezone(KST)
+    hour = local.hour + local.minute / 60 + local.second / 3600
+    day = local.toordinal()
+    daytime = math.cos((hour - 15) / 24 * math.tau)
+    weather = math.sin(day * .73)
+    noise = math.sin(at.timestamp() / 233) * .18
+    window = max(0, math.sin((hour - 7) / 11 * math.pi)) if 7 <= hour <= 18 else 0
+    lamp = 4200 if 7 <= hour < 21 else 0
+    # Refill every four days at 09:00 local time; level falls between refills.
+    elapsed = (at.timestamp() - datetime(2026, 1, 1, 9, tzinfo=KST).timestamp()) / 86400
+    water = 88 - (elapsed % 4) * 13 + math.sin(at.timestamp()/317)*.25
+    return {'temperature_c': round(23 + 2.5*daytime + .6*weather + noise, 1),
+            'humidity_pct': round(59 - 7*daytime + 2*weather - noise, 1),
+            'light_lux': round(lamp + 5600*window*(.85+.15*weather) + 3 + 2*math.sin(at.timestamp()/131)**2),
+            'water_level_pct': round(water, 1)}
+
+
+def live_sample(base: str) -> None:
+    now = datetime.now(timezone.utc)
+    post(base, '/api/readings', {'schema_version':'1.0','event_id':'demo-live-'+now.strftime('%Y%m%d%H%M%S%f'),'device_id':'mvp-mock','observed_at':now.isoformat(),'source':'mock','sensors':sensor_values(now)})
+
+
+def seed(base: str) -> None:
+    plant = 'mvp-demo'
+    register(base, '/api/plants', {'id': plant, 'name': '나의 작은 토마토'})
+    register(base, '/api/devices', {'id': 'mvp-mock', 'name': '거실 · 모의 센서', 'plant_id': plant})
+    # Stable daily timestamps make retries safe; today's fresh sample is separate.
+    today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    for day in range(14):
+        at = today - timedelta(days=13-day)
+        # Values depend on date, not relative seed offset, so tomorrow's retry is safe.
+        for hour in range(24):
+            observed = at + timedelta(hours=hour)
+            if observed > datetime.now(timezone.utc):
+                continue
+            post(base, '/api/readings', {'schema_version': '1.0', 'event_id': 'demo-'+observed.strftime('%Y%m%d%H'), 'device_id': 'mvp-mock', 'observed_at': observed.isoformat(), 'source': 'mock', 'sensors': sensor_values(observed)})
+        token = at.strftime('%Y%m%d')
+        age_days = (at - datetime(2026, 10, 1, tzinfo=timezone.utc)).days
+        growth = (1 + math.tanh((age_days-25)/40)) / 2
+        height = round(120 + 220*growth, 1)
+        leaf_area = round(8000 + 26000*growth, 1)
+        canopy_area = round(6000 + 18000*growth, 1)
+        post(base, '/api/observations', {'import_id': 'demo-growth-'+token, 'plant_id': plant, 'observed_at': at.isoformat(), 'source_ref': 'mock-history-v2', 'source_sha256': hashlib.sha256(b'mock-history-v2').hexdigest(), 'scenario_id': 'observation', 'geometry_variant_id': 'demo', 'evidence': 'mock', 'measurements': [{'metric': metric, 'value': value, 'unit': unit, 'status': 'model'} for metric,value,unit in [('plant_height',height,'mm'),('leaf_area',leaf_area,'mm2'),('canopy_area',canopy_area,'mm2')]]})
+    # Images are illustrations, explicitly tagged; no claim of camera capture.
+    from urllib.request import urlopen
+    import json
+    with urlopen(base+'/api/images?plant_id='+plant) as response:
+        existing = json.load(response)
+    for days_ago, filename in [(13,'demo-before.svg'),(0,'demo-now.svg')]:
+        captured = (today-timedelta(days=days_ago)).isoformat()
+        reference = '/static/'+filename
+        if not any(r['captured_at']==captured and r['reference']==reference for r in existing):
+            post(base,'/api/images',{'plant_id':plant,'captured_at':captured,'reference':reference,'source':'mock'})
+    live_sample(base)
+    print('14-day mock history ready: '+base)
+
+
+def main() -> None:
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--url', default='http://127.0.0.1:8000')
+    parser.add_argument('--live', action='store_true', help='Continue sending a mock sample every 60 seconds')
+    args = parser.parse_args()
+    base = args.url.rstrip('/')
+    seed(base)
+    if args.live:
+        try:
+            while True:
+                time.sleep(60)
+                live_sample(base)
+        except KeyboardInterrupt:
+            pass
+
+
+if __name__ == '__main__':
+    main()

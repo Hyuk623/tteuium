@@ -1,0 +1,3 @@
+# Personal fork and Pages demo — 2026-10-19
+
+User authorized a personal fork and continued work. Created Hyuk623/tteuium from fish-444/tomato; retain origin and add fork remote. Work on feature/tteuium-dashboard. Publish only product code, related handoffs and Pages workflow; never commit build databases/screenshots or synced sources. Add a deterministic mock-only static exporter and browser-local action storage, clearly label snapshot/non-shared writes. Pages export must build a new synthetic DB, never read an existing one. Keep upstream engine unchanged and provide PR-based integration instructions. Validate full product tests/static build and deploy if credentials allow; report exact blockers without claiming deployment.
