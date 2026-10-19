@@ -24,6 +24,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install -r product/requirements-dev.txt
+      - run: mkdir -p build
       - run: python -m pytest product/tests -q --basetemp=build/pages-tests
       - run: python -m product.export_pages
       - uses: actions/configure-pages@v5
