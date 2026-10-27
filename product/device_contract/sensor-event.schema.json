@@ -1,0 +1,110 @@
+{
+  "$defs": {
+    "Sensors": {
+      "additionalProperties": false,
+      "properties": {
+        "temperature_c": {
+          "anyOf": [
+            {
+              "minimum": -273.15,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temperature C"
+        },
+        "humidity_pct": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Humidity Pct"
+        },
+        "water_level_pct": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Water Level Pct"
+        },
+        "light_lux": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Light Lux"
+        }
+      },
+      "title": "Sensors",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "event_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,96}$",
+      "title": "Event Id",
+      "type": "string"
+    },
+    "device_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,96}$",
+      "title": "Device Id",
+      "type": "string"
+    },
+    "observed_at": {
+      "format": "date-time",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "sensors": {
+      "$ref": "#/$defs/Sensors"
+    },
+    "source": {
+      "default": "device",
+      "enum": [
+        "device",
+        "mock"
+      ],
+      "title": "Source",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "event_id",
+    "device_id",
+    "observed_at",
+    "sensors"
+  ],
+  "title": "SensorEvent",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

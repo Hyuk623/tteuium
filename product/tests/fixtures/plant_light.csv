@@ -1,0 +1,2 @@
+scenario_id,geometry_variant_id,plant_id,n_leaves,leaf_area_mm2,intercepted_full_output_umol_s,absorbed_full_output_umol_s,intercepted_mol_day,absorbed_mol_day,leaf_ppfd_cv
+as_built,fixture,demo-plant,4,12000,3.5,2.8,0.15,0.12,unavailable

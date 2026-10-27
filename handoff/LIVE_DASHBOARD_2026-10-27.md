@@ -1,0 +1,3 @@
+# Live operational dashboard
+
+Request: prepare future real sensor input and show continuously flowing demo data with usable operational UI. Existing HTTP plant/device/reading contracts already accept real source=device; local generator persists mock readings. Pages is static. Add rolling synthetic environment in Pages (explicitly browser generated, no server claims), receiving status, recent sample list and 24-hour summaries to both modes. Keep human records untouched; no invented user actions, real diagnoses or camera work. Document sensor registration/payload and local-only security boundary. Validate synthetic fixture and browser refresh plus existing ingestion tests.

@@ -1,0 +1,5 @@
+# Friendly journal update — 2026-10-18
+
+Request: rename the dashboard and make the action-entry section more enjoyable. Current UI uses a generic select and textarea. Rename to Tomato-rang (Korean UI), introduce accessible activity cards, contextual writing prompts, optional sentence starters, character count and a small save acknowledgement. Keep the existing API and historical records. No rewards for watering frequency or plant-health claims. Validate JS syntax and browser interactions. Keep the user's running local server available.
+
+Outcome: renamed browser title and brand to Tomato-rang; added eight accessible native-radio activity cards, contextual prompts, non-destructive sentence starters, character count, and friendly saved acknowledgement. Fixed submit-button targeting after adding auxiliary buttons. Existing API/data untouched. JS syntax passed; browser confirmed rename, activity selection, starter insertion/count. Narrow-panel review prompted a single-column journal layout below 1100px. Running server retained at port 8018 per user request.
