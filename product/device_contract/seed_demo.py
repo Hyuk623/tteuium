@@ -3,6 +3,7 @@ import argparse
 import hashlib
 import math
 import time
+from urllib.error import URLError
 from datetime import datetime, timedelta, timezone
 from product.device_contract.mock_sensor import post, register
 
@@ -65,15 +66,30 @@ def seed(base: str) -> None:
 def main() -> None:
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--url', default='http://127.0.0.1:8000')
-    parser.add_argument('--live', action='store_true', help='Continue sending a mock sample every 60 seconds')
+    parser.add_argument('--live', action='store_true', help='Continue sending temperature/humidity samples')
+    parser.add_argument('--interval', type=int, default=300, help='Live interval in seconds (default 300)')
     args = parser.parse_args()
+    if args.interval < 1:
+        parser.error('--interval must be positive')
     base = args.url.rstrip('/')
-    seed(base)
+    while True:
+        try:
+            seed(base)
+            break
+        except (URLError, TimeoutError, ConnectionError) as error:
+            if not args.live:
+                raise
+            print(f'Mock initialization failed; retrying in {args.interval}s: {error}', flush=True)
+            time.sleep(args.interval)
     if args.live:
         try:
             while True:
-                time.sleep(60)
-                live_sample(base)
+                time.sleep(args.interval)
+                try:
+                    live_sample(base)
+                    print('Mock sample sent: '+datetime.now(timezone.utc).isoformat(), flush=True)
+                except (URLError, TimeoutError, ConnectionError) as error:
+                    print(f'Mock sample failed; retrying in {args.interval}s: {error}', flush=True)
         except KeyboardInterrupt:
             pass
 
