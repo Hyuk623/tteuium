@@ -50,3 +50,15 @@ def test_observation_validation_and_no_cross_source_comparison(tmp_path):
         assert c.post('/api/observations',json=bad).status_code==422
         first['measurements'][0]['value']=2
         assert c.post('/api/observations',json=first).status_code==409
+
+def test_uninstalled_sensors_do_not_generate_missing_checks(tmp_path):
+    with TestClient(create_app(tmp_path/'sensors.db')) as c:
+        c.post('/api/plants',json={'id':'p','name':'Plant'})
+        c.post('/api/devices',json={'id':'d','name':'Indoor','plant_id':'p'})
+        now=datetime.now(timezone.utc).isoformat()
+        event={'schema_version':'1.0','event_id':'th-only','device_id':'d','observed_at':now,'source':'mock','sensors':{'temperature_c':23.1,'humidity_pct':58}}
+        assert c.post('/api/readings',json=event).status_code==201
+        assert c.get('/api/plants/p/state').json()['checks']==[]
+        event['event_id']='humidity-missing';event['sensors']['humidity_pct']=None
+        assert c.post('/api/readings',json=event).status_code==201
+        assert c.get('/api/plants/p/state').json()['checks'][0]['evidence']['missing']==['humidity_pct']

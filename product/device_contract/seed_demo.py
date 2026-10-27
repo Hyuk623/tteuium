@@ -18,15 +18,8 @@ def sensor_values(at: datetime) -> dict:
     daytime = math.cos((hour - 15) / 24 * math.tau)
     weather = math.sin(day * .73)
     noise = math.sin(at.timestamp() / 233) * .18
-    window = max(0, math.sin((hour - 7) / 11 * math.pi)) if 7 <= hour <= 18 else 0
-    lamp = 4200 if 7 <= hour < 21 else 0
-    # Refill every four days at 09:00 local time; level falls between refills.
-    elapsed = (at.timestamp() - datetime(2026, 1, 1, 9, tzinfo=KST).timestamp()) / 86400
-    water = 88 - (elapsed % 4) * 13 + math.sin(at.timestamp()/317)*.25
     return {'temperature_c': round(23 + 2.5*daytime + .6*weather + noise, 1),
-            'humidity_pct': round(59 - 7*daytime + 2*weather - noise, 1),
-            'light_lux': round(lamp + 5600*window*(.85+.15*weather) + 3 + 2*math.sin(at.timestamp()/131)**2),
-            'water_level_pct': round(water, 1)}
+            'humidity_pct': round(59 - 7*daytime + 2*weather - noise, 1)}
 
 
 def live_sample(base: str) -> None:
@@ -47,7 +40,7 @@ def seed(base: str) -> None:
             observed = at + timedelta(hours=hour)
             if observed > datetime.now(timezone.utc):
                 continue
-            post(base, '/api/readings', {'schema_version': '1.0', 'event_id': 'demo-'+observed.strftime('%Y%m%d%H'), 'device_id': 'mvp-mock', 'observed_at': observed.isoformat(), 'source': 'mock', 'sensors': sensor_values(observed)})
+            post(base, '/api/readings', {'schema_version': '1.0', 'event_id': 'demo-th-'+observed.strftime('%Y%m%d%H'), 'device_id': 'mvp-mock', 'observed_at': observed.isoformat(), 'source': 'mock', 'sensors': sensor_values(observed)})
         token = at.strftime('%Y%m%d')
         age_days = (at - datetime(2026, 10, 1, tzinfo=timezone.utc)).days
         growth = (1 + math.tanh((age_days-25)/40)) / 2

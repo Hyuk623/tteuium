@@ -1,7 +1,7 @@
 const $ = id => document.getElementById(id);
-const names = {home:'오늘의 식물',growth:'성장의 기록',environment:'우리 집 환경',actions:'함께한 기록',simulation:'시뮬레이션'};
+const names = {home:'오늘의 식물',growth:'성장의 기록',environment:'우리 집 환경',actions:'함께한 기록'};
 const labels = {plant_height:['식물 높이','cm',10],leaf_area:['잎 면적','cm²',100],canopy_area:['잎이 덮는 면적','cm²',100]};
-const fields = [['temperature_c','온도','°C'],['humidity_pct','습도','%'],['light_lux','밝기','lux'],['water_level_pct','수위','%']];
+const fields = [['temperature_c','온도','°C'],['humidity_pct','습도','%']];
 const kinds = {water:'물 보충',nutrients:'영양',lighting:'조명 변경',pruning:'가지치기',pollination:'수분 (꽃가루받이)',relocation:'화분 이동',inspection:'직접 확인',note:'메모',manual_care:'관리'};
 const origins = {mock:'모의 데이터',human:'사람이 기록',model:'모델 추정',device:'센서 측정',unknown:'출처 미확인'};
 let state = null, deviceId = '', generation = 0;
@@ -10,7 +10,7 @@ const date = t => new Date(t).toLocaleString('ko-KR',{month:'numeric',day:'numer
 function el(tag,text,cls){const n=document.createElement(tag);if(text!=null)n.textContent=text;if(cls)n.className=cls;return n;}
 async function api(path,options){const r=await fetch(path,options);if(!r.ok)throw new Error(`${r.status} · ${await r.text()}`);return r.json();}
 function send(path,data){return api(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});}
-function route(){const page=location.hash.slice(1) in names?location.hash.slice(1):'home';$('heading').textContent=names[page];document.querySelectorAll('[data-screen]').forEach(n=>n.hidden=n.dataset.screen!==page);document.querySelectorAll('[data-page]').forEach(n=>{n.classList.toggle('active',n.dataset.page===page);if(n.dataset.page===page)n.setAttribute('aria-current','page');else n.removeAttribute('aria-current');});}
+function route(){const page=location.hash.slice(1) in names?location.hash.slice(1):'home';$('heading').textContent=names[page];$('period').parentElement.hidden=page==='actions';document.querySelectorAll('[data-screen]').forEach(n=>n.hidden=n.dataset.screen!==page);document.querySelectorAll('[data-page]').forEach(n=>{n.classList.toggle('active',n.dataset.page===page);if(n.dataset.page===page)n.setAttribute('aria-current','page');else n.removeAttribute('aria-current');});}
 function option(select,value,text){const n=el('option',text);n.value=value;select.append(n);}
 function imageFigure(item){const f=el('figure');if(!item){f.append(el('div','아직 이미지가 없습니다.','empty-image'));return f;}let url;try{url=new URL(item.reference,document.baseURI);}catch{}if(url&&['http:','https:'].includes(url.protocol)){const img=el('img');img.src=url.href;img.alt=item.source==='mock'?'모의 식물 예시 그림':'식물 관찰 이미지';img.onerror=()=>img.replaceWith(el('div','이미지를 불러올 수 없습니다.','empty-image'));f.append(img);}else f.append(el('div','이미지 참조만 등록됨 · 연결 가능한 URL이 필요합니다.','empty-image'));f.append(el('figcaption',`${date(item.captured_at)} · ${origins[item.source]}${item.source==='mock'?' · 실제 촬영 아님':''}`));return f;}
 function plot(title,items,unit,subtitle){const panel=el('article',null,'panel');panel.append(el('h2',title),el('p',subtitle,'muted'));const valid=items.filter(x=>x.value!=null);if(!valid.length){panel.append(el('p','이 기간에 표시할 관측값이 없습니다.'));return panel;}panel.append(el('p',`${date(valid[0].time)} ${fmt(valid[0].value)} → ${date(valid.at(-1).time)} ${fmt(valid.at(-1).value)} ${unit}`,'chart-summary'));
@@ -23,18 +23,17 @@ const devices=s.Environment.devices;if(!devices.some(d=>d.id===deviceId))deviceI
 $('growth-charts').replaceChildren();$('growth-summary').replaceChildren();for(const [metric,[label,unit,divisor]] of Object.entries(labels)){const rows=s.Growth.measurements.filter(m=>m.metric===metric);const groups=Map.groupBy?Map.groupBy(rows,m=>m.series):rows.reduce((map,m)=>map.set(m.series,[...(map.get(m.series)||[]),m]),new Map());if(!groups.size){$('growth-charts').append(plot(label,[],unit,'관측값 없음 · 실제 결과가 연결되면 표시됩니다.'));const r=el('div',null,'growth-row');r.append(el('span',label),el('span','관측값 없음'));$('growth-summary').append(r);}for(const items of groups.values()){const m=items[0],tag=`${origins[m.source_kind]} · ${m.provenance.scenario_id} / ${m.provenance.geometry_variant_id}`;const points=items.map(i=>({time:i.observed_at,value:i.value==null?null:i.value/divisor}));$('growth-charts').append(plot(label,points,unit,tag));const valid=points.filter(i=>i.value!=null),r=el('div',null,'growth-row');const left=el('div',label);left.append(el('div',origins[m.source_kind],'muted'));r.append(left,el('strong',valid.length>1?`${fmt(valid.at(-1).value-valid[0].value)} ${unit}`:'비교 관측 부족'));$('growth-summary').append(r);}}
 $('environment-charts').replaceChildren();const own=sensors.filter(r=>r.device_id===deviceId);for(const [key,label,unit] of fields){const present=[...new Set(own.map(r=>r.source))];if(!present.length)$('environment-charts').append(plot(label,[],unit,'관측값 없음'));present.forEach(source=>{$('environment-charts').append(plot(label,own.map(r=>({time:r.observed_at,value:r.source===source?r.sensors[key]:null})),unit,origins[source]+' · 기기에서 수신한 단위'));});}
 $('checks').replaceChildren();if(!state.checks.length)$('checks').append(el('p','표시할 점검 항목이 없습니다. 데이터의 충분함이나 식물의 정상 상태를 뜻하지 않습니다.','muted'));state.checks.forEach(c=>{const n=el('div',null,'check');n.append(el('strong',c.observation),el('p',c.check),el('p',c.action));const details=el('details');details.append(el('summary','근거 보기 · 관측 기반 안내'),el('p',JSON.stringify(c.evidence)));n.append(details);$('checks').append(n);});
-$('light-summary').textContent=s.Light.summary;$('light-details').replaceChildren();if(!s.Light.measurements.length)$('light-details').append(el('p','연결된 광환경 모델 결과가 없습니다.'));s.Light.measurements.forEach(m=>{const text=el('p',`${m.metric}: ${fmt(m.value)} ${m.unit} · ${origins[m.source_kind]} · ${date(m.observed_at)} · ${m.provenance.scenario_id} / ${m.provenance.geometry_variant_id}`);$('light-details').append(text);});
-$('actions').replaceChildren();if(!s.Action.entries.length)$('actions').append(el('p','아직 기록이 없습니다. 오늘의 첫 관찰을 남겨보세요.','muted'));s.Action.entries.forEach(a=>{const n=el('div',null,'entry');n.append(el('strong',kinds[a.kind]||a.kind),el('p',a.note),el('small',date(a.created_at)+' · 사람이 기록','muted'));$('actions').append(n);});}
-async function refresh(){const request=++generation;try{$('error').hidden=true;const plants=await api('/api/plants');if(request!==generation)return;const selected=$('plant').value;$('plant').replaceChildren();plants.forEach(p=>option($('plant'),p.id,p.name));if(plants.some(p=>p.id===selected))$('plant').value=selected;else if(plants.some(p=>p.id==='mvp-demo'))$('plant').value='mvp-demo';$('empty').hidden=plants.length>0;if(!plants.length){$('content').hidden=true;$('notice').textContent='아직 연결된 데이터가 없습니다.';return;}const result=await api(`/api/plants/${encodeURIComponent($('plant').value)}/state?days=${$('period').value}`);if(request!==generation)return;state=result;$('content').hidden=false;render();loadSimulations(result.plant.id,request);}catch(e){if(request!==generation)return;$('error').textContent='불러오기 실패: '+e.message;$('error').hidden=false;$('notice').textContent='연결을 확인해 주세요. 이전 화면 값이 남아 있다면 최신 데이터가 아닙니다.';}}
+renderJournal();}
+async function refresh(){const request=++generation;try{$('error').hidden=true;const plants=await api('/api/plants');if(request!==generation)return;const selected=$('plant').value;$('plant').replaceChildren();plants.forEach(p=>option($('plant'),p.id,p.name));if(plants.some(p=>p.id===selected))$('plant').value=selected;else if(plants.some(p=>p.id==='mvp-demo'))$('plant').value='mvp-demo';$('empty').hidden=plants.length>0;if(!plants.length){$('content').hidden=true;$('notice').textContent='아직 연결된 데이터가 없습니다.';return;}const result=await api(`/api/plants/${encodeURIComponent($('plant').value)}/state?days=${$('period').value}`);if(request!==generation)return;state=result;$('content').hidden=false;render();}catch(e){if(request!==generation)return;$('error').textContent='불러오기 실패: '+e.message;$('error').hidden=false;$('notice').textContent='연결을 확인해 주세요. 이전 화면 값이 남아 있다면 최신 데이터가 아닙니다.';}}
 async function save(form,result,work){const button=form.querySelector('button[type="submit"]')||form.querySelector('button');button.disabled=true;$(result).textContent='저장 중…';try{await work();$(result).textContent=result==='action-result'?'✓ 식물과 함께한 한 페이지가 쌓였어요.':'저장했습니다.';await refresh();}catch(e){$(result).textContent='저장 실패: '+e.message;}finally{button.disabled=false;}}
-$('action-form').onsubmit=e=>{e.preventDefault();const plant=state?.plant.id;if(!plant)return;save(e.target,'action-result',async()=>{await send('/api/actions',{plant_id:plant,kind:$('kind').value,note:$('note').value});$('note').value='';updateNoteCount();});};
+$('action-form').onsubmit=e=>{e.preventDefault();const plant=state?.plant.id;if(!plant)return;save(e.target,'action-result',async()=>{await send('/api/actions',{plant_id:plant,kind:$('kind').value,note:$('note').value});$('note').value='';updateNoteCount();const now=new Date();journalMonth=new Date(now.getFullYear(),now.getMonth(),1);selectedDay=dayKey(now);});};
 $('measurement-form').onsubmit=e=>{e.preventDefault();if(!state)return;const plant=state.plant.id;save(e.target,'measurement-result',()=>send('/api/observations',{import_id:crypto.randomUUID(),plant_id:plant,observed_at:new Date($('measured-at').value).toISOString(),source_ref:'manual-dashboard',source_sha256:'0'.repeat(64),scenario_id:'observation',geometry_variant_id:'manual',evidence:'human',measurements:[{metric:'plant_height',value:Number($('height').value)*10,unit:'mm',status:'human'}]}));};
 const local=new Date(Date.now()-new Date().getTimezoneOffset()*60000);$('measured-at').value=local.toISOString().slice(0,16);
-$('plant').onchange=()=>{deviceId='';state=null;simulationSignature='';$('simulation-results').replaceChildren();$('content').hidden=true;refresh();};$('period').onchange=refresh;$('refresh').onclick=refresh;['device','environment-device'].forEach(id=>$(id).onchange=()=>{deviceId=$(id).value;render();});window.addEventListener('hashchange',route);route();refresh();setInterval(()=>{if(!document.hidden)refresh();},30000);
+$('plant').onchange=()=>{deviceId='';state=null;$('content').hidden=true;refresh();};$('period').onchange=refresh;$('refresh').onclick=refresh;['device','environment-device'].forEach(id=>$(id).onchange=()=>{deviceId=$(id).value;render();});window.addEventListener('hashchange',route);route();refresh();setInterval(()=>{if(!document.hidden)refresh();},30000);
 
 // Sentence starters describe observations, never prescribe care.
 const activityPrompts = {
-  water: ['물을 보충한 순간을 남겨볼까요?', '어디에 얼마나 보충했는지, 보충 전후의 수위를 적어보세요.', ['물을 보충했어요. ', '보충 전 수위는 ']],
+  water: ['물을 보충한 순간을 남겨볼까요?', '물을 준 양과 시간, 눈으로 확인한 모습을 적어보세요.', ['물을 준 시간은 ', '물을 준 양은 ']],
   nutrients: ['어떤 영양을 얼마나 더했나요?', '사용한 제품과 양 등 실제로 한 일을 남겨주세요.', ['사용한 제품은 ', '추가한 양은 ']],
   lighting: ['오늘의 빛은 어떻게 달라졌나요?', '조명의 위치, 켠 시간, 바꾼 설정을 적어보세요.', ['조명 위치를 ', '조명 시간을 ']],
   pruning: ['어느 부분을 정리했나요?', '정리한 위치와 개수, 눈에 보인 모습을 기록해 보세요.', ['정리한 부분은 ', '정리 후 모습은 ']],
@@ -56,20 +55,50 @@ document.querySelectorAll('input[name="activity"]').forEach(input=>input.addEven
 $('note').addEventListener('input',updateNoteCount);
 chooseActivity('inspection');
 
-let simulationSignature='';
-async function loadSimulations(plantId,request){
-  try{
-    const results=await api('/api/simulations?plant_id='+encodeURIComponent(plantId));
-    if(request!==generation || state?.plant.id!==plantId)return;
-    const signature=plantId+JSON.stringify(results);
-    if(signature===simulationSignature)return;
-    simulationSignature=signature;
-    const host=$('simulation-results');host.replaceChildren();
-    if(!results.length){const empty=el('article',null,'panel simulation-empty');empty.append(el('div','◈','simulation-symbol'),el('h2','아직 연결된 시뮬레이션이 없어요'),el('p','이 식물의 시뮬레이션 결과 파일을 등록하면 여기에 표시됩니다.'),el('p','현재 홈의 그림은 모의 예시이며, 연구 엔진이 생성한 결과가 아닙니다.','muted'),el('p','지원 형식: 결과 이미지(PNG/JPEG), 연구 엔진에서 내보낸 3D 뷰어(HTML).','muted'));host.append(empty);return;}
-    const inputNames={observed_geometry:'관측 형상 기반 · 등록자가 지정',synthetic_fixture:'합성 입력 기반',assumed:'가정 입력 기반'};
-    results.forEach(r=>{const card=el('article',null,'panel');card.append(el('span','모델 결과 · '+inputNames[r.input_kind],'pill'),el('h2',r.title),el('p',`생성 ${date(r.generated_at)} · 실행 ${r.run_id} · 시나리오 ${r.scenario_id}`,'muted'));
-      if(r.media_kind==='viewer'){const frame=el('iframe');frame.title=r.title+' 3D 시뮬레이션';frame.setAttribute('sandbox','allow-scripts');frame.src=r.asset_url;frame.className='simulation-viewer';frame.loading='lazy';card.append(frame);}
-      else{const img=el('img');img.src=r.asset_url;img.alt=r.title+' · 모델 시뮬레이션 이미지';img.className='simulation-image';img.onerror=()=>img.replaceWith(el('p','이미지를 읽을 수 없습니다. 등록 파일을 확인해 주세요.'));card.append(img);}
-      const detail=el('details');detail.append(el('summary','출처 확인'),el('p',r.source_name),el('p','SHA-256: '+r.sha256,'asset-hash'));card.append(detail);host.append(card);});
-  }catch(e){if(request!==generation)return;simulationSignature='';$('simulation-results').replaceChildren(el('p','시뮬레이션 결과를 불러오지 못했습니다. 새로고침해 주세요.','panel'));}
+
+const journalToday = new Date();
+let journalMonth = new Date(journalToday.getFullYear(),journalToday.getMonth(),1);
+let journalView = 'calendar', selectedDay = null;
+function dayKey(value){const d=new Date(value);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function filteredRecords(){
+  const search=$('filter-search').value.trim().toLocaleLowerCase();
+  const kind=$('filter-kind').value;
+  return (state?.state.Action.entries||[]).filter(a=>(!kind||a.kind===kind)&&(!search||a.note.toLocaleLowerCase().includes(search)));
 }
+function renderJournal(){
+  const all=filteredRecords(),monthKey=dayKey(journalMonth).slice(0,7);
+  const monthly=all.filter(a=>dayKey(a.created_at).startsWith(monthKey));
+  $('calendar-view').hidden=journalView!=='calendar';
+  $('view-calendar').setAttribute('aria-pressed',String(journalView==='calendar'));
+  $('view-list').setAttribute('aria-pressed',String(journalView==='list'));
+  $('calendar-month').textContent=journalMonth.toLocaleDateString('ko-KR',{year:'numeric',month:'long'});
+  const grid=$('calendar-grid');grid.replaceChildren();
+  for(let i=0;i<journalMonth.getDay();i++){const blank=el('div',null,'calendar-blank');blank.setAttribute('aria-hidden','true');grid.append(blank);}
+  const end=new Date(journalMonth.getFullYear(),journalMonth.getMonth()+1,0).getDate();
+  for(let day=1;day<=end;day++){
+    const key=dayKey(new Date(journalMonth.getFullYear(),journalMonth.getMonth(),day));
+    const records=monthly.filter(a=>dayKey(a.created_at)===key);
+    const button=el('button',null,'calendar-day');button.type='button';
+    button.setAttribute('aria-label',`${key}, 기록 ${records.length}건`);button.setAttribute('aria-pressed',String(selectedDay===key));
+    if(key===dayKey(new Date()))button.setAttribute('aria-current','date');
+    button.append(el('span',String(day),'day-number'));
+    if(records.length){button.append(el('span',`${records.length}건`,'day-count'));const types=[...new Set(records.map(a=>kinds[a.kind]||a.kind))];button.append(el('span',types.slice(0,2).join(' · '),'day-types'));}
+    button.onclick=()=>{selectedDay=key;renderJournal();};grid.append(button);
+  }
+  let entries=journalView==='list'?all:monthly.filter(a=>!selectedDay||dayKey(a.created_at)===selectedDay);
+  const sorting=$('action-sort').value;
+  entries=[...entries].sort((a,b)=>sorting==='oldest'?Date.parse(a.created_at)-Date.parse(b.created_at):sorting==='kind'?(kinds[a.kind]||a.kind).localeCompare(kinds[b.kind]||b.kind,'ko')||Date.parse(b.created_at)-Date.parse(a.created_at):Date.parse(b.created_at)-Date.parse(a.created_at));
+  $('record-heading').textContent=journalView==='list'?'전체 기록 목록':selectedDay?`${selectedDay}의 기록`:'이 달의 기록';
+  $('clear-day').hidden=journalView!=='calendar'||!selectedDay;
+  $('record-count').textContent=`${entries.length}건${$('filter-kind').value||$('filter-search').value?' · 필터 적용 중':''}`;
+  $('actions').replaceChildren();
+  if(!entries.length)$('actions').append(el('p','조건에 맞는 기록이 없습니다. 날짜나 필터를 바꾸거나 아래에서 오늘의 기록을 남겨보세요.','muted'));
+  entries.forEach(a=>{const n=el('div',null,'entry');n.append(el('strong',kinds[a.kind]||a.kind),el('p',a.note),el('small',new Date(a.created_at).toLocaleString('ko-KR')+' · 사람이 기록','muted'));$('actions').append(n);});
+}
+Object.entries(kinds).forEach(([key,label])=>option($('filter-kind'),key,label));
+['filter-kind','action-sort'].forEach(id=>$(id).onchange=renderJournal);$('filter-search').oninput=renderJournal;
+$('view-calendar').onclick=()=>{journalView='calendar';renderJournal();};$('view-list').onclick=()=>{journalView='list';renderJournal();};
+function changeMonth(offset){journalMonth=new Date(journalMonth.getFullYear(),journalMonth.getMonth()+offset,1);selectedDay=null;renderJournal();}
+$('prev-month').onclick=()=>changeMonth(-1);$('next-month').onclick=()=>changeMonth(1);
+$('calendar-today').onclick=()=>{const now=new Date();journalMonth=new Date(now.getFullYear(),now.getMonth(),1);selectedDay=null;renderJournal();};
+$('clear-day').onclick=()=>{selectedDay=null;renderJournal();};

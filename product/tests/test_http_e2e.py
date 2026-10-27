@@ -36,7 +36,7 @@ def test_mock_and_adapter_over_http(tmp_path):
             with urlopen(base+'/api/measurements?plant_id=demo-plant') as response:
                 assert len(json.load(response))==8
             with urlopen(base+'/api/recommendations?plant_id=demo-plant') as response:
-                assert any(r['rule_id']=='water_low' for r in json.load(response))
+                assert not any(r['rule_id']=='water_low' for r in json.load(response))
             for _ in range(2):
                 subprocess.run([sys.executable,'-m','product.device_contract.seed_demo','--url',base],cwd=root,check=True,capture_output=True,timeout=30,creationflags=flags)
             with urlopen(base+'/api/plants/mvp-demo/state?days=14') as response:

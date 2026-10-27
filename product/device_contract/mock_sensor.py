@@ -37,7 +37,7 @@ def main() -> None:
     register(args.url, "/api/plants", {"id": "demo-plant", "name": "Demo tomato"})
     register(args.url, "/api/devices", {"id": "demo-device", "name": "Mock sensor", "plant_id": "demo-plant"})
     for index in range(args.count):
-        event = {"schema_version": "1.0", "event_id": str(uuid.uuid4()), "device_id": "demo-device", "observed_at": datetime.now(timezone.utc).isoformat(), "source": "mock", "sensors": {"temperature_c": 24 + index % 10, "humidity_pct": 55, "water_level_pct": 10 if index % 4 == 0 else 65, "light_lux": 1200 + index * 10}}
+        event = {"schema_version": "1.0", "event_id": str(uuid.uuid4()), "device_id": "demo-device", "observed_at": datetime.now(timezone.utc).isoformat(), "source": "mock", "sensors": {"temperature_c": 24 + index % 10, "humidity_pct": 55}}
         print(post(args.url, "/api/readings", event))
         if index + 1 < args.count:
             time.sleep(args.interval)

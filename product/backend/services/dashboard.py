@@ -18,7 +18,7 @@ def dashboard_state(path: Path, plant_id: str, days: int, stale_seconds: int) ->
         devices = [dict(r) for r in db.execute('SELECT * FROM devices WHERE plant_id=?', (plant_id,))]
         readings = []
         for device in devices:
-            rows = db.execute('SELECT payload FROM sensor_readings WHERE device_id=? AND observed_at>=? AND observed_at<=? ORDER BY observed_at LIMIT 10001', (device['id'], since, now.isoformat())).fetchall()
+            rows = db.execute('SELECT payload FROM sensor_readings WHERE device_id=? AND observed_at>=? AND observed_at<=? ORDER BY observed_at,received_at LIMIT 10001', (device['id'], since, now.isoformat())).fetchall()
             if len(rows) > 10000:
                 raise HTTPException(422, 'Too many readings; select a shorter period')
             readings.extend(json.loads(r['payload']) for r in rows)
@@ -44,8 +44,8 @@ def dashboard_state(path: Path, plant_id: str, days: int, stale_seconds: int) ->
         device['status'] = 'unavailable' if not latest else ('stale' if (now - datetime.fromisoformat(latest['observed_at'])).total_seconds() > stale_seconds else 'available')
         if device['status'] != 'available':
             checks.append({'observation': '최근 환경 데이터를 확인해 주세요.', 'evidence': {'device_id': device['id'], 'last_observed_at': latest['observed_at'] if latest else None}, 'check': '장치 연결과 마지막 측정 시각을 확인해 주세요.', 'action': '확인한 내용을 기록에 남겨 주세요.', 'provenance': 'derived'})
-        elif any(v is None for v in latest['sensors'].values()):
-            checks.append({'observation': '일부 센서값이 없습니다.', 'evidence': {'event_id': latest['event_id'], 'missing': [k for k,v in latest['sensors'].items() if v is None]}, 'check': '센서 연결 상태를 확인해 주세요.', 'action': '확인 후 다시 측정해 주세요.', 'provenance': 'derived'})
+        elif any(latest['sensors'].get(k) is None for k in ('temperature_c','humidity_pct')):
+            checks.append({'observation': '일부 센서값이 없습니다.', 'evidence': {'event_id': latest['event_id'], 'missing': [k for k in ('temperature_c','humidity_pct') if latest['sensors'].get(k) is None]}, 'check': '센서 연결 상태를 확인해 주세요.', 'action': '확인 후 다시 측정해 주세요.', 'provenance': 'derived'})
     series = {}
     for item in measurements:
         if item['metric'] in GROWTH:

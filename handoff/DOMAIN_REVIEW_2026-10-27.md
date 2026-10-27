@@ -1,0 +1,3 @@
+# Domain review changes — 2026-10-27
+
+Implement requested temperature/humidity-only consumer UI and mock sensor profile; retain legacy optional fields for compatibility but do not flag uninstalled sensors as missing. Remove simulation navigation/UI while preserving stored research artifacts. Replace journal history with a monthly calendar and searchable, sortable list of latest 100 recorded entries; calendar groups by local recorded date, independent from growth/environment period selector. Preserve existing notes and browser storage. Camera segmentation and expert-reviewed action proposals remain future work, not automatic pruning advice. Validate API regression, calendar month/date/filter/sort behavior and publish the updated mock-only Pages demo.
