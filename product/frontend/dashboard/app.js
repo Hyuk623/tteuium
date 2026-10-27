@@ -26,7 +26,7 @@ $('checks').replaceChildren();if(!state.checks.length)$('checks').append(el('p',
 renderJournal();}
 async function refresh(){const request=++generation;try{$('error').hidden=true;const plants=await api('/api/plants');if(request!==generation)return;const selected=$('plant').value;$('plant').replaceChildren();plants.forEach(p=>option($('plant'),p.id,p.name));if(plants.some(p=>p.id===selected))$('plant').value=selected;else if(plants.some(p=>p.id==='mvp-demo'))$('plant').value='mvp-demo';$('empty').hidden=plants.length>0;if(!plants.length){$('content').hidden=true;$('notice').textContent='아직 연결된 데이터가 없습니다.';return;}const result=await api(`/api/plants/${encodeURIComponent($('plant').value)}/state?days=${$('period').value}`);if(request!==generation)return;state=result;$('content').hidden=false;render();}catch(e){if(request!==generation)return;$('error').textContent='불러오기 실패: '+e.message;$('error').hidden=false;$('notice').textContent='연결을 확인해 주세요. 이전 화면 값이 남아 있다면 최신 데이터가 아닙니다.';}}
 async function save(form,result,work){const button=form.querySelector('button[type="submit"]')||form.querySelector('button');button.disabled=true;$(result).textContent='저장 중…';try{await work();$(result).textContent=result==='action-result'?'✓ 식물과 함께한 한 페이지가 쌓였어요.':'저장했습니다.';await refresh();}catch(e){$(result).textContent='저장 실패: '+e.message;}finally{button.disabled=false;}}
-$('action-form').onsubmit=e=>{e.preventDefault();const plant=state?.plant.id;if(!plant)return;save(e.target,'action-result',async()=>{await send('/api/actions',{plant_id:plant,kind:$('kind').value,note:$('note').value});$('note').value='';updateNoteCount();const now=new Date();journalMonth=new Date(now.getFullYear(),now.getMonth(),1);selectedDay=dayKey(now);});};
+$('action-form').onsubmit=e=>{e.preventDefault();const plant=state?.plant.id;if(!plant)return;save(e.target,'action-result',async()=>{await send('/api/actions',{plant_id:plant,kind:$('kind').value,note:$('note').value,action_date:$('action-date').value});$('note').value='';updateNoteCount();selectedDay=$('action-date').value;const chosen=new Date(selectedDay+'T12:00:00');journalMonth=new Date(chosen.getFullYear(),chosen.getMonth(),1);$('journal-dialog').close();});};
 $('measurement-form').onsubmit=e=>{e.preventDefault();if(!state)return;const plant=state.plant.id;save(e.target,'measurement-result',()=>send('/api/observations',{import_id:crypto.randomUUID(),plant_id:plant,observed_at:new Date($('measured-at').value).toISOString(),source_ref:'manual-dashboard',source_sha256:'0'.repeat(64),scenario_id:'observation',geometry_variant_id:'manual',evidence:'human',measurements:[{metric:'plant_height',value:Number($('height').value)*10,unit:'mm',status:'human'}]}));};
 const local=new Date(Date.now()-new Date().getTimezoneOffset()*60000);$('measured-at').value=local.toISOString().slice(0,16);
 $('plant').onchange=()=>{deviceId='';state=null;$('content').hidden=true;refresh();};$('period').onchange=refresh;$('refresh').onclick=refresh;['device','environment-device'].forEach(id=>$(id).onchange=()=>{deviceId=$(id).value;render();});window.addEventListener('hashchange',route);route();refresh();setInterval(()=>{if(!document.hidden)refresh();},30000);
@@ -67,8 +67,8 @@ function filteredRecords(){
 }
 function renderJournal(){
   const all=filteredRecords(),monthKey=dayKey(journalMonth).slice(0,7);
-  const monthly=all.filter(a=>dayKey(a.created_at).startsWith(monthKey));
-  $('calendar-view').hidden=journalView!=='calendar';
+  const monthly=all.filter(a=>recordDay(a).startsWith(monthKey));
+  $('calendar-view').hidden=journalView!=='calendar';$('journal-list').hidden=journalView!=='list';
   $('view-calendar').setAttribute('aria-pressed',String(journalView==='calendar'));
   $('view-list').setAttribute('aria-pressed',String(journalView==='list'));
   $('calendar-month').textContent=journalMonth.toLocaleDateString('ko-KR',{year:'numeric',month:'long'});
@@ -77,23 +77,23 @@ function renderJournal(){
   const end=new Date(journalMonth.getFullYear(),journalMonth.getMonth()+1,0).getDate();
   for(let day=1;day<=end;day++){
     const key=dayKey(new Date(journalMonth.getFullYear(),journalMonth.getMonth(),day));
-    const records=monthly.filter(a=>dayKey(a.created_at)===key);
+    const records=monthly.filter(a=>recordDay(a)===key);
     const button=el('button',null,'calendar-day');button.type='button';
     button.setAttribute('aria-label',`${key}, 기록 ${records.length}건`);button.setAttribute('aria-pressed',String(selectedDay===key));
     if(key===dayKey(new Date()))button.setAttribute('aria-current','date');
     button.append(el('span',String(day),'day-number'));
     if(records.length){button.append(el('span',`${records.length}건`,'day-count'));const types=[...new Set(records.map(a=>kinds[a.kind]||a.kind))];button.append(el('span',types.slice(0,2).join(' · '),'day-types'));}
-    button.onclick=()=>{selectedDay=key;renderJournal();};grid.append(button);
+    button.onclick=()=>openJournal(key);grid.append(button);
   }
-  let entries=journalView==='list'?all:monthly.filter(a=>!selectedDay||dayKey(a.created_at)===selectedDay);
+  let entries=journalView==='list'?all:monthly.filter(a=>!selectedDay||recordDay(a)===selectedDay);
   const sorting=$('action-sort').value;
-  entries=[...entries].sort((a,b)=>sorting==='oldest'?Date.parse(a.created_at)-Date.parse(b.created_at):sorting==='kind'?(kinds[a.kind]||a.kind).localeCompare(kinds[b.kind]||b.kind,'ko')||Date.parse(b.created_at)-Date.parse(a.created_at):Date.parse(b.created_at)-Date.parse(a.created_at));
+  entries=[...entries].sort((a,b)=>sorting==='oldest'?recordDay(a).localeCompare(recordDay(b))||Date.parse(a.created_at)-Date.parse(b.created_at):sorting==='kind'?(kinds[a.kind]||a.kind).localeCompare(kinds[b.kind]||b.kind,'ko')||recordDay(b).localeCompare(recordDay(a))||Date.parse(b.created_at)-Date.parse(a.created_at):recordDay(b).localeCompare(recordDay(a))||Date.parse(b.created_at)-Date.parse(a.created_at));
   $('record-heading').textContent=journalView==='list'?'전체 기록 목록':selectedDay?`${selectedDay}의 기록`:'이 달의 기록';
   $('clear-day').hidden=journalView!=='calendar'||!selectedDay;
   $('record-count').textContent=`${entries.length}건${$('filter-kind').value||$('filter-search').value?' · 필터 적용 중':''}`;
   $('actions').replaceChildren();
-  if(!entries.length)$('actions').append(el('p','조건에 맞는 기록이 없습니다. 날짜나 필터를 바꾸거나 아래에서 오늘의 기록을 남겨보세요.','muted'));
-  entries.forEach(a=>{const n=el('div',null,'entry');n.append(el('strong',kinds[a.kind]||a.kind),el('p',a.note),el('small',new Date(a.created_at).toLocaleString('ko-KR')+' · 사람이 기록','muted'));$('actions').append(n);});
+  if(!entries.length)$('actions').append(el('p','조건에 맞는 기록이 없습니다. 날짜나 필터를 바꾸거나 날짜를 눌러 기록을 남겨보세요.','muted'));
+  entries.forEach(a=>{const n=el('div',null,'entry');n.append(el('strong',kinds[a.kind]||a.kind),el('p',a.note),el('small',recordDay(a)+' · 사람이 기록','muted'));$('actions').append(n);});
 }
 Object.entries(kinds).forEach(([key,label])=>option($('filter-kind'),key,label));
 ['filter-kind','action-sort'].forEach(id=>$(id).onchange=renderJournal);$('filter-search').oninput=renderJournal;
@@ -102,3 +102,26 @@ function changeMonth(offset){journalMonth=new Date(journalMonth.getFullYear(),jo
 $('prev-month').onclick=()=>changeMonth(-1);$('next-month').onclick=()=>changeMonth(1);
 $('calendar-today').onclick=()=>{const now=new Date();journalMonth=new Date(now.getFullYear(),now.getMonth(),1);selectedDay=null;renderJournal();};
 $('clear-day').onclick=()=>{selectedDay=null;renderJournal();};
+
+function recordDay(entry){return entry.action_date||dayKey(entry.created_at);}
+function showDayRecords(){
+  const key=$('action-date').value;
+  $('journal-dialog-title').textContent=key+' · 식물 기록';
+  const target=$('day-records');target.replaceChildren();
+  const entries=(state?.state.Action.entries||[]).filter(a=>recordDay(a)===key);
+  if(entries.length)target.append(el('h3',`이날 남긴 기록 ${entries.length}건`));
+  entries.forEach(a=>{const row=el('div',null,'entry');row.append(el('strong',kinds[a.kind]||a.kind),el('p',a.note));target.append(row);});
+}
+const journalDrafts=new Map();
+$('journal-dialog').addEventListener('close',()=>{journalDrafts.set(state.plant.id+'|'+$('action-date').value,{note:$('note').value,kind:$('kind').value});});
+function openJournal(key){
+  const draft=journalDrafts.get(state.plant.id+'|'+key);
+  $('action-date').value=key;$('note').value=draft?.note||'';
+  const kind=draft?.kind||'inspection';document.querySelector(`input[name="activity"][value="${kind}"]`).checked=true;chooseActivity(kind);updateNoteCount();
+  selectedDay=$('action-date').value;
+  $('action-result').textContent=$('note').value.trim()?'작성 중인 내용을 이어서 보여드려요. 날짜를 확인해 주세요.':'';
+  showDayRecords();$('journal-dialog').showModal();
+}
+$('action-date').onchange=showDayRecords;
+$('close-journal').onclick=()=>$('journal-dialog').close();
+$('new-record').onclick=()=>openJournal(dayKey(new Date()));

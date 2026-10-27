@@ -11,7 +11,7 @@
     if(url.pathname==='/api/plants')return reply([{id:'mvp-demo',name:'나의 작은 토마토'}]);
     if(url.pathname==='/api/simulations')return reply([]);
     if(url.pathname==='/api/actions'&&method==='POST'){
-      try{const data=JSON.parse(options.body);if(data.plant_id!=='mvp-demo'||!data.note?.trim())return reply({detail:'내용을 입력해 주세요.'},422);const existing=records();existing.unshift({id:crypto.randomUUID(),created_at:new Date().toISOString(),plant_id:data.plant_id,kind:data.kind,note:data.note,provenance:'human'});localStorage.setItem(storeKey,JSON.stringify(existing.slice(0,100)));return reply({saved:true},201);}catch{return reply({detail:'이 브라우저에서 저장을 허용하지 않습니다.'},400);}
+      try{const data=JSON.parse(options.body);if(data.plant_id!=='mvp-demo'||!data.note?.trim())return reply({detail:'내용을 입력해 주세요.'},422);const existing=records();existing.unshift({id:crypto.randomUUID(),created_at:new Date().toISOString(),action_date:data.action_date||null,plant_id:data.plant_id,kind:data.kind,note:data.note,provenance:'human'});localStorage.setItem(storeKey,JSON.stringify(existing.slice(0,100)));return reply({saved:true},201);}catch{return reply({detail:'이 브라우저에서 저장을 허용하지 않습니다.'},400);}
     }
     if(url.pathname==='/api/observations')return reply({detail:'공개 데모에서는 실제 관측값을 저장하지 않습니다.'},403);
     if(url.pathname==='/api/plants/mvp-demo/state'){

@@ -1,5 +1,5 @@
 """Versioned product boundary models; units are part of field names."""
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, AwareDatetime, field_validator, model_validator
 
@@ -43,6 +43,7 @@ class SensorEvent(Model):
 
 class Action(Model):
     plant_id: Identifier
+    action_date: date | None = None
     note: str = Field(min_length=1, max_length=2000)
     kind: Literal["inspection", "manual_care", "note", "water", "nutrients", "lighting", "pruning", "pollination", "relocation"] = "note"
 

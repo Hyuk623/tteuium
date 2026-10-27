@@ -62,3 +62,21 @@ def test_uninstalled_sensors_do_not_generate_missing_checks(tmp_path):
         event['event_id']='humidity-missing';event['sensors']['humidity_pct']=None
         assert c.post('/api/readings',json=event).status_code==201
         assert c.get('/api/plants/p/state').json()['checks'][0]['evidence']['missing']==['humidity_pct']
+
+def test_action_date_and_legacy_migration(tmp_path):
+    import sqlite3
+    path = tmp_path/'legacy.db'
+    with sqlite3.connect(path) as db:
+        db.execute('CREATE TABLE actions (id INTEGER PRIMARY KEY, plant_id TEXT, created_at TEXT, kind TEXT, note TEXT)')
+        db.execute("INSERT INTO actions VALUES (1,'p','2026-10-18T10:00:00Z','note','legacy')")
+    with TestClient(create_app(path)) as c:
+        c.post('/api/plants',json={'id':'p','name':'Plant'})
+        result=c.post('/api/actions',json={'plant_id':'p','note':'past day','action_date':'2026-09-12'})
+        assert result.status_code==201
+        assert c.post('/api/actions',json={'plant_id':'p','note':'invalid','action_date':'2026-02-30'}).status_code==422
+    with TestClient(create_app(path)) as c:
+        entries=c.get('/api/actions?plant_id=p').json()
+        assert entries[0]['action_date']=='2026-09-12'
+        assert entries[0]['created_at'][:10]!='2026-09-12'
+        assert entries[1]['action_date'] is None
+        assert entries[1]['note']=='legacy'

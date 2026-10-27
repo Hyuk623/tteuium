@@ -77,7 +77,7 @@ def create_app(db_path: Path, rules: RuleConfig | None = None) -> FastAPI:
     @app.post("/api/actions", status_code=201)
     def add_action(action: Action):
         with connect(db_path) as db:
-            cursor = db.execute("INSERT INTO actions(plant_id,created_at,kind,note) VALUES(?,?,?,?)", (action.plant_id, datetime.now(timezone.utc).isoformat(), action.kind, action.note))
+            cursor = db.execute("INSERT INTO actions(plant_id,created_at,kind,note,action_date) VALUES(?,?,?,?,?)", (action.plant_id, datetime.now(timezone.utc).isoformat(), action.kind, action.note, action.action_date.isoformat() if action.action_date else None))
             return {"id": cursor.lastrowid, **action.model_dump()}
 
     @app.get("/api/actions")
